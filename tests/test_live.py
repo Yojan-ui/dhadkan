@@ -1,22 +1,26 @@
 """Live server: API, the 2 Hz frame, the demo flow end to end, and the replay script."""
+
 import asyncio
+import itertools
 import json
 
 import pytest
 from fastapi.testclient import TestClient
 
-from dhadkan import folk, live
-from dhadkan.config import MODELS
+from edge.config import MODELS
+from server import app as app_mod
+from server import folk
 
-pytestmark = pytest.mark.skipif(not (MODELS / "fan" / "model.tflite").exists(),
-                                reason="needs trained models (python -m dhadkan.train)")
+pytestmark = pytest.mark.skipif(
+    not (MODELS / "fan" / "model.tflite").exists(), reason="needs trained models (python -m edge.train)"
+)
 
 NOTE = "ब्लोअर में खट-खट की आवाज़ आ रही है"
 
 
 @pytest.fixture()
 def app(tmp_path):
-    return live.create_app(tmp_path / "node.db", tmp_path / "registry.db", stream=False)
+    return app_mod.create_app(tmp_path / "node.db", tmp_path / "registry.db", stream=False)
 
 
 @pytest.fixture()
@@ -45,7 +49,7 @@ def test_step_frame_and_audio(app, client):
         assert m["risk"] > 0 and -120 < m["energy"] < 0
     # each slice's window risk comes from that reading's own window errors
     a = lv.cache["A-F1"]
-    assert len(a["risk"]) == live.SLICES and len(a["energy"]) == live.SLICES
+    assert len(a["risk"]) == app_mod.SLICES and len(a["energy"]) == app_mod.SLICES
 
     r = client.get("/api/audio/A-F1/live.wav")
     assert r.status_code == 200 and r.content[:4] == b"RIFF"
@@ -65,8 +69,9 @@ def test_fault_to_route_to_reply(app, client):
     lab = client.post("/api/label", json={"text": NOTE}).json()
     assert (lab["sound"], lab["fault"]) == ("khat-khat", "bearing")
     pub = client.post("/api/publish").json()
-    checks = {c["machine"]: c for c in pub["checks"]}
-    assert set(checks) == {"B-F1", "C-F1", "C-F2"}           # same type, other factories
+    assert pub["pending"] == 0 and len(pub["published"]) == 1
+    checks = {c["machine"]: c for c in pub["published"][0]["checks"]}
+    assert set(checks) == {"B-F1", "C-F1", "C-F2"}  # same type, other factories
     assert checks["B-F1"]["same_model"] and not checks["C-F1"]["same_model"]
 
     client.post("/api/mode", json={"machine": "B-F1", "mode": "onset"})
@@ -83,7 +88,7 @@ def test_fault_to_route_to_reply(app, client):
     legs = s["route"]["legs"]
     assert {"A-F1", "B-F1"} <= {leg["machine"] for leg in legs}
     assert all(leg["arrive"] < leg["leave"] for leg in legs)
-    assert all(a["leave"] <= b["arrive"] for a, b in zip(legs, legs[1:]))
+    assert all(a["leave"] <= b["arrive"] for a, b in itertools.pairwise(legs))
     msgs = {m["machine"]: m for m in s["messages"]}
     assert msgs["B-F1"]["language"] == "mr" and msgs["B-F1"]["text_en"].startswith("Blower 1: sounds like")
     kinds = [e["kind"] for e in s["events"]]
@@ -108,7 +113,7 @@ def test_publish_needs_label_and_replay_locks_actions(app, client):
 
 
 def test_websocket_sends_state_then_frames(tmp_path):
-    app = live.create_app(tmp_path / "n.db", tmp_path / "r.db", stream=True)
+    app = app_mod.create_app(tmp_path / "n.db", tmp_path / "r.db", stream=True)
     with TestClient(app) as c:
         c.post("/api/step", json={"n": 1})
         with c.websocket_connect("/ws") as ws:
@@ -123,14 +128,31 @@ def test_websocket_sends_state_then_frames(tmp_path):
 
 def test_replay_script(tmp_path, monkeypatch):
     monkeypatch.setattr(folk, "transcribe", lambda path, language=None, **k: (NOTE, language))
-    lv = live.Live(tmp_path / "n.db", tmp_path / "r.db")
+    lv = app_mod.Live(tmp_path / "n.db", tmp_path / "r.db")
     asyncio.run(lv.run_replay(tick_s=0))
     kinds = [e["kind"] for e in lv.events]
     fault = next(e for e in lv.events if e["kind"] == "mode" and e["machine"] == "A-F1")
     assert fault["mode"] == "fault"
-    readings_before = [e for e in lv.events[:lv.events.index(fault)] if e["kind"] == "reading"]
-    assert len(readings_before) == live.REPLAY_FAULT_AT          # 0:40 at 10 s per reading
+    readings_before = [e for e in lv.events[: lv.events.index(fault)] if e["kind"] == "reading"]
+    assert len(readings_before) == app_mod.REPLAY_FAULT_AT  # 0:40 at 10 s per reading
     assert kinds.index("label") < kinds.index("published") < kinds.index("digest")
     assert lv.replay["phase"] == "awaiting owner" and lv.replay["on"] is False
     onset = next(e for e in lv.events if e["kind"] == "mode" and e["machine"] == "B-F1")
     assert onset["synthetic"] is True
+
+
+def test_fingerprint_waits_in_outbox_while_shed_is_offline(app, client):
+    lv = app.state.live
+    client.post("/api/step", json={"n": 2})
+    client.post("/api/mode", json={"machine": "A-F1", "mode": "fault"})
+    client.post("/api/step", json={"n": 3})
+    client.post("/api/label", json={"text": NOTE})
+    client.post("/api/link", json={"up": False})
+    pub = client.post("/api/publish").json()
+    assert pub["published"] == [] and pub["pending"] == 1
+    assert lv.c.reg.execute("SELECT COUNT(*) FROM fingerprints").fetchone()[0] == 0
+    assert client.get("/api/state").json()["link"] == {"up": False, "pending": 1}
+    back = client.post("/api/link", json={"up": True}).json()
+    assert back["pending"] == 0 and back["published"][0]["machine"] == "A-F1"
+    assert [e["kind"] for e in lv.events].count("published") == 1
+    assert lv.c.reg.execute("SELECT COUNT(*) FROM fingerprints").fetchone()[0] == 1

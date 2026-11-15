@@ -9,10 +9,20 @@ import { HISTORY, store, type Machine } from "../api";
 import { C } from "../theme";
 import { Label } from "./labels";
 
-export const W = 2.8, D = 2.2;
-const HMAX = 0.5, COLS = 64;
+export const W = 2.8,
+  D = 2.2;
+const HMAX = 0.5,
+  COLS = 64;
 
-export function Waterfall({ machine, at, reduced }: { machine: Machine; at: THREE.Vector3; reduced: boolean }) {
+export function Waterfall({
+  machine,
+  at,
+  reduced,
+}: {
+  machine: Machine;
+  at: THREE.Vector3;
+  reduced: boolean;
+}) {
   const group = useRef<THREE.Group>(null);
   const seen = useRef(0);
   const geo = useMemo(() => {
@@ -36,7 +46,7 @@ export function Waterfall({ machine, at, reduced }: { machine: Machine; at: THRE
     if (!g) return;
     // smooth scroll between 2 Hz frames
     const since = (performance.now() - store.frameAt) / 500;
-    g.position.z = at.z - (reduced ? 0 : Math.min(1, since) * (D / (HISTORY - 1)));   // drift back one row, then the rows shift
+    g.position.z = at.z - (reduced ? 0 : Math.min(1, since) * (D / (HISTORY - 1))); // drift back one row, then the rows shift
     if (store.frameAt === seen.current) return;
     seen.current = store.frameAt;
     const rows = store.spec[machine.id] ?? [];
@@ -69,9 +79,13 @@ export function WaterfallLabels({ at, hz }: { at: THREE.Vector3; hz: number[] })
   return (
     <>
       {[0, 21, 42, 63].map((c) => (
-        <Label key={c} at={[at.x - W / 2 + (c / 63) * W, at.y, at.z + D / 2 + 0.18]}><div className="axis mono">{tick(hz[c] ?? 0)} Hz</div></Label>
+        <Label key={c} at={[at.x - W / 2 + (c / 63) * W, at.y, at.z + D / 2 + 0.18]}>
+          <div className="axis mono">{tick(hz[c] ?? 0)} Hz</div>
+        </Label>
       ))}
-      <Label at={[at.x, at.y, at.z + D / 2 + 0.5]}><div className="axis">pitch, low to high (mel scale) · front row = now · back = 30 s ago</div></Label>
+      <Label at={[at.x, at.y, at.z + D / 2 + 0.5]}>
+        <div className="axis">pitch, low to high (mel scale) · front row = now · back = 30 s ago</div>
+      </Label>
     </>
   );
 }

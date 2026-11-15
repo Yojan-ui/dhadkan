@@ -1,8 +1,8 @@
 # Dhadkan
 
-![Spectrograms of a real industrial blower, normal and faulty](docs/blower_spectrograms.png)
+![Spectrograms of a real industrial blower, normal and faulty](docs/media/blower_spectrograms.png)
 
-Listen: [blower, normal](docs/blower_normal.wav) · [same blower model, faulty](docs/blower_fault.wav)
+Listen: [blower, normal](docs/media/blower_normal.wav) · [same blower model, faulty](docs/media/blower_fault.wav)
 (10 s each, MIMII dataset fan id_00, CC BY-SA 4.0)
 
 **A small factory in India loses a day's output when a pump or blower seizes, and the owner had no
@@ -25,28 +25,31 @@ Built for Tech4Bharat problem statement 4.3 (machine failure prediction for smal
 ## Run it
 
 ```bash
-python3.12 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-
-python scripts/download_data.py      # ~1 GB subset of MIMII + MIMII DUE, about 30 min (--small halves it)
-python -m dhadkan.train              # trains 3 models, writes models/ and runs/eval_<UTC>.json (~2 min CPU)
-python -m dhadkan.folk               # optional: Whisper check on the sample voice notes -> runs/asr_<UTC>.json
-pytest                               # 67 tests
-
-cd web && npm ci && npm run build && cd ..                  # React + three.js frontend -> web/dist
-uvicorn dhadkan.live:create_app --factory --port 8600       # open http://localhost:8600
+make setup     # .venv (Python 3.12) + pip install, and npm ci for the web app
+make data      # ~1 GB subset of MIMII + MIMII DUE, about 30 min (python -m data.download --small halves it)
+make train     # 3 models -> edge/models/, evaluation -> docs/runs/eval_<UTC>.json (~2 min CPU)
+make demo      # builds the web app, serves it with the API on :8600, starts the demo replay, opens it
 ```
 
-Frontend development: run the uvicorn line above, then `cd web && npm run dev` (Vite proxies
-`/api` and `/ws` to port 8600). Add `?debug` to the URL for frame rate and draw calls, and
-`?m=B-F1` to open a machine directly.
+The trained models and the evaluation record are committed, so `make setup && make demo` works
+without `make data` / `make train` except for the audio replay itself, which needs the clips.
+
+```bash
+make test      # pytest: scoring, thresholds, registry, outbox, agent guardrails, live server
+make lint      # ruff + black, eslint + prettier, tsc --strict; zero warnings
+make dev       # API on :8600 + Vite with hot reload on :5173
+python -m server.folk    # optional: Whisper check on the sample voice notes -> docs/runs/asr_<UTC>.json
+python -m server.story   # the demo script without waiting -> docs/runs/story_<UTC>.json
+```
+
+Add `?debug` to the URL for frame rate and draw calls, and `?m=B-F1` to open a machine directly.
 
 Everything runs offline after the downloads (datasets; the Whisper `small` model is fetched from
 Hugging Face on first use). Only two things call the network, both optional and both need
 `ANTHROPIC_API_KEY`: the agent's "Run (Claude)" button and the LLM fallback for sound words the
 lexicon doesn't know. Without a key, "Run (rules)" calls the same tools in a fixed order.
 
-The registry API on its own: `uvicorn dhadkan.api:create_app --factory --port 8100`.
+The registry API on its own: `uvicorn server.registry_api:create_app --factory --port 8100`.
 
 ## Demo
 
@@ -76,40 +79,54 @@ when `ANTHROPIC_API_KEY` is set; **Evaluation** shows the scores below; **Log** 
 tool call. Under 768 px wide the page switches to a 2D list with the same rings and never loads
 three.js. With `prefers-reduced-motion`, nothing shakes, ripples or tweens.
 
-In the logged replay (`python scripts/replay_story.py` -> `runs/story_<UTC>.json`), B-F1 was
-flagged at onset strength 0.3, three readings (one simulated day) before its own alarm. That is one
-replay, not a statistic; the statistic is the registry table below.
+In the logged run of the same script (`python -m server.story` ->
+`docs/runs/story_20261115T153252Z.json`), B-F1 was flagged at onset strength 0.2, three readings
+(one simulated day) before its own alarm. That is one replay, not a statistic; the statistic is the
+registry table below.
+
+If the shed has no signal when the owner confirms, the fingerprint waits in the phone's outbox
+(`edge/outbox.py`: SQLite, retried with backoff, idempotency key so a retry after a lost reply is
+stored once) and goes out when the signal returns. **Operator → Shed signal** shows this.
 
 ## What is in here
 
 ```
-scripts/download_data.py   pulls only the needed files out of the Zenodo zips (HTTP range requests)
-dhadkan/features.py        audio -> 1.06 s log-mel windows (64 mels x 32 frames, 50% overlap)
-dhadkan/model.py           conv autoencoder (217k params) + TFLite export
-dhadkan/train.py           trains on NORMAL windows only, per-machine thresholds, AUC/pAUC, registry check
-dhadkan/scoring.py         reconstruction error, thresholds, AUC, DCASE pAUC
-dhadkan/edge.py            what the phone runs: .tflite + per-machine alarm levels
-dhadkan/embed.py           fault fingerprint: per-band residual, standardised per machine
-dhadkan/registry.py        SQLite: fingerprints and weak labels (no audio column exists)
-dhadkan/api.py             FastAPI: /fingerprints, /match, /labels/text, /labels/voice
-dhadkan/folk.py            Whisper (local) -> lexicon -> Claude fallback; lexicon.json is editable
-dhadkan/alerts.py          owner messages in Hindi / Marathi / English, yes/no reply parsing
-dhadkan/route.py           technician route: exact best-risk-within-hours, shortest order
-dhadkan/agent.py           4 tools, Claude tool loop or fixed-order rules, every call logged
-dhadkan/sim.py             3 factories x 4 machines replaying real clips
-dhadkan/live.py            FastAPI + WebSocket for the frontend, 2 Hz stream, demo replay script
-web/                       React + Vite + TypeScript, react-three-fiber (instanced meshes, ~10-14 draw calls)
+edge/        the model, and what the phone runs
+  features.py   audio -> 1.06 s log-mel windows (64 mels x 32 frames, 50% overlap)
+  model.py      conv autoencoder (217k params) + TFLite export
+  train.py      trains on NORMAL windows only, per-machine thresholds, AUC/pAUC, registry check
+  scoring.py    reconstruction error, thresholds, AUC, DCASE pAUC
+  runtime.py    the .tflite model + per-machine alarm levels, as the phone would run it
+  embed.py      fault fingerprint: per-band residual, standardised per machine
+  outbox.py     offline queue for fingerprints (exactly once, in order, survives restarts)
+  models/       exported .tflite + meta.json per machine type
+server/      API, registry and agent
+  app.py        FastAPI + WebSocket for the web app, 2 Hz stream, demo replay script
+  demo.py       `make demo` launcher
+  registry.py   SQLite: fingerprints and weak labels (no audio column exists)
+  registry_api.py  FastAPI: /fingerprints, /match, /labels/text, /labels/voice
+  folk.py       Whisper (local) -> lexicon -> Claude fallback; lexicon.json is editable
+  alerts.py     owner messages in Hindi / Marathi / English, yes/no reply parsing
+  route.py      technician route: exact best-risk-within-hours, shortest order, ETAs
+  agent.py      4 tools (none can control a machine), Claude tool loop or fixed-order rules, all logged
+  sim.py        3 factories x 4 machines replaying real clips
+web/         React + Vite + TypeScript, react-three-fiber (instanced meshes, ~10-14 draw calls)
+data/        download.py (Zenodo range requests), sim/ (cluster, mock parts, voice notes), raw/ (ignored)
+docs/        media/, runs/ (every evaluation, ASR and story record the README cites)
+tests/       pytest
 ```
 
 ## Results
 
 Every number below and on the dashboard comes from one evaluation record; regenerate both with
-`python -m dhadkan.train && python -m dhadkan.report`. Clip-level AUC/pAUC (pAUC = DCASE
+`make train && python -m edge.report`. Clip-level AUC/pAUC (pAUC = DCASE
 definition, FPR <= 0.1). "false alarms / faults caught" use each machine's own alarm level.
 
-From `runs/eval_20261115T085722Z.json` (code sha256 a1b9d12adbbf). Code changed after that run
-(`edge.py` also returns per-band deviations, `agent.py` adds an English line to owner messages,
-`live.py` is new); none of it changes how a clip is scored.
+From `docs/runs/eval_20261115T085722Z.json` (code sha256 a1b9d12adbbf, hashed over the model code
+as it was then). The code has moved and changed since (`edge/runtime.py` also returns per-band
+deviations and scores with 4 threads; files moved from `dhadkan/` into `edge/` and `server/`);
+none of it changes how a clip is scored, and `tests/test_thresholds.py` checks the shipped
+thresholds against this record.
 
 | type | condition | AUC | pAUC | normal + anomalous | false alarms | faults caught |
 |---|---|---|---|---|---|---|
@@ -168,7 +185,7 @@ What these numbers say:
   same-model cases have high false-flag rates (pump id_02: 50%). "Same model" is approximated by
   disjoint clips of one recorded unit; we have no recordings of two identical machines.
 - **Voice notes.** On our synthetic notes, Whisper-small labelled the Hindi note correctly in 3 of
-  3 runs and the Marathi note in 1 of 3 (`runs/asr_*.json`). Typed notes and the Claude fallback
+  3 runs and the Marathi note in 1 of 3 (`docs/runs/asr_*.json`). Typed notes and the Claude fallback
   cover misses.
 
 ## Assumptions and limits
@@ -192,7 +209,7 @@ What these numbers say:
   text-to-speech, not real owners. Dealer parts and prices are mock data.
 - **Phone.** We export a 256 KB `.tflite` (dynamic-range int8 weights) and check it scores within
   0.2% of the Keras model; the log-mel front end to re-implement on Android is in
-  `models/frontend.json`. We did not build the Android app.
+  `edge/models/frontend.json`. We did not build the Android app.
 - **Agent.** It has four tools (risk ranking, route, owner message, parts quote) and no tool that
   can control a machine. Owner text only comes from reviewed templates. It does not repeat a
   question while one is open or a visit is already approved. Model: `claude-opus-5-5` with
@@ -205,4 +222,4 @@ What these numbers say:
 - Tanabe et al., "MIMII DUE: Sound Dataset for Malfunctioning Industrial Machine Investigation
   and Inspection with Domain Shifts", 2021. https://zenodo.org/records/4740355 (CC BY-SA 4.0)
 
-The clips in `docs/` are unmodified channel-0 extracts from MIMII and keep its CC BY-SA 4.0 license.
+The clips in `docs/media/` are unmodified channel-0 extracts from MIMII and keep its CC BY-SA 4.0 license.

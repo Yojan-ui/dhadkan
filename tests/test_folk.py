@@ -1,9 +1,9 @@
-from dhadkan import folk
+from server import folk
 
 
 def test_word_start_only():
     lex = folk.load_lexicon()
-    assert folk.extract("chatak se toot gaya", lex) == []      # "atak" inside a word
+    assert folk.extract("chatak se toot gaya", lex) == []  # "atak" inside a word
 
 
 def test_two_sounds_split_weight():

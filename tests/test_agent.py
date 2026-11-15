@@ -1,23 +1,54 @@
-import json
 from types import SimpleNamespace as NS
 
-import numpy as np
 import pytest
 
-from dhadkan import agent, registry
-from dhadkan.sim import Cluster
+from server import agent, registry
+from server.sim import Cluster
 
 CFG = {
-    "start": "2026-11-09T06:00:00", "tick_hours": 8, "road_kmph": 20,
+    "start": "2026-11-09T06:00:00",
+    "tick_hours": 8,
+    "road_kmph": 20,
     "technician": {"name": "Ramesh (mistri)", "name_local": "रमेश", "xy_km": [0, 0], "hours_per_day": 7},
     "service_hours": {"pump": 1.0, "fan": 0.75, "gearbox": 1.5},
     "factories": [
-        {"id": "A", "name": "A Works", "area": "Bhosari", "area_local": "भोसरी", "xy_km": [0, 0], "owner": "S", "language": "mr", "phone": "1"},
-        {"id": "B", "name": "B Works", "area": "Chakan", "xy_km": [10, 0], "owner": "R", "language": "hi", "phone": "2"},
+        {
+            "id": "A",
+            "name": "A Works",
+            "area": "Bhosari",
+            "area_local": "भोसरी",
+            "xy_km": [0, 0],
+            "owner": "S",
+            "language": "mr",
+            "phone": "1",
+        },
+        {
+            "id": "B",
+            "name": "B Works",
+            "area": "Chakan",
+            "xy_km": [10, 0],
+            "owner": "R",
+            "language": "hi",
+            "phone": "2",
+        },
     ],
     "machines": [
-        {"id": "A-P1", "factory": "A", "name": "Pump 1", "name_local": "पंप 1", "type": "pump", "source": "pump/id_00"},
-        {"id": "B-P2", "factory": "B", "name": "Pump 2", "name_local": "पंप 2", "type": "pump", "source": "pump/id_00"},
+        {
+            "id": "A-P1",
+            "factory": "A",
+            "name": "Pump 1",
+            "name_local": "पंप 1",
+            "type": "pump",
+            "source": "pump/id_00",
+        },
+        {
+            "id": "B-P2",
+            "factory": "B",
+            "name": "Pump 2",
+            "name_local": "पंप 2",
+            "type": "pump",
+            "source": "pump/id_00",
+        },
     ],
 }
 
@@ -30,9 +61,24 @@ def cluster(tmp_path):
     for tick in range(9):
         ts = c.now(tick).isoformat(timespec="minutes")
         for mid, risk, cos in (("A-P1", 0.6 + 0.12 * tick, None), ("B-P2", 0.7, 0.9)):
-            c.db.execute("INSERT INTO readings VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                         (tick, ts, mid, "x.wav", "normal", 0, risk, 1.0, risk,
-                          cos, 0.5 if cos else None, fp if cos else None, "[]"))
+            c.db.execute(
+                "INSERT INTO readings VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (
+                    tick,
+                    ts,
+                    mid,
+                    "x.wav",
+                    "normal",
+                    0,
+                    risk,
+                    1.0,
+                    risk,
+                    cos,
+                    0.5 if cos else None,
+                    fp if cos else None,
+                    "[]",
+                ),
+            )
     c.db.commit()
     return c
 
@@ -46,9 +92,11 @@ def test_ranking_statuses(cluster):
 
 
 def test_rules_run_logs_every_tool_call(cluster):
-    run_id, note = agent.run_rules(cluster)
-    tools = [r["tool"] for r in cluster.db.execute(
-        "SELECT tool FROM tool_calls WHERE run_id=? ORDER BY id", (run_id,))]
+    run_id, _note = agent.run_rules(cluster)
+    tools = [
+        r["tool"]
+        for r in cluster.db.execute("SELECT tool FROM tool_calls WHERE run_id=? ORDER BY id", (run_id,))
+    ]
     assert tools[:2] == ["get_risk_ranking", "plan_technician_route"]
     assert tools.count("draft_owner_alert") == 2
     msgs = [r["body"] for r in cluster.db.execute("SELECT body FROM messages")]
@@ -75,12 +123,22 @@ class FakeClaude:
         self.calls.append({**kw, "messages": list(kw["messages"])})
         n = len(self.calls)
         if n == 1:
-            return NS(stop_reason="tool_use", content=[
-                NS(type="tool_use", id="t1", name="get_risk_ranking", input={})])
+            return NS(
+                stop_reason="tool_use",
+                content=[NS(type="tool_use", id="t1", name="get_risk_ranking", input={})],
+            )
         if n == 2:
-            return NS(stop_reason="tool_use", content=[
-                NS(type="tool_use", id="t2", name="draft_owner_alert",
-                   input={"machine_id": "A-P1", "kind": "rising", "visit_day": "Tuesday"})])
+            return NS(
+                stop_reason="tool_use",
+                content=[
+                    NS(
+                        type="tool_use",
+                        id="t2",
+                        name="draft_owner_alert",
+                        input={"machine_id": "A-P1", "kind": "rising", "visit_day": "Tuesday"},
+                    )
+                ],
+            )
         return NS(stop_reason="end_turn", content=[NS(type="text", text="Tuesday: A-P1")])
 
 

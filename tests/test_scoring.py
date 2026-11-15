@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from sklearn.metrics import roc_curve
 
-from dhadkan import scoring
+from edge import scoring
 
 
 def reference_pauc(y, s, max_fpr):

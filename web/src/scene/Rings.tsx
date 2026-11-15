@@ -42,10 +42,18 @@ const RIPPLE_FS = /* glsl */ `
 varying float vAlpha;
 void main() { if (vAlpha < 0.01) discard; gl_FragColor = vec4(0.82, 0.83, 0.85, vAlpha); }`;
 
-const PER = 3;          // ripples per machine
+const PER = 3; // ripples per machine
 const PULSE_S = 1.4;
 
-export function Rings({ machines, pos, reduced }: { machines: Machine[]; pos: Record<string, THREE.Vector3>; reduced: boolean }) {
+export function Rings({
+  machines,
+  pos,
+  reduced,
+}: {
+  machines: Machine[];
+  pos: Record<string, THREE.Vector3>;
+  reduced: boolean;
+}) {
   const ring = useRef<THREE.InstancedMesh>(null);
   const rip = useRef<THREE.InstancedMesh>(null);
   const n = machines.length;
@@ -65,13 +73,29 @@ export function Rings({ machines, pos, reduced }: { machines: Machine[]; pos: Re
     g.setAttribute("aAlpha", new THREE.InstancedBufferAttribute(new Float32Array(n * PER), 1));
     return g;
   }, [n]);
-  const ringMat = useMemo(() => new THREE.ShaderMaterial({
-    vertexShader: RING_VS, fragmentShader: RING_FS, transparent: true, depthWrite: false,
-    polygonOffset: true, polygonOffsetFactor: -2,
-  }), []);
-  const ripMat = useMemo(() => new THREE.ShaderMaterial({
-    vertexShader: RIPPLE_VS, fragmentShader: RIPPLE_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide,
-  }), []);
+  const ringMat = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        vertexShader: RING_VS,
+        fragmentShader: RING_FS,
+        transparent: true,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+      }),
+    [],
+  );
+  const ripMat = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        vertexShader: RIPPLE_VS,
+        fragmentShader: RIPPLE_FS,
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }),
+    [],
+  );
 
   useLayoutEffect(() => {
     const m = ring.current;

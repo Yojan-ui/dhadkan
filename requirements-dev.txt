@@ -1,0 +1,4 @@
+# Lint and test (make lint / make test).
+ruff==0.17.5
+black==26.10.1
+pytest==9.2.0

@@ -7,15 +7,30 @@ import type { OrbitControls as OC } from "three-stdlib";
 
 export type View = { kind: "cluster" } | { kind: "shed"; factory: string } | { kind: "machine"; id: string };
 
-export function CameraRig({ goal, view, reduced }: { goal: { pos: THREE.Vector3; target: THREE.Vector3 }; view: View; reduced: boolean }) {
-  const { camera, controls } = useThree() as unknown as { camera: THREE.PerspectiveCamera; controls: OC | null };
+export function CameraRig({
+  goal,
+  view,
+  reduced,
+}: {
+  goal: { pos: THREE.Vector3; target: THREE.Vector3 };
+  view: View;
+  reduced: boolean;
+}) {
+  const { camera, controls } = useThree() as unknown as {
+    camera: THREE.PerspectiveCamera;
+    controls: OC | null;
+  };
   const moving = useRef(true);
   const key = useMemo(() => JSON.stringify(view), [view]);
 
-  useEffect(() => { moving.current = true; }, [key]);
+  useEffect(() => {
+    moving.current = true;
+  }, [key]);
   useEffect(() => {
     if (!controls) return;
-    const stop = () => { moving.current = false; };
+    const stop = () => {
+      moving.current = false;
+    };
     controls.addEventListener("start", stop);
     return () => controls.removeEventListener("start", stop);
   }, [controls]);
@@ -31,7 +46,8 @@ export function CameraRig({ goal, view, reduced }: { goal: { pos: THREE.Vector3;
     camera.position.lerp(goal.pos, k);
     controls.target.lerp(goal.target, k);
     controls.update();
-    if (camera.position.distanceTo(goal.pos) < 0.02 && controls.target.distanceTo(goal.target) < 0.02) moving.current = false;
+    if (camera.position.distanceTo(goal.pos) < 0.02 && controls.target.distanceTo(goal.target) < 0.02)
+      moving.current = false;
   });
   return null;
 }

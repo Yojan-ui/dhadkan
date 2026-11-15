@@ -41,37 +41,60 @@ export function ringCSS(m: Machine) {
   return `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)})`;
 }
 
-const FAULT_EN: Record<string, string> = { bearing: "bearing", imbalance: "imbalance", loose_belt: "loose belt", clog: "clogging" };
+const FAULT_EN: Record<string, string> = {
+  bearing: "bearing",
+  imbalance: "imbalance",
+  loose_belt: "loose belt",
+  clog: "clogging",
+};
 
 /** One line, the way the mechanic would say it. */
 export function mechanicLine(m: Machine, factories: Factory[]) {
   if (!m.latest) return "No reading yet.";
   const pct = Math.round((m.risk3 ?? 0) * 100);
   const rising = m.days_rising > 1 ? ` Getting worse for ${m.days_rising} days.` : "";
-  const fault = m.known_fault ? FAULT_EN[m.known_fault] ?? m.known_fault : null;
+  const fault = m.known_fault ? (FAULT_EN[m.known_fault] ?? m.known_fault) : null;
   switch (m.status) {
     case "alarm":
       return `Past its alarm level (${pct}%). ${fault ? `Sounds like ${fault} trouble. ` : ""}Get it checked.${rising}`;
     case "early_match": {
-      const area = m.registry?.from_area ?? factories.find((f) => f.id !== m.factory)?.area ?? "another factory";
+      const area =
+        m.registry?.from_area ?? factories.find((f) => f.id !== m.factory)?.area ?? "another factory";
       return `No alarm yet (${pct}%), but it sounds like the ${fault ?? "fault"} confirmed in ${area}. Have it looked at.`;
     }
     case "watch":
       return `Close to its alarm level (${pct}%). Keep an ear on it.${rising}`;
     default:
-      return pct < 85 ? `Sounds like its normal self (${pct}% of alarm).` : `A little off its usual sound (${pct}% of alarm). Nothing to do yet.${rising}`;
+      return pct < 85
+        ? `Sounds like its normal self (${pct}% of alarm).`
+        : `A little off its usual sound (${pct}% of alarm). Nothing to do yet.${rising}`;
   }
 }
 
+/** Risk (score / own alarm level) as "81%". */
+export function pct(r: number | null | undefined) {
+  return r == null ? "--" : `${Math.round(r * 100)}%`;
+}
+
 export const STATUS_WORD: Record<string, string> = {
-  ok: "ok", watch: "watch", alarm: "alarm", early_match: "early match", no_data: "no data",
+  ok: "ok",
+  watch: "watch",
+  alarm: "alarm",
+  early_match: "early match",
+  no_data: "no data",
 };
 
-export const SHAPE_WORD: Record<string, string> = { pump: "pump", motor: "motor + blower", loom: "loom", mill: "flour mill" };
+export const SHAPE_WORD: Record<string, string> = {
+  pump: "pump",
+  motor: "motor + blower",
+  loom: "loom",
+  mill: "flour mill",
+};
 
 export function sourceWord(m: Machine) {
   const [t, u] = m.source.split("/");
-  if (t === "gearbox") return `MIMII DUE gearbox ${u.replace("section_", "section ")} (stands in for the ${SHAPE_WORD[m.shape]}'s gear drive)`;
+  if (t === "gearbox")
+    return `MIMII DUE gearbox ${u.replace("section_", "section ")} (stands in for the ${SHAPE_WORD[m.shape]}'s gear drive)`;
   return `MIMII ${t} ${u.replace("_", " ")}`;
 }
 

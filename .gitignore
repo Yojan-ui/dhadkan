@@ -2,9 +2,13 @@
 __pycache__/
 *.pyc
 .pytest_cache/
-data/
-models/*/model.keras
+.ruff_cache/
+data/raw/
+data/*.db
+data/*.db-journal
+edge/models/*/model.keras
 *.log
 web/node_modules/
 web/dist/
 *.tsbuildinfo
+.DS_Store

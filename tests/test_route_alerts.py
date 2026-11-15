@@ -1,7 +1,7 @@
 import itertools
 import math
 
-from dhadkan import agent, alerts, route
+from server import alerts, route
 
 
 def stops():
@@ -21,9 +21,11 @@ def test_route_visits_all_when_time_allows():
 def test_route_is_shortest_order():
     p = route.plan(stops(), [0, 0], hours=20, kmph=10)
     xy = {s["id"]: s["xy_km"] for s in stops()}
+
     def length(order):
         pts = [[0, 0]] + [xy[i] for i in order] + [[0, 0]]
-        return sum(math.dist(a, b) for a, b in zip(pts, pts[1:]))
+        return sum(math.dist(a, b) for a, b in itertools.pairwise(pts))
+
     assert math.isclose(length(p["order"]), min(length(o) for o in itertools.permutations(xy)))
 
 
@@ -51,12 +53,17 @@ def test_alerts_never_say_stop():
 
 def test_alert_reads_like_a_mechanic():
     t = alerts.draft("en", "rising", "Loom 4", 3, fault="bearing", days=3, tech="Ramesh")
-    assert t == "Loom 4: bearing sound rising for 3 days. Check before Thursday. Send Ramesh on Thursday? Reply YES / NO"
+    assert (
+        t
+        == "Loom 4: bearing sound rising for 3 days. Check before Thursday. Send Ramesh on Thursday? Reply YES / NO"
+    )
     hi = alerts.draft("hi", "rising", "पंप 1", 3, fault="bearing", days=3, tech="रमेश")
     assert hi.startswith("पंप 1: बेयरिंग की आवाज़ 3 दिन से बढ़ रही है। गुरुवार से पहले")
     mr = alerts.draft("mr", "rising", "पंप 1", 3, fault="bearing", days=3, tech="रमेश")
-    assert mr == ("पंप 1: बेअरिंगचा आवाज 3 दिवसांपासून वाढतोय. गुरुवारच्या आधी तपासून घ्या."
-                  " रमेशला गुरुवारी पाठवू का? उत्तर द्या: हो / नाही")
+    assert mr == (
+        "पंप 1: बेअरिंगचा आवाज 3 दिवसांपासून वाढतोय. गुरुवारच्या आधी तपासून घ्या."
+        " रमेशला गुरुवारी पाठवू का? उत्तर द्या: हो / नाही"
+    )
 
 
 def test_parse_reply():
@@ -66,9 +73,3 @@ def test_parse_reply():
         assert alerts.parse_reply(no) is False, no
     assert alerts.parse_reply("kal dekhte hain") is None
     assert alerts.parse_reply("haan nahi") is None
-
-
-def test_agent_has_no_machine_control_tool():
-    names = {t["name"] for t in agent.TOOLS}
-    assert names == {"get_risk_ranking", "plan_technician_route", "draft_owner_alert", "quote_parts"}
-    assert not any(w in t["name"] for t in agent.TOOLS for w in ("stop", "shut", "off", "control"))

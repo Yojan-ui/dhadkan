@@ -1,0 +1,358 @@
+{
+ "run_id": "20261115T153252Z",
+ "steps": [
+  {
+   "tag": "baseline",
+   "ts": "2026-11-09T06:00",
+   "machine": "A-F1",
+   "mode": "normal",
+   "mix": 0.0,
+   "risk": 0.8660393794227238,
+   "risk3": 0.866,
+   "match_cos": null,
+   "match_level": null,
+   "status": "ok"
+  },
+  {
+   "tag": "baseline",
+   "ts": "2026-11-09T06:00",
+   "machine": "B-F1",
+   "mode": "normal",
+   "mix": 0.0,
+   "risk": 0.7851861689172511,
+   "risk3": 0.785,
+   "match_cos": null,
+   "match_level": null,
+   "status": "ok"
+  },
+  {
+   "tag": "baseline",
+   "ts": "2026-11-09T14:00",
+   "machine": "A-F1",
+   "mode": "normal",
+   "mix": 0.0,
+   "risk": 0.9516249196056088,
+   "risk3": 0.909,
+   "match_cos": null,
+   "match_level": null,
+   "status": "ok"
+  },
+  {
+   "tag": "baseline",
+   "ts": "2026-11-09T14:00",
+   "machine": "B-F1",
+   "mode": "normal",
+   "mix": 0.0,
+   "risk": 1.0981559102158742,
+   "risk3": 0.942,
+   "match_cos": null,
+   "match_level": null,
+   "status": "ok"
+  },
+  {
+   "tag": "baseline",
+   "ts": "2026-11-09T22:00",
+   "machine": "A-F1",
+   "mode": "normal",
+   "mix": 0.0,
+   "risk": 0.8254875126904114,
+   "risk3": 0.881,
+   "match_cos": null,
+   "match_level": null,
+   "status": "ok"
+  },
+  {
+   "tag": "baseline",
+   "ts": "2026-11-09T22:00",
+   "machine": "B-F1",
+   "mode": "normal",
+   "mix": 0.0,
+   "risk": 0.7493405733465177,
+   "risk3": 0.878,
+   "match_cos": null,
+   "match_level": null,
+   "status": "ok"
+  },
+  {
+   "tag": "baseline",
+   "ts": "2026-11-10T06:00",
+   "machine": "A-F1",
+   "mode": "normal",
+   "mix": 0.0,
+   "risk": 0.6959980604208058,
+   "risk3": 0.824,
+   "match_cos": null,
+   "match_level": null,
+   "status": "ok"
+  },
+  {
+   "tag": "baseline",
+   "ts": "2026-11-10T06:00",
+   "machine": "B-F1",
+   "mode": "normal",
+   "mix": 0.0,
+   "risk": 0.8768943422988849,
+   "risk3": 0.908,
+   "match_cos": null,
+   "match_level": null,
+   "status": "ok"
+  },
+  {
+   "tag": "A-F1 fault",
+   "ts": "2026-11-10T14:00",
+   "machine": "A-F1",
+   "mode": "fault",
+   "mix": 1.0,
+   "risk": 1.3280862777334854,
+   "risk3": 0.95,
+   "match_cos": null,
+   "match_level": null,
+   "status": "ok"
+  },
+  {
+   "tag": "A-F1 fault",
+   "ts": "2026-11-10T14:00",
+   "machine": "B-F1",
+   "mode": "normal",
+   "mix": 0.0,
+   "risk": 0.8650131211077352,
+   "risk3": 0.83,
+   "match_cos": null,
+   "match_level": null,
+   "status": "ok"
+  },
+  {
+   "tag": "A-F1 fault",
+   "ts": "2026-11-10T22:00",
+   "machine": "A-F1",
+   "mode": "fault",
+   "mix": 1.0,
+   "risk": 1.2418863413885053,
+   "risk3": 1.089,
+   "match_cos": null,
+   "match_level": null,
+   "status": "alarm"
+  },
+  {
+   "tag": "A-F1 fault",
+   "ts": "2026-11-10T22:00",
+   "machine": "B-F1",
+   "mode": "normal",
+   "mix": 0.0,
+   "risk": 0.7017153675960448,
+   "risk3": 0.815,
+   "match_cos": null,
+   "match_level": null,
+   "status": "ok"
+  },
+  {
+   "tag": "A-F1 fault",
+   "ts": "2026-11-11T06:00",
+   "machine": "A-F1",
+   "mode": "fault",
+   "mix": 1.0,
+   "risk": 1.2377849202000526,
+   "risk3": 1.269,
+   "match_cos": null,
+   "match_level": null,
+   "status": "alarm"
+  },
+  {
+   "tag": "A-F1 fault",
+   "ts": "2026-11-11T06:00",
+   "machine": "B-F1",
+   "mode": "normal",
+   "mix": 0.0,
+   "risk": 0.7072041252471003,
+   "risk3": 0.758,
+   "match_cos": null,
+   "match_level": null,
+   "status": "ok"
+  },
+  {
+   "tag": "B-F1 onset",
+   "ts": "2026-11-11T14:00",
+   "machine": "A-F1",
+   "mode": "fault",
+   "mix": 1.0,
+   "risk": 1.2858609898754672,
+   "risk3": 1.255,
+   "match_cos": null,
+   "match_level": null,
+   "status": "alarm"
+  },
+  {
+   "tag": "B-F1 onset",
+   "ts": "2026-11-11T14:00",
+   "machine": "B-F1",
+   "mode": "onset",
+   "mix": 0.1,
+   "risk": 0.8143764367444408,
+   "risk3": 0.741,
+   "match_cos": 0.43172682203588886,
+   "match_level": 0.39086394242120004,
+   "status": "ok"
+  },
+  {
+   "tag": "B-F1 onset",
+   "ts": "2026-11-11T22:00",
+   "machine": "A-F1",
+   "mode": "fault",
+   "mix": 1.0,
+   "risk": 1.309577163341864,
+   "risk3": 1.278,
+   "match_cos": null,
+   "match_level": null,
+   "status": "alarm"
+  },
+  {
+   "tag": "B-F1 onset",
+   "ts": "2026-11-11T22:00",
+   "machine": "B-F1",
+   "mode": "onset",
+   "mix": 0.2,
+   "risk": 0.8981033941363078,
+   "risk3": 0.807,
+   "match_cos": 0.5123936479842498,
+   "match_level": 0.39086394242120004,
+   "status": "early_match"
+  },
+  {
+   "tag": "B-F1 onset",
+   "ts": "2026-11-12T06:00",
+   "machine": "A-F1",
+   "mode": "fault",
+   "mix": 1.0,
+   "risk": 1.1640924694432515,
+   "risk3": 1.253,
+   "match_cos": null,
+   "match_level": null,
+   "status": "alarm"
+  },
+  {
+   "tag": "B-F1 onset",
+   "ts": "2026-11-12T06:00",
+   "machine": "B-F1",
+   "mode": "onset",
+   "mix": 0.30000000000000004,
+   "risk": 0.9812567201730275,
+   "risk3": 0.898,
+   "match_cos": 0.6289744422923713,
+   "match_level": 0.39086394242120004,
+   "status": "early_match"
+  },
+  {
+   "tag": "B-F1 onset",
+   "ts": "2026-11-12T14:00",
+   "machine": "A-F1",
+   "mode": "fault",
+   "mix": 1.0,
+   "risk": 1.396511210218709,
+   "risk3": 1.29,
+   "match_cos": null,
+   "match_level": null,
+   "status": "alarm"
+  },
+  {
+   "tag": "B-F1 onset",
+   "ts": "2026-11-12T14:00",
+   "machine": "B-F1",
+   "mode": "onset",
+   "mix": 0.4,
+   "risk": 0.9827703501356353,
+   "risk3": 0.954,
+   "match_cos": 0.7383458276991901,
+   "match_level": 0.39086394242120004,
+   "status": "early_match"
+  },
+  {
+   "tag": "B-F1 onset",
+   "ts": "2026-11-12T22:00",
+   "machine": "A-F1",
+   "mode": "fault",
+   "mix": 1.0,
+   "risk": 1.295358329877212,
+   "risk3": 1.285,
+   "match_cos": null,
+   "match_level": null,
+   "status": "alarm"
+  },
+  {
+   "tag": "B-F1 onset",
+   "ts": "2026-11-12T22:00",
+   "machine": "B-F1",
+   "mode": "onset",
+   "mix": 0.5,
+   "risk": 1.0526354671295992,
+   "risk3": 1.006,
+   "match_cos": 0.6783197314283804,
+   "match_level": 0.39086394242120004,
+   "status": "alarm"
+  }
+ ],
+ "label": {
+  "sound": "khat-khat",
+  "fault": "bearing",
+  "scores": {
+   "bearing": 0.7,
+   "imbalance": 0.1,
+   "loose_belt": 0.2,
+   "clog": 0.0
+  },
+  "source": "lexicon",
+  "id": 1,
+  "text": "ब्लोअर में खट-खट की आवाज़ आ रही है",
+  "machine": "A-F1",
+  "factory": "A",
+  "via": "typed"
+ },
+ "published": [
+  {
+   "fingerprint": 1,
+   "machine": "A-F1",
+   "checks": [
+    {
+     "machine": "B-F1",
+     "cosine": -0.127,
+     "level": 0.391,
+     "match": false,
+     "same_model": true
+    },
+    {
+     "machine": "C-F1",
+     "cosine": -0.246,
+     "level": 0.269,
+     "match": false,
+     "same_model": false
+    },
+    {
+     "machine": "C-F2",
+     "cosine": 0.231,
+     "level": 0.269,
+     "match": false,
+     "same_model": false
+    }
+   ]
+  }
+ ],
+ "digest": {
+  "run_id": "rules-06f66835",
+  "note": "Thursday: A-F1 (Bhosari MIDC) -> B-F1 (Chakan) (44.1 km)\ncarry for A-F1: Pillow block UCP 206\ncarry for B-F1: Pillow block UCP 206"
+ },
+ "messages": [
+  {
+   "factory": "A",
+   "body": "ब्लोअर 1: बेयरिंग की आवाज़ 3 दिन से बढ़ रही है। गुरुवार से पहले जाँच करवा लें। रमेश को गुरुवार को भेजें? जवाब दें: हाँ / ना"
+  },
+  {
+   "factory": "B",
+   "body": "ब्लोअर 1: भोसरीमधल्या एका मशीनमध्ये बेअरिंग खराब होण्याआधी जसा आवाज होता, तसा आवाज येतोय. अजून अलार्म नाही, गुरुवारच्या आधी एकदा दाखवून घ्या. रमेशला गुरुवारी पाठवू का? उत्तर द्या: हो / नाही"
+  }
+ ],
+ "summary": {
+  "b_first_early_match_reading": 1,
+  "b_first_alarm_reading": 4,
+  "b_mix_at_early_match": 0.2,
+  "readings_of_warning": 3
+ }
+}
