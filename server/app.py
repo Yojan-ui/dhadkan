@@ -540,6 +540,8 @@ class Live:
             "frame_s": FRAME_S,
             "fault_machine": FAULT_MACHINE,
             "similar_machine": SIMILAR_MACHINE,
+            "nominal_rpm": cfg.get("nominal_rpm", {}),
+            "rpm_note": cfg.get("_rpm_note", ""),
             "has_key": bool(os.environ.get("ANTHROPIC_API_KEY")),
             "note": cfg.get("_note", ""),
             "eval": latest_eval(),

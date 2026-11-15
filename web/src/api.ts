@@ -12,6 +12,7 @@ export interface Registry {
   matched: boolean;
   fault: string;
   owner_label: string;
+  from_machine?: string;
   from_area: string;
   from_area_local: string;
 }
@@ -247,6 +248,8 @@ export interface Meta {
   fault_machine: string;
   similar_machine: string;
   has_key: boolean;
+  nominal_rpm?: Record<string, number>; // ASSUMED, animation only
+  rpm_note?: string;
   note: string;
   eval: {
     run_id: string;

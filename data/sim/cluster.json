@@ -169,5 +169,11 @@
    "source": "gearbox/section_02",
    "shape": "mill"
   }
- ]
+ ],
+ "nominal_rpm": {
+  "pump": 1440,
+  "fan": 960,
+  "gearbox": 1440
+ },
+ "_rpm_note": "ASSUMED nameplate motor speeds, used only to turn the belts and pulleys in the 3D view. MIMII gives no speed for its machines; nothing is computed from these."
 }

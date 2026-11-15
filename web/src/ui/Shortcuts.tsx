@@ -1,5 +1,6 @@
 // Keyboard shortcuts: one listener, and the list shown by "?".
 import { useEffect, useRef } from "react";
+import type { Meta } from "../api";
 
 type Drawer = "operator" | "eval" | "log";
 export interface Keys {
@@ -17,8 +18,8 @@ export interface Keys {
 
 export const KEYS: [string, string][] = [
   ["?", "show these keys"],
-  ["Esc", "back one level / close a drawer"],
-  ["0", "whole cluster"],
+  ["Esc", "close the right panel / back to the whole estate"],
+  ["0", "whole estate"],
   ["1 2 3", "fly into shed A, B or C"],
   ["[ ]", "previous / next machine in the shed"],
   ["← →", "time machine: one reading back / forward"],
@@ -71,19 +72,52 @@ export function useShortcuts(k: Keys) {
   }, []);
 }
 
-export function Shortcuts() {
+/** The "?" panel: how to read the scene, the keys, and what is assumed. */
+export function Help({ meta }: { meta: Meta }) {
   return (
-    <table className="kv">
-      <tbody>
-        {KEYS.map(([k, what]) => (
-          <tr key={k}>
-            <th>
-              <kbd className="mono">{k}</kbd>
-            </th>
-            <td>{what}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="help">
+      <h3>The scene</h3>
+      <ul className="small">
+        <li>
+          <span className="ring-sw" /> A glowing ring under a machine fills clockwise toward its own alarm
+          level: amber near it, orange at alarm or when it sounds like a fault confirmed in another shed.
+          Healthy machines have no ring.
+        </li>
+        <li>An orange outline, light and label mark a machine that needs a visit now.</li>
+        <li>Shake = the anomaly score of the current second. Ripples = loudness.</li>
+        <li>Dashed orange arcs join a machine to the shed where the same fault was confirmed.</li>
+        <li>The orange line on the road is the technician&rsquo;s route, stops numbered in order.</li>
+      </ul>
+      <h3>Keys</h3>
+      <table className="kv">
+        <tbody>
+          {KEYS.map(([k, what]) => (
+            <tr key={k}>
+              <th>
+                <kbd className="mono">{k}</kbd>
+              </th>
+              <td>{what}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <h3>What is not real</h3>
+      <ul className="small muted">
+        <li>
+          The estate is a schematic: sheds stand side by side here; travel times use their real distances.
+        </li>
+        <li>
+          Belts and pulleys turn at assumed nameplate speeds (
+          {Object.entries(meta.nominal_rpm ?? {})
+            .map(([t, r]) => `${t} ${r} rpm`)
+            .join(", ")}
+          ), slowed down to be visible. {meta.rpm_note}
+        </li>
+        <li>
+          Rupees use assumed costs (data/sim/costs.json). Growing faults are synthetic mixes of real
+          recordings.
+        </li>
+      </ul>
+    </div>
   );
 }

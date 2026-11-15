@@ -1,4 +1,4 @@
-// Floor rings (fill clockwise = how close to its own alarm level) and sound ripples
+// Floor rings (fill clockwise = how close to its own alarm level; only near or at alarm) and sound ripples
 // (rise with the live loudness). Each is one instanced mesh with a small shader.
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
@@ -22,9 +22,14 @@ void main() {
   float r = length(p);
   float ang = fract(atan(p.x, p.y) / 6.2831853 + 1.0);          // 0 at the far side, clockwise
   float band = smoothstep(0.50, 0.515, r) * (1.0 - smoothstep(0.60, 0.615, r));
+  if (vFill < -0.5 && vPulse < 0.0) discard;                     // healthy machines: no ring at all
   float on = step(ang, vFill) * step(0.001, vFill);
-  vec3 col = mix(vec3(0.23, 0.24, 0.26), vColor, on);
-  float a = band * mix(0.7, 1.0, on);
+  vec3 col = mix(vec3(0.20, 0.21, 0.23), vColor * 1.25, on);      // filled part glows
+  float a = band * mix(0.55, 1.0, on);
+  // soft halo around the filled arc, so a problem reads from across the estate
+  float halo = on * exp(-pow((r - 0.56) / 0.07, 2.0)) * 0.45 * (1.0 - band);
+  col = mix(col, vColor * 1.25, halo);
+  a = max(a, halo);
   if (vPulse >= 0.0) {                                           // one outward pulse on a registry match
     float pr = 0.62 + vPulse * 0.36;
     float w = smoothstep(pr - 0.05, pr, r) * (1.0 - smoothstep(pr, pr + 0.015, r));
@@ -117,7 +122,11 @@ export function Rings({
     const pa = ringGeo.getAttribute("aPulse") as THREE.InstancedBufferAttribute;
     const k = reduced ? 1 : 1 - Math.exp(-dt * 10); // ~95% of the way in 300 ms
     machines.forEach((m, i) => {
-      const target = fill(m);
+      // only amber or orange machines get a ring; healthy ones stay clean so problems pop out
+      const flagged =
+        m.status === "alarm" || m.status === "early_match" || m.status === "watch" || (m.risk3 ?? 0) >= 0.85;
+      const target = flagged ? fill(m) : -1;
+      if (!flagged || (shown.current[i] ?? -1) < 0) shown.current[i] = target;
       shown.current[i] = (shown.current[i] ?? 0) + (target - (shown.current[i] ?? 0)) * k;
       fa.setX(i, shown.current[i]);
       const [r, g, b] = ringRGB(m);

@@ -1,4 +1,4 @@
-// The owner's yes/no, as a slim bar. Text is the template the agent drafted in the
+// The owner's yes/no: a card in the machine panel (desktop) or a slim bar (phone). Text is the template the agent drafted in the
 // owner's language; the English line under it is the same template in English.
 // Approving books the visit; nothing here can touch a machine.
 import { useState } from "react";
@@ -114,5 +114,66 @@ export function ApprovalBar({
         </anim.div>
       ) : null}
     </AnimatePresence>
+  );
+}
+
+/** The owner's message about one machine, inside its detail panel: the open question, or the answer. */
+export function ApprovalCard({
+  machine,
+  messages,
+  factories,
+  route,
+}: {
+  machine: Machine;
+  messages: Message[];
+  factories: Factory[];
+  route: Route | null;
+}) {
+  const mine = messages.filter((x) => x.machine === machine.id);
+  const msg = mine.find((x) => x.approved === null);
+  const last = [...mine].reverse().find((x) => x.approved !== null);
+  const [busy, setBusy] = useState(false);
+  if (!msg && !last) return null;
+  const f = factories.find((x) => x.id === machine.factory);
+  const leg = route?.legs.find((l) => l.machine === machine.id);
+  if (!msg && last)
+    return (
+      <p className="small mono muted ac-done">
+        {f?.owner} replied &ldquo;{last.reply}&rdquo; ·{" "}
+        {last.approved ? `visit booked${leg ? `, ${fmtClock(leg.arrive)}` : ""}` : "no visit"}
+      </p>
+    );
+  if (!msg) return null;
+  const w = WORDS[msg.language] ?? WORDS.en;
+  const answer = async (word: string) => {
+    setBusy(true);
+    try {
+      await post("/api/reply", { message_id: msg.id, reply: word });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <section className="ac" role="region" aria-label="owner approval">
+      <div className="small muted mono">
+        SMS to {f?.owner} · {LANG[msg.language] ?? msg.language}
+        {leg && <> · ETA {fmtClock(leg.arrive)}</>}
+      </div>
+      <p className="ac-msg" lang={msg.language}>
+        {msg.body}
+      </p>
+      {msg.text_en && msg.language !== "en" && <p className="small muted ac-gloss">{msg.text_en}</p>}
+      <div className="row gap">
+        <button className="btn yes" disabled={busy} onClick={() => answer(w[0])}>
+          {w[0]}
+          {w[1] && <small>{w[1]}</small>}
+        </button>
+        <button className="btn ghost" disabled={busy} onClick={() => answer(w[2])}>
+          {w[2]}
+          {w[3] && <small>{w[3]}</small>}
+        </button>
+      </div>
+      {msg.reply && <p className="small muted">Reply &ldquo;{msg.reply}&rdquo; was unclear; asking again.</p>}
+    </section>
   );
 }

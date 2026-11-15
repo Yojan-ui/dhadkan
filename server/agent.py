@@ -175,6 +175,7 @@ class Tools:
                             "matched": matched,
                             "fault": fp["fault"],
                             "owner_label": fp["owner_label"],
+                            "from_machine": fp["machine"],
                             "from_area": self.c.factories[fp["factory"]]["area"],
                             "from_area_local": self.c.factories[fp["factory"]].get("area_local", ""),
                         }

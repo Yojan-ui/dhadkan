@@ -1,24 +1,15 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
-import {
-  get,
-  post,
-  store,
-  useConnected,
-  useFrame,
-  useLive,
-  useMeta,
-  type Machine,
-  type PastReading,
-} from "./api";
+import { get, post, store, useConnected, useLive, useMeta, type Machine, type PastReading } from "./api";
 import type { View } from "./scene/CameraRig";
-import { fmtClock, fmtT, inr, mechanicLine, pct, ringCSS, usePhone, useReducedMotion } from "./theme";
+import { fmtClock, fmtT, inr, usePhone, useReducedMotion } from "./theme";
 import { ApprovalBar } from "./ui/ApprovalBar";
+import { Attention } from "./ui/Attention";
 import { Drawer, Evaluation, Log, Operator } from "./ui/Drawers";
 import { useExplain, useHistory } from "./ui/hooks";
 import { MachinePanel, type TM } from "./ui/MachinePanel";
 import { PhoneList } from "./ui/PhoneList";
-import { Shortcuts, useShortcuts } from "./ui/Shortcuts";
+import { Help, useShortcuts } from "./ui/Shortcuts";
 import { BootSkeleton } from "./ui/Skeleton";
 
 // Desktop starts fetching the 3D code at once, in parallel with the first state; phones never download it.
@@ -26,12 +17,6 @@ const sceneChunk = window.matchMedia("(max-width: 767px)").matches ? null : impo
 const Scene = lazy(() => sceneChunk ?? import("./scene/Scene"));
 
 type DrawerName = "operator" | "eval" | "log" | "keys" | null;
-
-const pointer = { x: -999, y: -999 };
-window.addEventListener("pointermove", (e) => {
-  pointer.x = e.clientX;
-  pointer.y = e.clientY;
-});
 
 export default function App() {
   return (
@@ -180,12 +165,8 @@ function Main() {
 
   const back = useCallback(() => {
     if (drawer) return setDrawer(null);
-    setView((v) =>
-      v.kind === "machine"
-        ? { kind: "shed", factory: state?.machines.find((m) => m.id === v.id)?.factory ?? "A" }
-        : { kind: "cluster" },
-    );
-  }, [drawer, state]);
+    setView({ kind: "cluster" });
+  }, [drawer]);
 
   useShortcuts({
     back,
@@ -214,7 +195,6 @@ function Main() {
 
   if (!state || !meta) return <BootSkeleton phone={phone} connected={connected} />;
 
-  const hovered = hover ? machines.find((m) => m.id === hover) : undefined;
   const replay = state.replay;
   const seeding = replay.on && replay.t === null && (replay.progress ?? 1) < 1;
   const panel = sel && (
@@ -222,132 +202,76 @@ function Main() {
       m={sel}
       meta={meta}
       tickHours={state.tick_hours}
-      onClose={phone ? () => setView({ kind: "cluster" }) : back}
+      onClose={back}
       flat={phone}
       hist={hist}
       ex={ex}
       tm={tm}
+      messages={state.messages}
+      route={state.route}
+      hotBands={
+        idx === null && ex.data?.status === "ok" ? [ex.data.lo_band ?? 0, ex.data.hi_band ?? 0] : null
+      }
     />
   );
   const toggle = (d: DrawerName) => setDrawer(drawer === d ? null : d);
+  const right =
+    drawer === "operator" ? (
+      <Drawer title="Operator" onClose={() => setDrawer(null)} reduced={reduced}>
+        <Operator state={state} meta={meta} />
+      </Drawer>
+    ) : drawer === "eval" ? (
+      <Drawer title="Evaluation" onClose={() => setDrawer(null)} reduced={reduced}>
+        <Evaluation meta={meta} />
+      </Drawer>
+    ) : drawer === "log" ? (
+      <Drawer title="Decision log" onClose={() => setDrawer(null)} reduced={reduced}>
+        <Log state={state} />
+      </Drawer>
+    ) : drawer === "keys" ? (
+      <Drawer title="How to read this" onClose={() => setDrawer(null)} reduced={reduced}>
+        <Help meta={meta} />
+      </Drawer>
+    ) : (
+      panel
+    );
+
+  if (phone)
+    return (
+      <div className="app is-phone">
+        <TopBar state={state} meta={meta} phone seeding={seeding} drawer={drawer} toggle={toggle} />
+        <main className="stage">
+          {right ?? <PhoneList state={state} meta={meta} onPick={(id) => setView({ kind: "machine", id })} />}
+        </main>
+        <ApprovalBar
+          messages={state.messages}
+          factories={meta.factories}
+          machines={state.machines}
+          route={state.route}
+          reduced={reduced}
+        />
+      </div>
+    );
 
   return (
-    <div className={`app ${phone ? "is-phone" : ""} ${sel ? "has-panel" : ""}`}>
-      <header className="top">
-        <div className="brand">
-          <b>Dhadkan</b>
-          <span className="muted small">machine sound watch · 3 sheds · 12 machines</span>
-        </div>
-        <div className="clock mono" title="simulated clock; one reading = one 10 s clip">
-          {state.clock ? fmtClock(state.clock) : "no readings"}{" "}
-          <span className="muted">· reading {state.tick + 1}</span>
-          {!state.link.up && <span className="accent"> · shed offline</span>}
-          {state.link.pending > 0 && (
-            <span className="accent">
-              {" "}
-              · {state.link.pending} fingerprint{state.link.pending > 1 ? "s" : ""} waiting for signal
-            </span>
-          )}
-        </div>
-        <div className="row gap">
-          <label className={`switch ${replay.on ? "on" : ""}`}>
-            <input
-              type="checkbox"
-              title="Restarts the cluster from empty and plays the scripted demo (D)"
-              checked={replay.on}
-              onChange={(e) => post("/api/replay", { on: e.target.checked })}
-            />
-            <span className="knob" aria-hidden />
-            <span>Demo replay</span>
-            {replay.on ? (
-              <span className="mono small muted">
-                {replay.t === null ? replay.phase : `${fmtT(replay.t)} · ${replay.phase}`}
-              </span>
-            ) : (
-              replay.phase === "awaiting owner" && <span className="mono small muted">finished</span>
-            )}
-          </label>
-          {!phone && (
-            <button
-              className={`btn ghost ${drawer === "operator" ? "on" : ""}`}
-              onClick={() => toggle("operator")}
-              title="O"
-            >
-              Operator
-            </button>
-          )}
-          <button
-            className={`btn ghost ${drawer === "eval" ? "on" : ""}`}
-            onClick={() => toggle("eval")}
-            title="E"
-          >
-            Evaluation
-          </button>
-          {!phone && (
-            <>
-              <button
-                className={`btn ghost ${drawer === "log" ? "on" : ""}`}
-                onClick={() => toggle("log")}
-                title="L"
-              >
-                Log
-              </button>
-              <button
-                className="btn ghost"
-                onClick={() => toggle("keys")}
-                aria-label="keyboard shortcuts"
-                title="?"
-              >
-                ?
-              </button>
-            </>
-          )}
-        </div>
-      </header>
-
+    <div className="app desk">
+      <TopBar state={state} meta={meta} phone={false} seeding={seeding} drawer={drawer} toggle={toggle} />
       {!connected && (
         <div className="banner" role="status">
           Lost the connection to the server. Retrying every 1.5 s; the last readings stay on screen.
         </div>
       )}
-
-      {!phone && (
-        <nav className="crumbs small" aria-label="view">
-          <button
-            onClick={() => setView({ kind: "cluster" })}
-            className={view.kind === "cluster" ? "on" : ""}
-          >
-            Cluster
-          </button>
-          {shed && (
-            <>
-              <span>/</span>
-              <button
-                onClick={() => setView({ kind: "shed", factory: shed.id })}
-                className={view.kind === "shed" ? "on" : ""}
-              >
-                {shed.name}
-              </button>
-            </>
-          )}
-          {sel && (
-            <>
-              <span>/</span>
-              <button className="on">{sel.name}</button>
-            </>
-          )}
-          {shed && (
-            <a className="report-link" href={`/api/report/${shed.id}.pdf`} target="_blank" rel="noreferrer">
-              Savings report (PDF)
-            </a>
-          )}
-        </nav>
-      )}
-
-      <main className="stage">
-        {phone ? (
-          (panel ?? <PhoneList state={state} meta={meta} onPick={(id) => setView({ kind: "machine", id })} />)
-        ) : (
+      <div className={`body ${right ? "with-right" : ""}`}>
+        <Attention
+          state={state}
+          meta={meta}
+          machines={machines}
+          selected={selId}
+          hover={hover}
+          onPick={(id) => setView({ kind: "machine", id })}
+          onHover={setHover}
+        />
+        <main className="stage">
           <Suspense fallback={<div className="skel scene-skel" aria-label="loading the 3D view" />}>
             <Scene
               state={state}
@@ -358,68 +282,142 @@ function Main() {
               hover={hover}
               onHover={setHover}
               onView={setView}
-              hotBands={
-                idx === null && ex.data?.status === "ok" ? [ex.data.lo_band ?? 0, ex.data.hi_band ?? 0] : null
-              }
             />
           </Suspense>
-        )}
-        {seeding && (
-          <div className="empty" role="status">
-            <p>Recording 14 days of readings&hellip;</p>
+        </main>
+        <div className="right" aria-hidden={!right}>
+          {right}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Big numbers only: how many machines are fine, near alarm, alerting; rupees at risk; the next stop. */
+function TopBar({
+  state,
+  meta,
+  phone,
+  seeding,
+  drawer,
+  toggle,
+}: {
+  state: NonNullable<ReturnType<typeof useLive>>;
+  meta: NonNullable<ReturnType<typeof useMeta>>;
+  phone: boolean;
+  seeding: boolean;
+  drawer: DrawerName;
+  toggle: (d: DrawerName) => void;
+}) {
+  const ms = state.machines.filter((m) => m.status !== "no_data");
+  const ok = ms.filter((m) => m.status === "ok").length;
+  const watch = ms.filter((m) => m.status === "watch").length;
+  const alert = ms.filter((m) => m.status === "alarm" || m.status === "early_match").length;
+  const rupees = state.machines.reduce((a, m) => a + m.rupees_at_risk, 0);
+  const leg = state.route?.legs[0];
+  const legMachine = leg && state.machines.find((m) => m.id === leg.machine);
+  const legFactory = leg && meta.factories.find((f) => f.id === leg.factory);
+  const replay = state.replay;
+  return (
+    <header className="top">
+      <div className="brand">
+        <b>Dhadkan</b>
+        <span className="muted small mono">{state.clock ? fmtClock(state.clock) : "no readings"}</span>
+      </div>
+      {seeding ? (
+        <div className="kpis">
+          <div className="kpi wide">
+            <span className="kpi-label">Recording 14 days of readings</span>
             <div className="bar">
               <span style={{ width: `${Math.round((replay.progress ?? 0) * 100)}%` }} />
             </div>
-            <p className="small muted">
-              Real MIMII clips, scored by the phone model, on a simulated clock. A bearing sound starts to
-              grow on Blower 1 in Shinde Engineering from day 6.
-            </p>
           </div>
-        )}
-        {!phone && !seeding && state.tick < 0 && (
-          <div className="empty">
-            <p>No readings yet.</p>
-            <p className="small muted">
-              Switch on <b>Demo replay</b> (press D): it records 14 days, then plays live with a fault on{" "}
-              {meta.fault_machine} at 0:40. Or open <b>Operator</b> and press +1 reading.
-            </p>
+        </div>
+      ) : (
+        <div className="kpis" aria-label="cluster at a glance">
+          <div className="kpi">
+            <span className="kpi-num mono">{ok}</span>
+            <span className="kpi-label">OK</span>
           </div>
+          <div className="kpi">
+            <span className="kpi-num mono amber">{watch}</span>
+            <span className="kpi-label">watch</span>
+          </div>
+          <div className="kpi">
+            <span className={`kpi-num mono ${alert ? "accent" : ""}`}>{alert}</span>
+            <span className="kpi-label">alert</span>
+          </div>
+          {!phone && (
+            <>
+              <div className="kpi">
+                <span className={`kpi-num mono ${rupees ? "accent" : ""}`}>{inr(rupees)}</span>
+                <span className="kpi-label">at risk, next 2 days</span>
+              </div>
+              <div className="kpi wide">
+                <span className="kpi-num small-num">
+                  {leg
+                    ? `${legMachine?.name ?? leg.machine} · ${legFactory?.name.split(" ")[0] ?? leg.factory}`
+                    : "No visit planned"}
+                </span>
+                <span className="kpi-label">
+                  {leg
+                    ? `${state.route?.technician.split(" ")[0]}'s next stop · ${fmtClock(leg.arrive)}`
+                    : "technician"}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+      <div className="row gap controls">
+        <label className={`switch ${replay.on ? "on" : ""}`}>
+          <input
+            type="checkbox"
+            title="Restarts the cluster from empty and plays the scripted demo (D)"
+            checked={replay.on}
+            onChange={(e) => post("/api/replay", { on: e.target.checked })}
+          />
+          <span className="knob" aria-hidden />
+          <span>Demo</span>
+          {replay.on && replay.t !== null && <span className="mono small muted">{fmtT(replay.t)}</span>}
+        </label>
+        {!phone && (
+          <>
+            <button
+              className={`btn ghost ${drawer === "operator" ? "on" : ""}`}
+              onClick={() => toggle("operator")}
+              title="O"
+            >
+              Operator
+            </button>
+            <button
+              className={`btn ghost ${drawer === "log" ? "on" : ""}`}
+              onClick={() => toggle("log")}
+              title="L"
+            >
+              Log
+            </button>
+          </>
         )}
-        {!phone && panel}
-        {!phone && <Legend />}
-      </main>
-
-      {!phone && hovered && <Tooltip m={hovered} meta={meta} />}
-
-      <ApprovalBar
-        messages={state.messages}
-        factories={meta.factories}
-        machines={state.machines}
-        route={state.route}
-        reduced={reduced}
-      />
-
-      {drawer === "operator" && (
-        <Drawer title="Operator" onClose={() => setDrawer(null)} reduced={reduced}>
-          <Operator state={state} meta={meta} />
-        </Drawer>
-      )}
-      {drawer === "eval" && (
-        <Drawer title="Evaluation" onClose={() => setDrawer(null)} reduced={reduced}>
-          <Evaluation meta={meta} />
-        </Drawer>
-      )}
-      {drawer === "log" && (
-        <Drawer title="Decision log" onClose={() => setDrawer(null)} reduced={reduced}>
-          <Log state={state} />
-        </Drawer>
-      )}
-      {drawer === "keys" && (
-        <Drawer title="Keyboard shortcuts" onClose={() => setDrawer(null)} reduced={reduced}>
-          <Shortcuts />
-        </Drawer>
-      )}
-    </div>
+        <button
+          className={`btn ghost ${drawer === "eval" ? "on" : ""}`}
+          onClick={() => toggle("eval")}
+          title="E"
+        >
+          Evaluation
+        </button>
+        {!phone && (
+          <button
+            className={`btn ghost ${drawer === "keys" ? "on" : ""}`}
+            onClick={() => toggle("keys")}
+            aria-label="how to read this"
+            title="?"
+          >
+            ?
+          </button>
+        )}
+      </div>
+    </header>
   );
 }
 
@@ -431,61 +429,4 @@ function daysRising(rows: { ts: string; risk: number }[]) {
   let k = 0;
   while (k + 1 < means.length && means[means.length - 1 - k] > means[means.length - 2 - k]) k++;
   return k ? k + 1 : 0;
-}
-
-function Tooltip({ m, meta }: { m: Machine; meta: NonNullable<ReturnType<typeof useMeta>> }) {
-  const fr = useFrame()[m.id];
-  const [{ x, y }, setXY] = useState(() => ({ x: pointer.x, y: pointer.y }));
-  useEffect(() => {
-    const f = (e: PointerEvent) => setXY({ x: e.clientX, y: e.clientY });
-    window.addEventListener("pointermove", f);
-    return () => window.removeEventListener("pointermove", f);
-  }, []);
-  const f = meta.factories.find((q) => q.id === m.factory);
-  return (
-    <div
-      className="tooltip"
-      style={{ left: Math.min(x + 16, window.innerWidth - 300), top: y + 16 }}
-      role="tooltip"
-    >
-      <div className="row between">
-        <b>{m.name}</b>
-        <span className="mono small muted">{m.id}</span>
-      </div>
-      <div className="small muted">{f?.name}</div>
-      <div className="say" style={{ borderColor: ringCSS(m) }}>
-        {mechanicLine(m, meta.factories)}
-      </div>
-      {m.rupees_at_risk > 0 && (
-        <div className="small accent mono">{inr(m.rupees_at_risk)} at risk in the next 2 days</div>
-      )}
-      <div className="mono small muted">
-        {pct(m.risk3)} of alarm, last 3 readings · this second {pct(fr?.risk)} ·{" "}
-        {fr ? `${fr.energy.toFixed(0)} dBFS` : "--"}
-      </div>
-    </div>
-  );
-}
-
-function Legend() {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="legend small">
-      <button className="btn ghost small" aria-expanded={open} onClick={() => setOpen(!open)}>
-        {open ? "Hide key" : "How to read this"}
-      </button>
-      {open && (
-        <div className="legend-body">
-          <div>
-            <span className="ring-sw" /> ring fills clockwise toward the machine&rsquo;s own alarm level: grey
-            ok, amber near, orange alarm or registry match
-          </div>
-          <div>shake = live anomaly score of the current 1 s window · ripples = loudness</div>
-          <div className="muted">
-            Hover for a plain reading; click a shed, then a machine. Press ? for keys.
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }

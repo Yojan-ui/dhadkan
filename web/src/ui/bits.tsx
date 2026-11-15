@@ -31,7 +31,15 @@ export function HealthRing({ m, size = 34 }: { m: Machine; size?: number }) {
   );
 }
 
-export function Spectro2D({ m, height = 110 }: { m: Machine; height?: number }) {
+export function Spectro2D({
+  m,
+  height = 110,
+  hotBands = null,
+}: {
+  m: Machine;
+  height?: number;
+  hotBands?: [number, number] | null;
+}) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(
     () =>
@@ -44,7 +52,9 @@ export function Spectro2D({ m, height = 110 }: { m: Machine; height?: number }) 
         const W = HISTORY,
           H = 64;
         const img = g.createImageData(W, H);
-        const hot = (m.band_z ?? []).map((z) => z > 3);
+        const hot = hotBands
+          ? Array.from({ length: H }, (_, i) => i >= hotBands[0] && i <= hotBands[1])
+          : (m.band_z ?? []).map((z) => z > 3);
         for (let t = 0; t < W; t++) {
           const col = rows[rows.length - W + t];
           for (let f = 0; f < H; f++) {
@@ -61,7 +71,7 @@ export function Spectro2D({ m, height = 110 }: { m: Machine; height?: number }) 
         }
         g.putImageData(img, 0, 0);
       }),
-    [m.id, m.band_z],
+    [m.id, m.band_z, hotBands],
   );
   return (
     <canvas

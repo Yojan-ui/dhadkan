@@ -1,7 +1,7 @@
 // When a fault is confirmed, arcs from that machine to every same-type machine in the
 // other sheds, labelled with the registry's actual cosine vs that machine's flag level.
 // A machine whose pattern matches pulses once. Later early matches draw their own arc.
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { store, type LiveEvent, type Machine } from "../api";
@@ -11,6 +11,7 @@ import { Label } from "./labels";
 import { TOP } from "./layout";
 
 export interface ArcSpec {
+  persistent?: boolean; // a standing registry match (drawn while it lasts)
   key: string;
   from: string;
   to: string;
@@ -90,9 +91,20 @@ export function Contagion({
   reduced: boolean;
 }) {
   const byId = useMemo(() => Object.fromEntries(machines.map((m) => [m.id, m])), [machines]);
+  const standing: ArcSpec[] = machines
+    .filter((m) => m.status === "early_match" && m.registry?.from_machine)
+    .map((m) => ({
+      key: `match-${m.registry?.from_machine}-${m.id}`,
+      from: m.registry?.from_machine ?? "",
+      to: m.id,
+      match: true,
+      text: "",
+      born: 0,
+      persistent: true,
+    }));
   return (
     <group>
-      {arcs.map(
+      {[...standing, ...arcs].map(
         (a) =>
           byId[a.from] &&
           byId[a.to] &&
@@ -149,6 +161,18 @@ export function ArcLabels({
   );
 }
 
+const DASH_VS = /* glsl */ `
+varying vec2 vUv;
+void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+const DASH_FS = /* glsl */ `
+uniform vec3 uColor; uniform float uTime; uniform float uDraw; uniform float uOpacity;
+varying vec2 vUv;
+void main() {
+  if (vUv.x > uDraw) discard;                                   // drawn from source to target
+  if (fract(vUv.x * 28.0 - uTime * 1.2) > 0.55) discard;       // dashes marching toward the target
+  gl_FragColor = vec4(uColor, uOpacity);
+}`;
+
 function Arc({
   spec,
   a,
@@ -164,10 +188,10 @@ function Arc({
     const mid = a
       .clone()
       .lerp(b, 0.5)
-      .setY(Math.max(a.y, b.y) + a.distanceTo(b) * 0.28);
+      .setY(Math.max(a.y, b.y) + a.distanceTo(b) * 0.3 + 0.6);
     return new THREE.TubeGeometry(
       new THREE.QuadraticBezierCurve3(a, mid, b),
-      80,
+      96,
       spec.match ? 0.05 : 0.03,
       6,
       false,
@@ -175,18 +199,33 @@ function Arc({
   });
   useEffect(() => () => geo.dispose(), [geo]);
   const mat = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: spec.match ? C.accent : C.grey, transparent: true }),
+    () =>
+      new THREE.ShaderMaterial({
+        vertexShader: DASH_VS,
+        fragmentShader: DASH_FS,
+        transparent: true,
+        depthWrite: false,
+        toneMapped: false,
+        uniforms: {
+          uColor: { value: new THREE.Color(spec.match ? C.accent : C.grey) },
+          uTime: { value: 0 },
+          uDraw: { value: 0 },
+          uOpacity: { value: 1 },
+        },
+      }),
     [spec.match],
   );
-  const total = geo.index?.count ?? 0;
-  const mesh = useRef<THREE.Mesh>(null);
-
-  useFrame(() => {
+  useFrame(({ clock }) => {
     const t = performance.now() / 1000 - spec.born;
-    const p = reduced ? 1 : ease(t / DRAW_S);
-    geo.setDrawRange(0, Math.floor((p * total) / 6) * 6);
-    mat.opacity =
-      t < 0 && !reduced ? 0 : t > DRAW_S + HOLD_S ? Math.max(0, 1 - (t - DRAW_S - HOLD_S) / FADE_S) : 1;
+    mat.uniforms.uTime.value = reduced ? 0 : clock.elapsedTime;
+    mat.uniforms.uDraw.value = spec.persistent || reduced ? 1 : ease(t / DRAW_S);
+    mat.uniforms.uOpacity.value = spec.persistent
+      ? 0.9
+      : t < 0 && !reduced
+        ? 0
+        : t > DRAW_S + HOLD_S
+          ? Math.max(0, 1 - (t - DRAW_S - HOLD_S) / FADE_S)
+          : 1;
   });
-  return <mesh ref={mesh} geometry={geo} material={mat} />;
+  return <mesh geometry={geo} material={mat} />;
 }
