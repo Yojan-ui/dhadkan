@@ -1,0 +1,21 @@
+{
+  "_note": "Folk sound words -> fault classes. Weights are our assumptions from talking to mechanics, not measurements. Edit freely; the API reloads this file on every request.",
+  "faults": ["bearing", "imbalance", "loose_belt", "clog"],
+  "sounds": [
+    {"sound": "khat-khat", "meaning": "knocking, ticking",
+     "forms": ["khat khat", "khatkhat", "khat-khat", "खट खट", "खटखट", "खट-खट", "khad khad", "खडखड", "खड-खड", "khatak", "खटक"],
+     "faults": {"bearing": 0.7, "loose_belt": 0.2, "imbalance": 0.1}},
+    {"sound": "ghar-ghar", "meaning": "grinding, rumbling",
+     "forms": ["ghar ghar", "gharghar", "ghar-ghar", "घर घर", "घरघर", "घर-घर", "घर्र", "gharr", "घरर"],
+     "faults": {"bearing": 0.6, "clog": 0.3, "imbalance": 0.1}},
+    {"sound": "seeti", "meaning": "whistle, squeal",
+     "forms": ["seeti", "siti", "sity", "सीटी", "सिटी", "शिट्टी", "shitti", "chee chee", "चीं चीं", "kirr", "किर्र", "कीं कीं"],
+     "faults": {"loose_belt": 0.7, "clog": 0.2, "bearing": 0.1}},
+    {"sound": "thar-thar", "meaning": "shaking, shuddering",
+     "forms": ["thar thar", "tharthar", "thar-thar", "थर थर", "थरथर", "थर-थर", "dhak dhak", "धक धक", "धकधक", "हिलना", "हलतंय", "हलते"],
+     "faults": {"imbalance": 0.8, "bearing": 0.2}},
+    {"sound": "gud-gud", "meaning": "gurgling, choking",
+     "forms": ["gud gud", "gudgud", "gud-gud", "गुड़ गुड़", "गुडगुड", "गुड़गुड़", "गुड-गुड", "gul gul", "गुळगुळ", "atak", "अटक"],
+     "faults": {"clog": 0.8, "bearing": 0.2}}
+  ]
+}

@@ -1,0 +1,120 @@
+// Colours, and the few rules that turn a reading into words a mechanic would use.
+import { useEffect, useState } from "react";
+import type { Factory, Machine } from "./api";
+
+export const C = {
+  bg: "#16171a",
+  ground: "#1c1d20",
+  slab: "#25272b",
+  wall: "#2f3237",
+  partA: "#4b4f56",
+  partB: "#5d626a",
+  partC: "#3b3e44",
+  ink: "#e9e7e2",
+  muted: "#8e9198",
+  rule: "#2f3136",
+  track: "#3d4046",
+  grey: "#7d8189",
+  amber: "#d9a03a",
+  accent: "#FF6A13",
+};
+
+const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+const mix = (a: number[], b: number[], t: number) => a.map((v, i) => v + (b[i] - v) * t);
+
+/** How close a machine is to its own alarm level, 0..1 (the ring's fill). */
+export function fill(m: Machine) {
+  const r = m.risk3 ?? m.latest?.risk ?? 0;
+  return Math.max(0, Math.min(1, r));
+}
+
+/** Ring colour: grey while healthy, amber near alarm, signal orange at alarm or on a registry match. */
+export function ringRGB(m: Machine): [number, number, number] {
+  if (m.status === "alarm" || m.status === "early_match") return hex(C.accent) as [number, number, number];
+  const r = m.risk3 ?? 0;
+  // healthy machines sit around 0.6-0.85 of their alarm level (it is their 95th percentile)
+  const t = Math.max(0, Math.min(1, (r - 0.85) / 0.15));
+  return mix(hex(C.grey), hex(C.amber), t) as [number, number, number];
+}
+export function ringCSS(m: Machine) {
+  const [r, g, b] = ringRGB(m);
+  return `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)})`;
+}
+
+const FAULT_EN: Record<string, string> = { bearing: "bearing", imbalance: "imbalance", loose_belt: "loose belt", clog: "clogging" };
+
+/** One line, the way the mechanic would say it. */
+export function mechanicLine(m: Machine, factories: Factory[]) {
+  if (!m.latest) return "No reading yet.";
+  const pct = Math.round((m.risk3 ?? 0) * 100);
+  const rising = m.days_rising > 1 ? ` Getting worse for ${m.days_rising} days.` : "";
+  const fault = m.known_fault ? FAULT_EN[m.known_fault] ?? m.known_fault : null;
+  switch (m.status) {
+    case "alarm":
+      return `Past its alarm level (${pct}%). ${fault ? `Sounds like ${fault} trouble. ` : ""}Get it checked.${rising}`;
+    case "early_match": {
+      const area = m.registry?.from_area ?? factories.find((f) => f.id !== m.factory)?.area ?? "another factory";
+      return `No alarm yet (${pct}%), but it sounds like the ${fault ?? "fault"} confirmed in ${area}. Have it looked at.`;
+    }
+    case "watch":
+      return `Close to its alarm level (${pct}%). Keep an ear on it.${rising}`;
+    default:
+      return pct < 85 ? `Sounds like its normal self (${pct}% of alarm).` : `A little off its usual sound (${pct}% of alarm). Nothing to do yet.${rising}`;
+  }
+}
+
+export const STATUS_WORD: Record<string, string> = {
+  ok: "ok", watch: "watch", alarm: "alarm", early_match: "early match", no_data: "no data",
+};
+
+export const SHAPE_WORD: Record<string, string> = { pump: "pump", motor: "motor + blower", loom: "loom", mill: "flour mill" };
+
+export function sourceWord(m: Machine) {
+  const [t, u] = m.source.split("/");
+  if (t === "gearbox") return `MIMII DUE gearbox ${u.replace("section_", "section ")} (stands in for the ${SHAPE_WORD[m.shape]}'s gear drive)`;
+  return `MIMII ${t} ${u.replace("_", " ")}`;
+}
+
+export function fmtClock(iso: string | null | undefined, withDay = true) {
+  if (!iso) return "--";
+  const d = new Date(iso);
+  const day = d.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" });
+  const t = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false });
+  return withDay ? `${day} ${t}` : t;
+}
+
+export function fmtT(s: number | null | undefined) {
+  if (s == null) return "0:00";
+  const m = Math.floor(s / 60);
+  return `${m}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+}
+
+/** Contiguous mel bands more than `z` std above this machine's normal -> "1.2-2.0 kHz" strings. */
+export function changedBands(bandZ: number[] | null, hz: number[], z = 3) {
+  if (!bandZ) return [];
+  const out: string[] = [];
+  let start = -1;
+  const k = (f: number) => (f >= 1000 ? `${(f / 1000).toFixed(1)} kHz` : `${Math.round(f)} Hz`);
+  for (let i = 0; i <= bandZ.length; i++) {
+    const on = i < bandZ.length && bandZ[i] > z;
+    if (on && start < 0) start = i;
+    if (!on && start >= 0) {
+      out.push(start === i - 1 ? k(hz[start]) : `${k(hz[start])}–${k(hz[i - 1])}`);
+      start = -1;
+    }
+  }
+  return out;
+}
+
+export function useMedia(q: string) {
+  const [v, setV] = useState(() => window.matchMedia(q).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(q);
+    const f = () => setV(mq.matches);
+    mq.addEventListener("change", f);
+    return () => mq.removeEventListener("change", f);
+  }, [q]);
+  return v;
+}
+export const useReducedMotion = () => useMedia("(prefers-reduced-motion: reduce)");
+export const usePhone = () => useMedia("(max-width: 767px)");

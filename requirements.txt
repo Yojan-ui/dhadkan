@@ -1,0 +1,16 @@
+# Python 3.12. Versions are the ones the evaluation run was produced with.
+numpy==2.5.4
+scipy==1.18.1
+soundfile==0.14.0
+librosa==1.0.1
+scikit-learn==1.9.1
+tensorflow==2.21.0
+ai-edge-litert==2.3.0
+fastapi==0.163.0
+python-multipart==0.0.33
+uvicorn==0.54.0
+httpx==0.28.1
+anthropic==2.8.0
+faster-whisper==1.2.1
+remotezip==0.12.6
+pytest==9.2.0

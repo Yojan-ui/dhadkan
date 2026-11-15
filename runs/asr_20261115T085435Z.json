@@ -1,0 +1,99 @@
+{
+ "run_id": "20261115T085435Z",
+ "model": "faster-whisper small int8",
+ "note": "synthetic TTS voice notes (macOS 'Lekha' hi_IN), not real owners",
+ "results": [
+  {
+   "file": "A_hindi_blower_khatkhat.wav",
+   "attempt": 1,
+   "language_hint": "hi",
+   "transcript": "ब्लूर में खत्खत की आबाज आरही है, कल सी ज्यादा है",
+   "label": {
+    "sound": "khat-khat",
+    "fault": "bearing",
+    "scores": {
+     "bearing": 0.7,
+     "imbalance": 0.1,
+     "loose_belt": 0.2,
+     "clog": 0.0
+    },
+    "source": "lexicon"
+   }
+  },
+  {
+   "file": "A_hindi_blower_khatkhat.wav",
+   "attempt": 2,
+   "language_hint": "hi",
+   "transcript": "ब्लूर में खत्खत की आबाज आरही है, कल सी ज्यादा है",
+   "label": {
+    "sound": "khat-khat",
+    "fault": "bearing",
+    "scores": {
+     "bearing": 0.7,
+     "imbalance": 0.1,
+     "loose_belt": 0.2,
+     "clog": 0.0
+    },
+    "source": "lexicon"
+   }
+  },
+  {
+   "file": "A_hindi_blower_khatkhat.wav",
+   "attempt": 3,
+   "language_hint": "hi",
+   "transcript": "ब्लूर में खत्खत की आबाज आरही है, कल सी ज्यादा है",
+   "label": {
+    "sound": "khat-khat",
+    "fault": "bearing",
+    "scores": {
+     "bearing": 0.7,
+     "imbalance": 0.1,
+     "loose_belt": 0.2,
+     "clog": 0.0
+    },
+    "source": "lexicon"
+   }
+  },
+  {
+   "file": "M_marathi_blower_khadkhad.wav",
+   "attempt": 1,
+   "language_hint": "mr",
+   "transcript": "बलोर मदून कद कद आढाज ये तो ये काल पा सुन जास झालाए फ्राग एक गे पच़ाद आदात लगे.",
+   "label": {
+    "sound": null,
+    "fault": "unknown",
+    "scores": {},
+    "source": "none"
+   }
+  },
+  {
+   "file": "M_marathi_blower_khadkhad.wav",
+   "attempt": 2,
+   "language_hint": "mr",
+   "transcript": "ब्लोर्मद्हुन कद्खकद आगा जिये काल पा सुन जास्जाला ए।",
+   "label": {
+    "sound": null,
+    "fault": "unknown",
+    "scores": {},
+    "source": "none"
+   }
+  },
+  {
+   "file": "M_marathi_blower_khadkhad.wav",
+   "attempt": 3,
+   "language_hint": "mr",
+   "transcript": "ब्रोर मदून खद्खद आवाज यह तो एब कालपा सुन जासॉ जालाई",
+   "label": {
+    "sound": "khat-khat",
+    "fault": "bearing",
+    "scores": {
+     "bearing": 0.7,
+     "imbalance": 0.1,
+     "loose_belt": 0.2,
+     "clog": 0.0
+    },
+    "source": "lexicon"
+   }
+  }
+ ]
+}

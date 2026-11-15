@@ -1,0 +1,6548 @@
+{
+ "run_id": "20261115T085722Z",
+ "git_rev": null,
+ "code_sha256": "a1b9d12adbbf06989de26026f4d74d1d4803817c8d41f0c367677ff44cb0f5d1",
+ "frontend": {
+  "sr": 16000,
+  "n_fft": 1024,
+  "hop": 512,
+  "n_mels": 64,
+  "frames": 32,
+  "window_hop_s": 0.5,
+  "log": "log10(mel_power + 1e-10)"
+ },
+ "assumptions": {
+  "threshold_quantile": 0.95,
+  "match_quantile": 0.99,
+  "pauc_max_fpr": 0.1,
+  "onset_mix": [
+   0.25,
+   0.5,
+   0.75,
+   1.0
+  ]
+ },
+ "types": {
+  "pump": {
+   "headline_condition": "6dB",
+   "per_unit": {
+    "pump/id_00": {
+     "auc": 1.0,
+     "pauc": 1.0,
+     "n_normal": 16,
+     "n_anomalous": 20
+    },
+    "pump/id_02": {
+     "auc": 0.828125,
+     "pauc": 0.20625,
+     "n_normal": 16,
+     "n_anomalous": 20
+    }
+   },
+   "conditions": {
+    "-6dB": {
+     "auc": 0.9450000000000001,
+     "pauc": 0.65,
+     "n_normal": 20,
+     "n_anomalous": 20,
+     "false_alarm_rate": 0.95,
+     "detection_rate": 1.0,
+     "window_auc": 0.8684903047091412
+    },
+    "6dB": {
+     "auc": 0.72734375,
+     "pauc": 0.5,
+     "n_normal": 32,
+     "n_anomalous": 40,
+     "false_alarm_rate": 0.09375,
+     "detection_rate": 0.65,
+     "window_auc": 0.7228337084487535
+    }
+   },
+   "overall": {
+    "auc": 0.72734375,
+    "pauc": 0.5,
+    "n_normal": 32,
+    "n_anomalous": 40,
+    "false_alarm_rate": 0.09375,
+    "detection_rate": 0.65,
+    "window_auc": 0.7228337084487535
+   },
+   "registry_transfer": [
+    {
+     "from": "pump/id_00",
+     "to": "pump/id_00",
+     "case": "same model",
+     "match_level": 0.342812940678367,
+     "by_mix": {
+      "0.25": {
+       "n": 16,
+       "alarm": 1.0,
+       "registry": 1.0,
+       "either": 1.0
+      },
+      "0.5": {
+       "n": 16,
+       "alarm": 1.0,
+       "registry": 1.0,
+       "either": 1.0
+      },
+      "0.75": {
+       "n": 16,
+       "alarm": 1.0,
+       "registry": 1.0,
+       "either": 1.0
+      },
+      "1.0": {
+       "n": 16,
+       "alarm": 1.0,
+       "registry": 1.0,
+       "either": 1.0
+      }
+     },
+     "registry_false_flag_rate": 0.0
+    },
+    {
+     "from": "pump/id_00",
+     "to": "pump/id_02",
+     "case": "other unit",
+     "match_level": 0.2630742804155871,
+     "by_mix": {
+      "0.25": {
+       "n": 16,
+       "alarm": 0.0,
+       "registry": 0.0625,
+       "either": 0.0625
+      },
+      "0.5": {
+       "n": 16,
+       "alarm": 0.0,
+       "registry": 0.1875,
+       "either": 0.1875
+      },
+      "0.75": {
+       "n": 16,
+       "alarm": 0.0625,
+       "registry": 0.25,
+       "either": 0.25
+      },
+      "1.0": {
+       "n": 16,
+       "alarm": 0.375,
+       "registry": 0.1875,
+       "either": 0.375
+      }
+     },
+     "registry_false_flag_rate": 0.0
+    },
+    {
+     "from": "pump/id_02",
+     "to": "pump/id_00",
+     "case": "other unit",
+     "match_level": 0.2523662843372815,
+     "by_mix": {
+      "0.25": {
+       "n": 16,
+       "alarm": 0.9375,
+       "registry": 0.25,
+       "either": 1.0
+      },
+      "0.5": {
+       "n": 16,
+       "alarm": 1.0,
+       "registry": 0.1875,
+       "either": 1.0
+      },
+      "0.75": {
+       "n": 16,
+       "alarm": 1.0,
+       "registry": 0.0625,
+       "either": 1.0
+      },
+      "1.0": {
+       "n": 16,
+       "alarm": 1.0,
+       "registry": 0.0,
+       "either": 1.0
+      }
+     },
+     "registry_false_flag_rate": 0.0
+    },
+    {
+     "from": "pump/id_02",
+     "to": "pump/id_02",
+     "case": "same model",
+     "match_level": 0.13416452970733986,
+     "by_mix": {
+      "0.25": {
+       "n": 16,
+       "alarm": 0.0,
+       "registry": 1.0,
+       "either": 1.0
+      },
+      "0.5": {
+       "n": 16,
+       "alarm": 0.0625,
+       "registry": 1.0,
+       "either": 1.0
+      },
+      "0.75": {
+       "n": 16,
+       "alarm": 0.125,
+       "registry": 1.0,
+       "either": 1.0
+      },
+      "1.0": {
+       "n": 16,
+       "alarm": 0.375,
+       "registry": 1.0,
+       "either": 1.0
+      }
+     },
+     "registry_false_flag_rate": 0.5
+    }
+   ],
+   "tflite": {
+    "size_bytes": 261496,
+    "clips_checked": 12,
+    "max_rel_score_diff_vs_keras": 0.0013032741926907367
+   },
+   "training": {
+    "epochs_run": 35,
+    "final_loss": 0.5614758133888245,
+    "best_val_loss": 0.6351008415222168,
+    "train_windows": 1292,
+    "params": 216609
+   },
+   "data_sha256": "8016f3be50a821ea16fecdbd82d7748205ab27dd26016a514918fe5951fe1a87",
+   "thresholds": {
+    "pump/id_00": 0.7695524454116821,
+    "pump/id_02": 0.619196879863739
+   },
+   "clip_scores": [
+    {
+     "file": "00000000.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6371860504150391
+    },
+    {
+     "file": "00000001.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6893025040626526
+    },
+    {
+     "file": "00000002.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6012407541275024
+    },
+    {
+     "file": "00000003.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6462570428848267
+    },
+    {
+     "file": "00000004.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6505210995674133
+    },
+    {
+     "file": "00000005.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6432732343673706
+    },
+    {
+     "file": "00000006.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6146405339241028
+    },
+    {
+     "file": "00000007.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.60468989610672
+    },
+    {
+     "file": "00000008.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6051144599914551
+    },
+    {
+     "file": "00000009.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6009050607681274
+    },
+    {
+     "file": "00000010.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7045709490776062
+    },
+    {
+     "file": "00000011.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5782496333122253
+    },
+    {
+     "file": "00000012.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7048377990722656
+    },
+    {
+     "file": "00000013.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6403359770774841
+    },
+    {
+     "file": "00000014.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6444198489189148
+    },
+    {
+     "file": "00000015.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6446995735168457
+    },
+    {
+     "file": "00000016.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6628547310829163
+    },
+    {
+     "file": "00000017.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.630185604095459
+    },
+    {
+     "file": "00000018.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.661860466003418
+    },
+    {
+     "file": "00000019.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.609908938407898
+    },
+    {
+     "file": "00000020.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7112138867378235
+    },
+    {
+     "file": "00000021.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6537278890609741
+    },
+    {
+     "file": "00000022.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6612386703491211
+    },
+    {
+     "file": "00000023.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6508824825286865
+    },
+    {
+     "file": "00000024.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6088384985923767
+    },
+    {
+     "file": "00000025.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6502935290336609
+    },
+    {
+     "file": "00000026.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6307582259178162
+    },
+    {
+     "file": "00000027.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6520818471908569
+    },
+    {
+     "file": "00000028.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6168675422668457
+    },
+    {
+     "file": "00000029.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6526668667793274
+    },
+    {
+     "file": "00000030.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6444258689880371
+    },
+    {
+     "file": "00000031.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5889102816581726
+    },
+    {
+     "file": "00000032.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.685356855392456
+    },
+    {
+     "file": "00000033.wav",
+     "unit": "pump/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6554791331291199
+    },
+    {
+     "file": "00000034.wav",
+     "unit": "pump/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7810986042022705
+    },
+    {
+     "file": "00000035.wav",
+     "unit": "pump/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6747663021087646
+    },
+    {
+     "file": "00000036.wav",
+     "unit": "pump/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7475587129592896
+    },
+    {
+     "file": "00000037.wav",
+     "unit": "pump/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7328396439552307
+    },
+    {
+     "file": "00000038.wav",
+     "unit": "pump/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7116496562957764
+    },
+    {
+     "file": "00000039.wav",
+     "unit": "pump/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.715634822845459
+    },
+    {
+     "file": "00000040.wav",
+     "unit": "pump/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6501440405845642
+    },
+    {
+     "file": "00000041.wav",
+     "unit": "pump/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7131551504135132
+    },
+    {
+     "file": "00000042.wav",
+     "unit": "pump/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7128500938415527
+    },
+    {
+     "file": "00000043.wav",
+     "unit": "pump/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7554404735565186
+    },
+    {
+     "file": "00000044.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6666074395179749
+    },
+    {
+     "file": "00000045.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6942920088768005
+    },
+    {
+     "file": "00000046.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7097579836845398
+    },
+    {
+     "file": "00000047.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7163217663764954
+    },
+    {
+     "file": "00000048.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6439808011054993
+    },
+    {
+     "file": "00000049.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5874409675598145
+    },
+    {
+     "file": "00000050.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7117224931716919
+    },
+    {
+     "file": "00000051.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6768777966499329
+    },
+    {
+     "file": "00000052.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6651968359947205
+    },
+    {
+     "file": "00000053.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.656721293926239
+    },
+    {
+     "file": "00000054.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.8009858131408691
+    },
+    {
+     "file": "00000055.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7157755494117737
+    },
+    {
+     "file": "00000056.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7354378700256348
+    },
+    {
+     "file": "00000057.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7195444703102112
+    },
+    {
+     "file": "00000058.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.712989330291748
+    },
+    {
+     "file": "00000059.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.7706360816955566
+    },
+    {
+     "file": "00000000.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.2987892627716064
+    },
+    {
+     "file": "00000001.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.4114807844161987
+    },
+    {
+     "file": "00000002.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.1916613578796387
+    },
+    {
+     "file": "00000003.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.2107124328613281
+    },
+    {
+     "file": "00000004.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.2382110357284546
+    },
+    {
+     "file": "00000005.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.1953872442245483
+    },
+    {
+     "file": "00000006.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.2472728490829468
+    },
+    {
+     "file": "00000007.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.3056873083114624
+    },
+    {
+     "file": "00000008.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.2728450298309326
+    },
+    {
+     "file": "00000009.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.4186792373657227
+    },
+    {
+     "file": "00000010.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.247185230255127
+    },
+    {
+     "file": "00000011.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.276608943939209
+    },
+    {
+     "file": "00000012.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.337534785270691
+    },
+    {
+     "file": "00000013.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.285221815109253
+    },
+    {
+     "file": "00000014.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.2516247034072876
+    },
+    {
+     "file": "00000015.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.2631475925445557
+    },
+    {
+     "file": "00000016.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.36809504032135
+    },
+    {
+     "file": "00000017.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.1648170948028564
+    },
+    {
+     "file": "00000018.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.44156014919281
+    },
+    {
+     "file": "00000019.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 1.2589986324310303
+    },
+    {
+     "file": "00000000.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.500462532043457
+    },
+    {
+     "file": "00000001.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4869074523448944
+    },
+    {
+     "file": "00000002.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4610498249530792
+    },
+    {
+     "file": "00000003.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4898976683616638
+    },
+    {
+     "file": "00000004.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.46115705370903015
+    },
+    {
+     "file": "00000005.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5179241299629211
+    },
+    {
+     "file": "00000006.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4792587459087372
+    },
+    {
+     "file": "00000007.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.47514238953590393
+    },
+    {
+     "file": "00000008.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5191946029663086
+    },
+    {
+     "file": "00000009.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5289439558982849
+    },
+    {
+     "file": "00000010.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4566764831542969
+    },
+    {
+     "file": "00000011.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4708975851535797
+    },
+    {
+     "file": "00000012.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4559552073478699
+    },
+    {
+     "file": "00000013.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.48346051573753357
+    },
+    {
+     "file": "00000014.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.475055992603302
+    },
+    {
+     "file": "00000015.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.48594942688941956
+    },
+    {
+     "file": "00000016.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5100898146629333
+    },
+    {
+     "file": "00000017.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.49684202671051025
+    },
+    {
+     "file": "00000018.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4756728708744049
+    },
+    {
+     "file": "00000019.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.49142685532569885
+    },
+    {
+     "file": "00000020.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.56575608253479
+    },
+    {
+     "file": "00000021.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5125858783721924
+    },
+    {
+     "file": "00000022.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5422781705856323
+    },
+    {
+     "file": "00000023.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.42278531193733215
+    },
+    {
+     "file": "00000024.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.48229116201400757
+    },
+    {
+     "file": "00000025.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.48652979731559753
+    },
+    {
+     "file": "00000026.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4374876618385315
+    },
+    {
+     "file": "00000027.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.3938851058483124
+    },
+    {
+     "file": "00000028.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5250145792961121
+    },
+    {
+     "file": "00000029.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4748177230358124
+    },
+    {
+     "file": "00000030.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5023238658905029
+    },
+    {
+     "file": "00000031.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4897841513156891
+    },
+    {
+     "file": "00000032.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.45896047353744507
+    },
+    {
+     "file": "00000033.wav",
+     "unit": "pump/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4699971079826355
+    },
+    {
+     "file": "00000034.wav",
+     "unit": "pump/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5673936009407043
+    },
+    {
+     "file": "00000035.wav",
+     "unit": "pump/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6434165835380554
+    },
+    {
+     "file": "00000036.wav",
+     "unit": "pump/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5707100629806519
+    },
+    {
+     "file": "00000037.wav",
+     "unit": "pump/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4825580418109894
+    },
+    {
+     "file": "00000038.wav",
+     "unit": "pump/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5895950198173523
+    },
+    {
+     "file": "00000039.wav",
+     "unit": "pump/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.568810760974884
+    },
+    {
+     "file": "00000040.wav",
+     "unit": "pump/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5396012663841248
+    },
+    {
+     "file": "00000041.wav",
+     "unit": "pump/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4912570118904114
+    },
+    {
+     "file": "00000042.wav",
+     "unit": "pump/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5382881760597229
+    },
+    {
+     "file": "00000043.wav",
+     "unit": "pump/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5152482390403748
+    },
+    {
+     "file": "00000044.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.495400995016098
+    },
+    {
+     "file": "00000045.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5301842093467712
+    },
+    {
+     "file": "00000046.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4740019738674164
+    },
+    {
+     "file": "00000047.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5090238451957703
+    },
+    {
+     "file": "00000048.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4855310916900635
+    },
+    {
+     "file": "00000049.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.49295735359191895
+    },
+    {
+     "file": "00000050.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6055378913879395
+    },
+    {
+     "file": "00000051.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5582681894302368
+    },
+    {
+     "file": "00000052.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.6671627163887024
+    },
+    {
+     "file": "00000053.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5283347964286804
+    },
+    {
+     "file": "00000054.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5785695314407349
+    },
+    {
+     "file": "00000055.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5095188617706299
+    },
+    {
+     "file": "00000056.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5901188850402832
+    },
+    {
+     "file": "00000057.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.526269257068634
+    },
+    {
+     "file": "00000058.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.5004714131355286
+    },
+    {
+     "file": "00000059.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.4923938810825348
+    },
+    {
+     "file": "00000000.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.582379162311554
+    },
+    {
+     "file": "00000001.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5778889060020447
+    },
+    {
+     "file": "00000002.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5988850593566895
+    },
+    {
+     "file": "00000003.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5591749548912048
+    },
+    {
+     "file": "00000004.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5934041738510132
+    },
+    {
+     "file": "00000005.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.7059845924377441
+    },
+    {
+     "file": "00000006.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.658565878868103
+    },
+    {
+     "file": "00000007.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.620851993560791
+    },
+    {
+     "file": "00000008.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5529996156692505
+    },
+    {
+     "file": "00000009.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.6764118671417236
+    },
+    {
+     "file": "00000010.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5799235105514526
+    },
+    {
+     "file": "00000011.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.6512598395347595
+    },
+    {
+     "file": "00000012.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5482051968574524
+    },
+    {
+     "file": "00000013.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5372544527053833
+    },
+    {
+     "file": "00000014.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.6804895997047424
+    },
+    {
+     "file": "00000015.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5616618990898132
+    },
+    {
+     "file": "00000016.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.56809401512146
+    },
+    {
+     "file": "00000017.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5688079595565796
+    },
+    {
+     "file": "00000018.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5857107639312744
+    },
+    {
+     "file": "00000019.wav",
+     "unit": "pump/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5776512026786804
+    },
+    {
+     "file": "00000000.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 0.8814704418182373
+    },
+    {
+     "file": "00000001.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.2976242303848267
+    },
+    {
+     "file": "00000002.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 0.975982666015625
+    },
+    {
+     "file": "00000003.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.3586721420288086
+    },
+    {
+     "file": "00000004.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.2175352573394775
+    },
+    {
+     "file": "00000005.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.2028712034225464
+    },
+    {
+     "file": "00000006.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.2435957193374634
+    },
+    {
+     "file": "00000007.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.0710017681121826
+    },
+    {
+     "file": "00000008.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 0.7040488719940186
+    },
+    {
+     "file": "00000009.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 0.9604054689407349
+    },
+    {
+     "file": "00000010.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.327436923980713
+    },
+    {
+     "file": "00000011.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.0220197439193726
+    },
+    {
+     "file": "00000012.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.1636157035827637
+    },
+    {
+     "file": "00000013.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.170828938484192
+    },
+    {
+     "file": "00000014.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.5509027242660522
+    },
+    {
+     "file": "00000015.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.264957070350647
+    },
+    {
+     "file": "00000016.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.2575842142105103
+    },
+    {
+     "file": "00000017.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.0656378269195557
+    },
+    {
+     "file": "00000018.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.1585192680358887
+    },
+    {
+     "file": "00000019.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "-6dB",
+     "score": 1.3541589975357056
+    },
+    {
+     "file": "00000000.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.3362995386123657
+    },
+    {
+     "file": "00000001.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.6670290231704712
+    },
+    {
+     "file": "00000002.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.5040655136108398
+    },
+    {
+     "file": "00000003.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.8760548830032349
+    },
+    {
+     "file": "00000004.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.3651105165481567
+    },
+    {
+     "file": "00000005.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.31626296043396
+    },
+    {
+     "file": "00000006.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.315569281578064
+    },
+    {
+     "file": "00000007.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.4792476892471313
+    },
+    {
+     "file": "00000008.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.8445611000061035
+    },
+    {
+     "file": "00000009.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.8543418645858765
+    },
+    {
+     "file": "00000010.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.848657488822937
+    },
+    {
+     "file": "00000011.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.462148666381836
+    },
+    {
+     "file": "00000012.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.5129950046539307
+    },
+    {
+     "file": "00000013.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.7680808305740356
+    },
+    {
+     "file": "00000014.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.280821442604065
+    },
+    {
+     "file": "00000015.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.8089025020599365
+    },
+    {
+     "file": "00000016.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.5491505861282349
+    },
+    {
+     "file": "00000017.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 2.0334861278533936
+    },
+    {
+     "file": "00000018.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.6333658695220947
+    },
+    {
+     "file": "00000019.wav",
+     "unit": "pump/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "-6dB",
+     "score": 1.8780120611190796
+    }
+   ]
+  },
+  "fan": {
+   "headline_condition": "6dB",
+   "per_unit": {
+    "fan/id_00": {
+     "auc": 0.990625,
+     "pauc": 0.9062500000000001,
+     "n_normal": 16,
+     "n_anomalous": 20
+    },
+    "fan/id_02": {
+     "auc": 1.0,
+     "pauc": 1.0,
+     "n_normal": 16,
+     "n_anomalous": 20
+    }
+   },
+   "conditions": {
+    "6dB": {
+     "auc": 0.990625,
+     "pauc": 0.9062500000000001,
+     "n_normal": 32,
+     "n_anomalous": 40,
+     "false_alarm_rate": 0.0625,
+     "detection_rate": 1.0,
+     "window_auc": 0.9882444598337949
+    }
+   },
+   "overall": {
+    "auc": 0.990625,
+    "pauc": 0.9062500000000001,
+    "n_normal": 32,
+    "n_anomalous": 40,
+    "false_alarm_rate": 0.0625,
+    "detection_rate": 1.0,
+    "window_auc": 0.9882444598337949
+   },
+   "registry_transfer": [
+    {
+     "from": "fan/id_00",
+     "to": "fan/id_00",
+     "case": "same model",
+     "match_level": 0.414748239146708,
+     "by_mix": {
+      "0.25": {
+       "n": 16,
+       "alarm": 0.125,
+       "registry": 0.75,
+       "either": 0.75
+      },
+      "0.5": {
+       "n": 16,
+       "alarm": 0.375,
+       "registry": 1.0,
+       "either": 1.0
+      },
+      "0.75": {
+       "n": 16,
+       "alarm": 0.875,
+       "registry": 1.0,
+       "either": 1.0
+      },
+      "1.0": {
+       "n": 16,
+       "alarm": 1.0,
+       "registry": 1.0,
+       "either": 1.0
+      }
+     },
+     "registry_false_flag_rate": 0.0
+    },
+    {
+     "from": "fan/id_00",
+     "to": "fan/id_02",
+     "case": "other unit",
+     "match_level": 0.2423767859105252,
+     "by_mix": {
+      "0.25": {
+       "n": 16,
+       "alarm": 0.0,
+       "registry": 0.0,
+       "either": 0.0
+      },
+      "0.5": {
+       "n": 16,
+       "alarm": 0.1875,
+       "registry": 0.0625,
+       "either": 0.25
+      },
+      "0.75": {
+       "n": 16,
+       "alarm": 0.875,
+       "registry": 0.1875,
+       "either": 0.875
+      },
+      "1.0": {
+       "n": 16,
+       "alarm": 1.0,
+       "registry": 0.4375,
+       "either": 1.0
+      }
+     },
+     "registry_false_flag_rate": 0.25
+    },
+    {
+     "from": "fan/id_02",
+     "to": "fan/id_00",
+     "case": "other unit",
+     "match_level": 0.30986893305492264,
+     "by_mix": {
+      "0.25": {
+       "n": 16,
+       "alarm": 0.0,
+       "registry": 0.375,
+       "either": 0.375
+      },
+      "0.5": {
+       "n": 16,
+       "alarm": 0.625,
+       "registry": 0.4375,
+       "either": 0.6875
+      },
+      "0.75": {
+       "n": 16,
+       "alarm": 0.9375,
+       "registry": 0.75,
+       "either": 0.9375
+      },
+      "1.0": {
+       "n": 16,
+       "alarm": 1.0,
+       "registry": 0.75,
+       "either": 1.0
+      }
+     },
+     "registry_false_flag_rate": 0.0625
+    },
+    {
+     "from": "fan/id_02",
+     "to": "fan/id_02",
+     "case": "same model",
+     "match_level": 0.3007870116017813,
+     "by_mix": {
+      "0.25": {
+       "n": 16,
+       "alarm": 0.0625,
+       "registry": 0.3125,
+       "either": 0.3125
+      },
+      "0.5": {
+       "n": 16,
+       "alarm": 0.1875,
+       "registry": 0.75,
+       "either": 0.75
+      },
+      "0.75": {
+       "n": 16,
+       "alarm": 0.9375,
+       "registry": 1.0,
+       "either": 1.0
+      },
+      "1.0": {
+       "n": 16,
+       "alarm": 1.0,
+       "registry": 1.0,
+       "either": 1.0
+      }
+     },
+     "registry_false_flag_rate": 0.3125
+    }
+   ],
+   "tflite": {
+    "size_bytes": 261576,
+    "clips_checked": 11,
+    "max_rel_score_diff_vs_keras": 0.001345545956888073
+   },
+   "training": {
+    "epochs_run": 40,
+    "final_loss": 0.25467297434806824,
+    "best_val_loss": 0.26772040128707886,
+    "train_windows": 1292,
+    "params": 216609
+   },
+   "data_sha256": "23a304fb8908be8b406cb3b6c1122b5a15a068b8c53fd854819e51c659d5fcf1",
+   "thresholds": {
+    "fan/id_00": 0.3465317726135253,
+    "fan/id_02": 0.2849695309996605
+   },
+   "clip_scores": [
+    {
+     "file": "00000000.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.25684693455696106
+    },
+    {
+     "file": "00000001.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26835763454437256
+    },
+    {
+     "file": "00000002.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2472444772720337
+    },
+    {
+     "file": "00000003.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26393353939056396
+    },
+    {
+     "file": "00000004.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2602846622467041
+    },
+    {
+     "file": "00000005.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2593655288219452
+    },
+    {
+     "file": "00000006.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26212936639785767
+    },
+    {
+     "file": "00000007.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.25130510330200195
+    },
+    {
+     "file": "00000008.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.23938706517219543
+    },
+    {
+     "file": "00000009.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.276822566986084
+    },
+    {
+     "file": "00000010.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26725998520851135
+    },
+    {
+     "file": "00000011.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2692801356315613
+    },
+    {
+     "file": "00000012.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.25617605447769165
+    },
+    {
+     "file": "00000013.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24194245040416718
+    },
+    {
+     "file": "00000014.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2805655002593994
+    },
+    {
+     "file": "00000015.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.27482593059539795
+    },
+    {
+     "file": "00000016.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.23810848593711853
+    },
+    {
+     "file": "00000017.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24345239996910095
+    },
+    {
+     "file": "00000018.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2608608305454254
+    },
+    {
+     "file": "00000019.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26850971579551697
+    },
+    {
+     "file": "00000020.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2609131336212158
+    },
+    {
+     "file": "00000021.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2422676384449005
+    },
+    {
+     "file": "00000022.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26704129576683044
+    },
+    {
+     "file": "00000023.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24640725553035736
+    },
+    {
+     "file": "00000024.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24758510291576385
+    },
+    {
+     "file": "00000025.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24787016212940216
+    },
+    {
+     "file": "00000026.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26580944657325745
+    },
+    {
+     "file": "00000027.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2682386338710785
+    },
+    {
+     "file": "00000028.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2678786516189575
+    },
+    {
+     "file": "00000029.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2596862316131592
+    },
+    {
+     "file": "00000030.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2596514821052551
+    },
+    {
+     "file": "00000031.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2367267906665802
+    },
+    {
+     "file": "00000032.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2641979455947876
+    },
+    {
+     "file": "00000033.wav",
+     "unit": "fan/id_00",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2856321334838867
+    },
+    {
+     "file": "00000034.wav",
+     "unit": "fan/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.3875003159046173
+    },
+    {
+     "file": "00000035.wav",
+     "unit": "fan/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.28476208448410034
+    },
+    {
+     "file": "00000036.wav",
+     "unit": "fan/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24900512397289276
+    },
+    {
+     "file": "00000037.wav",
+     "unit": "fan/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2448609322309494
+    },
+    {
+     "file": "00000038.wav",
+     "unit": "fan/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2778092920780182
+    },
+    {
+     "file": "00000039.wav",
+     "unit": "fan/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2934598922729492
+    },
+    {
+     "file": "00000040.wav",
+     "unit": "fan/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24817441403865814
+    },
+    {
+     "file": "00000041.wav",
+     "unit": "fan/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2964591085910797
+    },
+    {
+     "file": "00000042.wav",
+     "unit": "fan/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26870813965797424
+    },
+    {
+     "file": "00000043.wav",
+     "unit": "fan/id_00",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.25052762031555176
+    },
+    {
+     "file": "00000044.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.299986332654953
+    },
+    {
+     "file": "00000045.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.27185994386672974
+    },
+    {
+     "file": "00000046.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.3292917311191559
+    },
+    {
+     "file": "00000047.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.38034847378730774
+    },
+    {
+     "file": "00000048.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.286017507314682
+    },
+    {
+     "file": "00000049.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.259656697511673
+    },
+    {
+     "file": "00000050.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24115921556949615
+    },
+    {
+     "file": "00000051.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.30428117513656616
+    },
+    {
+     "file": "00000052.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24541425704956055
+    },
+    {
+     "file": "00000053.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.29941514134407043
+    },
+    {
+     "file": "00000054.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24729904532432556
+    },
+    {
+     "file": "00000055.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24306634068489075
+    },
+    {
+     "file": "00000056.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2459389567375183
+    },
+    {
+     "file": "00000057.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24501536786556244
+    },
+    {
+     "file": "00000058.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24048665165901184
+    },
+    {
+     "file": "00000059.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.25987544655799866
+    },
+    {
+     "file": "00000000.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.4836518168449402
+    },
+    {
+     "file": "00000001.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.43159204721450806
+    },
+    {
+     "file": "00000002.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.448520302772522
+    },
+    {
+     "file": "00000003.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.39310726523399353
+    },
+    {
+     "file": "00000004.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.3767136335372925
+    },
+    {
+     "file": "00000005.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.4258384704589844
+    },
+    {
+     "file": "00000006.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.36688193678855896
+    },
+    {
+     "file": "00000007.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.3540109694004059
+    },
+    {
+     "file": "00000008.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.45996594429016113
+    },
+    {
+     "file": "00000009.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.4604109823703766
+    },
+    {
+     "file": "00000010.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.42977723479270935
+    },
+    {
+     "file": "00000011.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5929271578788757
+    },
+    {
+     "file": "00000012.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.4290233850479126
+    },
+    {
+     "file": "00000013.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5686491131782532
+    },
+    {
+     "file": "00000014.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.44558238983154297
+    },
+    {
+     "file": "00000015.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.487949937582016
+    },
+    {
+     "file": "00000016.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.45314517617225647
+    },
+    {
+     "file": "00000017.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.48386478424072266
+    },
+    {
+     "file": "00000018.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.40311336517333984
+    },
+    {
+     "file": "00000019.wav",
+     "unit": "fan/id_00",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.44111117720603943
+    },
+    {
+     "file": "00000000.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2508012652397156
+    },
+    {
+     "file": "00000001.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2586425542831421
+    },
+    {
+     "file": "00000002.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2590862214565277
+    },
+    {
+     "file": "00000003.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.25496706366539
+    },
+    {
+     "file": "00000004.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.255359947681427
+    },
+    {
+     "file": "00000005.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24420280754566193
+    },
+    {
+     "file": "00000006.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.23873023688793182
+    },
+    {
+     "file": "00000007.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.23942779004573822
+    },
+    {
+     "file": "00000008.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24190819263458252
+    },
+    {
+     "file": "00000009.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2455112487077713
+    },
+    {
+     "file": "00000010.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24214787781238556
+    },
+    {
+     "file": "00000011.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24217693507671356
+    },
+    {
+     "file": "00000012.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.255107045173645
+    },
+    {
+     "file": "00000013.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24038612842559814
+    },
+    {
+     "file": "00000014.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24505116045475006
+    },
+    {
+     "file": "00000015.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26672622561454773
+    },
+    {
+     "file": "00000016.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24089236557483673
+    },
+    {
+     "file": "00000017.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2378474473953247
+    },
+    {
+     "file": "00000018.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2423405647277832
+    },
+    {
+     "file": "00000019.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2513028085231781
+    },
+    {
+     "file": "00000020.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24368886649608612
+    },
+    {
+     "file": "00000021.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2540641725063324
+    },
+    {
+     "file": "00000022.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2585403025150299
+    },
+    {
+     "file": "00000023.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26492840051651
+    },
+    {
+     "file": "00000024.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.25061649084091187
+    },
+    {
+     "file": "00000025.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24549290537834167
+    },
+    {
+     "file": "00000026.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2578493654727936
+    },
+    {
+     "file": "00000027.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.25708186626434326
+    },
+    {
+     "file": "00000028.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24824996292591095
+    },
+    {
+     "file": "00000029.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24031232297420502
+    },
+    {
+     "file": "00000030.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2472449541091919
+    },
+    {
+     "file": "00000031.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2651313841342926
+    },
+    {
+     "file": "00000032.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24085451662540436
+    },
+    {
+     "file": "00000033.wav",
+     "unit": "fan/id_02",
+     "split": "train",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2409990280866623
+    },
+    {
+     "file": "00000034.wav",
+     "unit": "fan/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2644193768501282
+    },
+    {
+     "file": "00000035.wav",
+     "unit": "fan/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.25082647800445557
+    },
+    {
+     "file": "00000036.wav",
+     "unit": "fan/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2480475753545761
+    },
+    {
+     "file": "00000037.wav",
+     "unit": "fan/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24944110214710236
+    },
+    {
+     "file": "00000038.wav",
+     "unit": "fan/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2946521043777466
+    },
+    {
+     "file": "00000039.wav",
+     "unit": "fan/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2429136037826538
+    },
+    {
+     "file": "00000040.wav",
+     "unit": "fan/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2731352746486664
+    },
+    {
+     "file": "00000041.wav",
+     "unit": "fan/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.23585161566734314
+    },
+    {
+     "file": "00000042.wav",
+     "unit": "fan/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.23980312049388885
+    },
+    {
+     "file": "00000043.wav",
+     "unit": "fan/id_02",
+     "split": "val",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2540503442287445
+    },
+    {
+     "file": "00000044.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.28020167350769043
+    },
+    {
+     "file": "00000045.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2829824388027191
+    },
+    {
+     "file": "00000046.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.27227920293807983
+    },
+    {
+     "file": "00000047.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24220795929431915
+    },
+    {
+     "file": "00000048.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26199302077293396
+    },
+    {
+     "file": "00000049.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26594752073287964
+    },
+    {
+     "file": "00000050.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.25550493597984314
+    },
+    {
+     "file": "00000051.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.29140037298202515
+    },
+    {
+     "file": "00000052.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2823334336280823
+    },
+    {
+     "file": "00000053.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2699716091156006
+    },
+    {
+     "file": "00000054.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.27037468552589417
+    },
+    {
+     "file": "00000055.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2528628706932068
+    },
+    {
+     "file": "00000056.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.24562589824199677
+    },
+    {
+     "file": "00000057.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26239562034606934
+    },
+    {
+     "file": "00000058.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.2583799362182617
+    },
+    {
+     "file": "00000059.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 0,
+     "condition": "6dB",
+     "score": 0.26980647444725037
+    },
+    {
+     "file": "00000000.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.34816974401474
+    },
+    {
+     "file": "00000001.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.40336209535598755
+    },
+    {
+     "file": "00000002.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.3885849416255951
+    },
+    {
+     "file": "00000003.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5239903926849365
+    },
+    {
+     "file": "00000004.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.3615582585334778
+    },
+    {
+     "file": "00000005.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.4028562009334564
+    },
+    {
+     "file": "00000006.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.36860647797584534
+    },
+    {
+     "file": "00000007.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.358027845621109
+    },
+    {
+     "file": "00000008.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.43814173340797424
+    },
+    {
+     "file": "00000009.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.40224766731262207
+    },
+    {
+     "file": "00000010.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.3812881410121918
+    },
+    {
+     "file": "00000011.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.5023375153541565
+    },
+    {
+     "file": "00000012.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.3877071440219879
+    },
+    {
+     "file": "00000013.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.36300989985466003
+    },
+    {
+     "file": "00000014.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.36912718415260315
+    },
+    {
+     "file": "00000015.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.3624268174171448
+    },
+    {
+     "file": "00000016.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.3822523057460785
+    },
+    {
+     "file": "00000017.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.38781896233558655
+    },
+    {
+     "file": "00000018.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.3595266044139862
+    },
+    {
+     "file": "00000019.wav",
+     "unit": "fan/id_02",
+     "split": "test",
+     "label": 1,
+     "condition": "6dB",
+     "score": 0.37938347458839417
+    }
+   ]
+  },
+  "gearbox": {
+   "headline_condition": "source",
+   "per_unit": {
+    "gearbox/section_00": {
+     "auc": 0.57,
+     "pauc": 0.10000000000000002,
+     "n_normal": 20,
+     "n_anomalous": 20
+    },
+    "gearbox/section_01": {
+     "auc": 0.7474999999999999,
+     "pauc": 0.22500000000000006,
+     "n_normal": 20,
+     "n_anomalous": 20
+    },
+    "gearbox/section_02": {
+     "auc": 0.635,
+     "pauc": 0.0,
+     "n_normal": 20,
+     "n_anomalous": 20
+    }
+   },
+   "conditions": {
+    "source": {
+     "auc": 0.6594444444444444,
+     "pauc": 0.05833333333333334,
+     "n_normal": 60,
+     "n_anomalous": 60,
+     "false_alarm_rate": 0.1,
+     "detection_rate": 0.11666666666666667,
+     "window_auc": 0.6515066174207449
+    },
+    "target": {
+     "auc": 0.5788888888888889,
+     "pauc": 0.06666666666666668,
+     "n_normal": 30,
+     "n_anomalous": 30,
+     "false_alarm_rate": 0.1,
+     "detection_rate": 0.2,
+     "window_auc": 0.5814188981224991
+    }
+   },
+   "overall": {
+    "auc": 0.6594444444444444,
+    "pauc": 0.05833333333333334,
+    "n_normal": 60,
+    "n_anomalous": 60,
+    "false_alarm_rate": 0.1,
+    "detection_rate": 0.11666666666666667,
+    "window_auc": 0.6515066174207449
+   },
+   "registry_transfer": [
+    {
+     "from": "gearbox/section_00",
+     "to": "gearbox/section_00",
+     "case": "same model",
+     "match_level": 0.2735627728347883,
+     "by_mix": {
+      "0.25": {
+       "n": 16,
+       "alarm": 0.0,
+       "registry": 0.3125,
+       "either": 0.3125
+      },
+      "0.5": {
+       "n": 16,
+       "alarm": 0.0625,
+       "registry": 0.4375,
+       "either": 0.4375
+      },
+      "0.75": {
+       "n": 16,
+       "alarm": 0.125,
+       "registry": 0.5,
+       "either": 0.5
+      },
+      "1.0": {
+       "n": 16,
+       "alarm": 0.0625,
+       "registry": 0.4375,
+       "either": 0.4375
+      }
+     },
+     "registry_false_flag_rate": 0.25
+    },
+    {
+     "from": "gearbox/section_00",
+     "to": "gearbox/section_01",
+     "case": "other unit",
+     "match_level": 0.44455274896374475,
+     "by_mix": {
+      "0.25": {
+       "n": 20,
+       "alarm": 0.0,
+       "registry": 0.0,
+       "either": 0.0
+      },
+      "0.5": {
+       "n": 20,
+       "alarm": 0.0,
+       "registry": 0.0,
+       "either": 0.0
+      },
+      "0.75": {
+       "n": 20,
+       "alarm": 0.05,
+       "registry": 0.0,
+       "either": 0.05
+      },
+      "1.0": {
+       "n": 20,
+       "alarm": 0.1,
+       "registry": 0.0,
+       "either": 0.1
+      }
+     },
+     "registry_false_flag_rate": 0.0
+    },
+    {
+     "from": "gearbox/section_00",
+     "to": "gearbox/section_02",
+     "case": "other unit",
+     "match_level": 0.32473788864479236,
+     "by_mix": {
+      "0.25": {
+       "n": 20,
+       "alarm": 0.3,
+       "registry": 0.35,
+       "either": 0.4
+      },
+      "0.5": {
+       "n": 20,
+       "alarm": 0.3,
+       "registry": 0.35,
+       "either": 0.45
+      },
+      "0.75": {
+       "n": 20,
+       "alarm": 0.25,
+       "registry": 0.35,
+       "either": 0.45
+      },
+      "1.0": {
+       "n": 20,
+       "alarm": 0.15,
+       "registry": 0.25,
+       "either": 0.25
+      }
+     },
+     "registry_false_flag_rate": 0.3
+    },
+    {
+     "from": "gearbox/section_01",
+     "to": "gearbox/section_00",
+     "case": "other unit",
+     "match_level": 0.25439396522123664,
+     "by_mix": {
+      "0.25": {
+       "n": 20,
+       "alarm": 0.15,
+       "registry": 0.1,
+       "either": 0.25
+      },
+      "0.5": {
+       "n": 20,
+       "alarm": 0.15,
+       "registry": 0.05,
+       "either": 0.2
+      },
+      "0.75": {
+       "n": 20,
+       "alarm": 0.2,
+       "registry": 0.15,
+       "either": 0.35
+      },
+      "1.0": {
+       "n": 20,
+       "alarm": 0.1,
+       "registry": 0.25,
+       "either": 0.35
+      }
+     },
+     "registry_false_flag_rate": 0.2
+    },
+    {
+     "from": "gearbox/section_01",
+     "to": "gearbox/section_01",
+     "case": "same model",
+     "match_level": 0.2784285234061478,
+     "by_mix": {
+      "0.25": {
+       "n": 16,
+       "alarm": 0.0,
+       "registry": 0.0,
+       "either": 0.0
+      },
+      "0.5": {
+       "n": 16,
+       "alarm": 0.1875,
+       "registry": 0.0625,
+       "either": 0.25
+      },
+      "0.75": {
+       "n": 16,
+       "alarm": 0.1875,
+       "registry": 0.25,
+       "either": 0.3125
+      },
+      "1.0": {
+       "n": 16,
+       "alarm": 0.0625,
+       "registry": 0.25,
+       "either": 0.25
+      }
+     },
+     "registry_false_flag_rate": 0.1
+    },
+    {
+     "from": "gearbox/section_01",
+     "to": "gearbox/section_02",
+     "case": "other unit",
+     "match_level": 0.3477015242791618,
+     "by_mix": {
+      "0.25": {
+       "n": 20,
+       "alarm": 0.3,
+       "registry": 0.0,
+       "either": 0.3
+      },
+      "0.5": {
+       "n": 20,
+       "alarm": 0.3,
+       "registry": 0.0,
+       "either": 0.3
+      },
+      "0.75": {
+       "n": 20,
+       "alarm": 0.25,
+       "registry": 0.05,
+       "either": 0.25
+      },
+      "1.0": {
+       "n": 20,
+       "alarm": 0.15,
+       "registry": 0.15,
+       "either": 0.25
+      }
+     },
+     "registry_false_flag_rate": 0.0
+    },
+    {
+     "from": "gearbox/section_02",
+     "to": "gearbox/section_00",
+     "case": "other unit",
+     "match_level": 0.6085291741825235,
+     "by_mix": {
+      "0.25": {
+       "n": 20,
+       "alarm": 0.15,
+       "registry": 0.05,
+       "either": 0.2
+      },
+      "0.5": {
+       "n": 20,
+       "alarm": 0.15,
+       "registry": 0.0,
+       "either": 0.15
+      },
+      "0.75": {
+       "n": 20,
+       "alarm": 0.2,
+       "registry": 0.05,
+       "either": 0.25
+      },
+      "1.0": {
+       "n": 20,
+       "alarm": 0.1,
+       "registry": 0.1,
+       "either": 0.2
+      }
+     },
+     "registry_false_flag_rate": 0.1
+    },
+    {
+     "from": "gearbox/section_02",
+     "to": "gearbox/section_01",
+     "case": "other unit",
+     "match_level": 0.5485362186194589,
+     "by_mix": {
+      "0.25": {
+       "n": 20,
+       "alarm": 0.0,
+       "registry": 0.0,
+       "either": 0.0
+      },
+      "0.5": {
+       "n": 20,
+       "alarm": 0.0,
+       "registry": 0.05,
+       "either": 0.05
+      },
+      "0.75": {
+       "n": 20,
+       "alarm": 0.05,
+       "registry": 0.1,
+       "either": 0.15
+      },
+      "1.0": {
+       "n": 20,
+       "alarm": 0.1,
+       "registry": 0.25,
+       "either": 0.3
+      }
+     },
+     "registry_false_flag_rate": 0.05
+    },
+    {
+     "from": "gearbox/section_02",
+     "to": "gearbox/section_02",
+     "case": "same model",
+     "match_level": 0.5447745447048323,
+     "by_mix": {
+      "0.25": {
+       "n": 16,
+       "alarm": 0.25,
+       "registry": 0.0625,
+       "either": 0.25
+      },
+      "0.5": {
+       "n": 16,
+       "alarm": 0.25,
+       "registry": 0.3125,
+       "either": 0.4375
+      },
+      "0.75": {
+       "n": 16,
+       "alarm": 0.25,
+       "registry": 0.375,
+       "either": 0.4375
+      },
+      "1.0": {
+       "n": 16,
+       "alarm": 0.125,
+       "registry": 0.5,
+       "either": 0.5
+      }
+     },
+     "registry_false_flag_rate": 0.2
+    }
+   ],
+   "tflite": {
+    "size_bytes": 261592,
+    "clips_checked": 12,
+    "max_rel_score_diff_vs_keras": 0.001198323051285164
+   },
+   "training": {
+    "epochs_run": 40,
+    "final_loss": 0.29006803035736084,
+    "best_val_loss": 0.31126049160957336,
+    "train_windows": 2850,
+    "params": 216609
+   },
+   "data_sha256": "caec5968fa16a1dcfd506a63c4d9732d6bdccf54770e6d0e0feb6cb65711afb3",
+   "thresholds": {
+    "gearbox/section_00": 0.3880542889237403,
+    "gearbox/section_01": 0.41366937309503554,
+    "gearbox/section_02": 0.376067253947258
+   },
+   "clip_scores": [
+    {
+     "file": "section_00_source_train_normal_0000_0_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2857859134674072
+    },
+    {
+     "file": "section_00_source_train_normal_0001_0_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3133281171321869
+    },
+    {
+     "file": "section_00_source_train_normal_0002_0_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.252817302942276
+    },
+    {
+     "file": "section_00_source_train_normal_0003_100_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2811582088470459
+    },
+    {
+     "file": "section_00_source_train_normal_0004_250_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3010238707065582
+    },
+    {
+     "file": "section_00_source_train_normal_0005_200_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3257259428501129
+    },
+    {
+     "file": "section_00_source_train_normal_0006_200_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2795141637325287
+    },
+    {
+     "file": "section_00_source_train_normal_0007_50_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27104783058166504
+    },
+    {
+     "file": "section_00_source_train_normal_0008_50_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.30488118529319763
+    },
+    {
+     "file": "section_00_source_train_normal_0009_50_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3718045651912689
+    },
+    {
+     "file": "section_00_source_train_normal_0010_150_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.26040780544281006
+    },
+    {
+     "file": "section_00_source_train_normal_0011_200_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2812309265136719
+    },
+    {
+     "file": "section_00_source_train_normal_0012_0_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2983742356300354
+    },
+    {
+     "file": "section_00_source_train_normal_0013_200_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.25915834307670593
+    },
+    {
+     "file": "section_00_source_train_normal_0014_100_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28555193543434143
+    },
+    {
+     "file": "section_00_source_train_normal_0015_0_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2466617077589035
+    },
+    {
+     "file": "section_00_source_train_normal_0016_200_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27238380908966064
+    },
+    {
+     "file": "section_00_source_train_normal_0017_50_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28510984778404236
+    },
+    {
+     "file": "section_00_source_train_normal_0018_250_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.31103894114494324
+    },
+    {
+     "file": "section_00_source_train_normal_0019_200_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.25710809230804443
+    },
+    {
+     "file": "section_00_source_train_normal_0020_200_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2822469472885132
+    },
+    {
+     "file": "section_00_source_train_normal_0021_200_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2767399847507477
+    },
+    {
+     "file": "section_00_source_train_normal_0022_150_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.24566715955734253
+    },
+    {
+     "file": "section_00_source_train_normal_0023_50_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.280691534280777
+    },
+    {
+     "file": "section_00_source_train_normal_0024_100_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.25277799367904663
+    },
+    {
+     "file": "section_00_source_train_normal_0025_100_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2811775207519531
+    },
+    {
+     "file": "section_00_source_train_normal_0026_100_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.24926817417144775
+    },
+    {
+     "file": "section_00_source_train_normal_0027_0_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.26701217889785767
+    },
+    {
+     "file": "section_00_source_train_normal_0028_100_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28260430693626404
+    },
+    {
+     "file": "section_00_source_train_normal_0029_150_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28941187262535095
+    },
+    {
+     "file": "section_00_source_train_normal_0030_50_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3540167808532715
+    },
+    {
+     "file": "section_00_source_train_normal_0031_50_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.26674628257751465
+    },
+    {
+     "file": "section_00_source_train_normal_0032_150_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2573856711387634
+    },
+    {
+     "file": "section_00_source_train_normal_0033_150_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.25745734572410583
+    },
+    {
+     "file": "section_00_source_train_normal_0034_50_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.32030797004699707
+    },
+    {
+     "file": "section_00_source_train_normal_0035_0_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2714950144290924
+    },
+    {
+     "file": "section_00_source_train_normal_0036_150_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27055710554122925
+    },
+    {
+     "file": "section_00_source_train_normal_0037_50_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2731526494026184
+    },
+    {
+     "file": "section_00_source_train_normal_0038_250_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.30151548981666565
+    },
+    {
+     "file": "section_00_source_train_normal_0039_150_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.25444668531417847
+    },
+    {
+     "file": "section_00_source_train_normal_0040_100_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.38499823212623596
+    },
+    {
+     "file": "section_00_source_train_normal_0041_100_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.26292046904563904
+    },
+    {
+     "file": "section_00_source_train_normal_0042_250_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2710378170013428
+    },
+    {
+     "file": "section_00_source_train_normal_0043_0_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3196489214897156
+    },
+    {
+     "file": "section_00_source_train_normal_0044_50_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27623265981674194
+    },
+    {
+     "file": "section_00_source_train_normal_0045_200_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29352688789367676
+    },
+    {
+     "file": "section_00_source_train_normal_0046_200_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29872870445251465
+    },
+    {
+     "file": "section_00_source_train_normal_0047_0_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.288149893283844
+    },
+    {
+     "file": "section_00_source_train_normal_0048_100_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2482432872056961
+    },
+    {
+     "file": "section_00_source_train_normal_0049_150_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3547583222389221
+    },
+    {
+     "file": "section_00_source_train_normal_0050_150_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.31420430541038513
+    },
+    {
+     "file": "section_00_source_train_normal_0051_50_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2428242266178131
+    },
+    {
+     "file": "section_00_source_train_normal_0052_50_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3287389278411865
+    },
+    {
+     "file": "section_00_source_train_normal_0053_200_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2796507179737091
+    },
+    {
+     "file": "section_00_source_train_normal_0054_100_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.24737489223480225
+    },
+    {
+     "file": "section_00_source_train_normal_0055_50_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3133366107940674
+    },
+    {
+     "file": "section_00_source_train_normal_0056_50_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.43658503890037537
+    },
+    {
+     "file": "section_00_source_train_normal_0057_100_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3101813793182373
+    },
+    {
+     "file": "section_00_source_train_normal_0058_0_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2614039182662964
+    },
+    {
+     "file": "section_00_source_train_normal_0059_150_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_00",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3126870095729828
+    },
+    {
+     "file": "section_00_source_test_anomaly_0000.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.4686383605003357
+    },
+    {
+     "file": "section_00_source_test_anomaly_0001.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.264036625623703
+    },
+    {
+     "file": "section_00_source_test_anomaly_0002.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.313264936208725
+    },
+    {
+     "file": "section_00_source_test_anomaly_0003.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.35876187682151794
+    },
+    {
+     "file": "section_00_source_test_anomaly_0004.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.33487963676452637
+    },
+    {
+     "file": "section_00_source_test_anomaly_0005.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.30905336141586304
+    },
+    {
+     "file": "section_00_source_test_anomaly_0006.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.28899744153022766
+    },
+    {
+     "file": "section_00_source_test_anomaly_0007.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.30474698543548584
+    },
+    {
+     "file": "section_00_source_test_anomaly_0008.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.28586122393608093
+    },
+    {
+     "file": "section_00_source_test_anomaly_0009.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.6107637882232666
+    },
+    {
+     "file": "section_00_source_test_anomaly_0010.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3082687556743622
+    },
+    {
+     "file": "section_00_source_test_anomaly_0011.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3125612139701843
+    },
+    {
+     "file": "section_00_source_test_anomaly_0012.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3202798664569855
+    },
+    {
+     "file": "section_00_source_test_anomaly_0013.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.2813171148300171
+    },
+    {
+     "file": "section_00_source_test_anomaly_0014.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.27359503507614136
+    },
+    {
+     "file": "section_00_source_test_anomaly_0015.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3125288486480713
+    },
+    {
+     "file": "section_00_source_test_anomaly_0016.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.26297709345817566
+    },
+    {
+     "file": "section_00_source_test_anomaly_0017.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.31116676330566406
+    },
+    {
+     "file": "section_00_source_test_anomaly_0018.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3156300485134125
+    },
+    {
+     "file": "section_00_source_test_anomaly_0019.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.26344168186187744
+    },
+    {
+     "file": "section_00_source_test_normal_0000.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3369232714176178
+    },
+    {
+     "file": "section_00_source_test_normal_0001.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27607327699661255
+    },
+    {
+     "file": "section_00_source_test_normal_0002.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3723337650299072
+    },
+    {
+     "file": "section_00_source_test_normal_0003.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2596038579940796
+    },
+    {
+     "file": "section_00_source_test_normal_0004.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.24379388988018036
+    },
+    {
+     "file": "section_00_source_test_normal_0005.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2773694097995758
+    },
+    {
+     "file": "section_00_source_test_normal_0006.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3308609426021576
+    },
+    {
+     "file": "section_00_source_test_normal_0007.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.282444566488266
+    },
+    {
+     "file": "section_00_source_test_normal_0008.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.39813166856765747
+    },
+    {
+     "file": "section_00_source_test_normal_0009.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2799879312515259
+    },
+    {
+     "file": "section_00_source_test_normal_0010.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2805526852607727
+    },
+    {
+     "file": "section_00_source_test_normal_0011.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.25798499584198
+    },
+    {
+     "file": "section_00_source_test_normal_0012.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.24691317975521088
+    },
+    {
+     "file": "section_00_source_test_normal_0013.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.322232723236084
+    },
+    {
+     "file": "section_00_source_test_normal_0014.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.30995216965675354
+    },
+    {
+     "file": "section_00_source_test_normal_0015.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3394368588924408
+    },
+    {
+     "file": "section_00_source_test_normal_0016.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2644515931606293
+    },
+    {
+     "file": "section_00_source_test_normal_0017.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.32317882776260376
+    },
+    {
+     "file": "section_00_source_test_normal_0018.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2671735882759094
+    },
+    {
+     "file": "section_00_source_test_normal_0019.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.34200286865234375
+    },
+    {
+     "file": "section_00_target_test_anomaly_0000.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.30875909328460693
+    },
+    {
+     "file": "section_00_target_test_anomaly_0001.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.2621924877166748
+    },
+    {
+     "file": "section_00_target_test_anomaly_0002.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.38917529582977295
+    },
+    {
+     "file": "section_00_target_test_anomaly_0003.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.2942993938922882
+    },
+    {
+     "file": "section_00_target_test_anomaly_0004.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.29738563299179077
+    },
+    {
+     "file": "section_00_target_test_anomaly_0005.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.28540393710136414
+    },
+    {
+     "file": "section_00_target_test_anomaly_0006.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.39749661087989807
+    },
+    {
+     "file": "section_00_target_test_anomaly_0007.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.3615066707134247
+    },
+    {
+     "file": "section_00_target_test_anomaly_0008.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.3318975865840912
+    },
+    {
+     "file": "section_00_target_test_anomaly_0009.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.3272106349468231
+    },
+    {
+     "file": "section_00_target_test_normal_0000.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.3576275706291199
+    },
+    {
+     "file": "section_00_target_test_normal_0001.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.5339393615722656
+    },
+    {
+     "file": "section_00_target_test_normal_0002.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.29094764590263367
+    },
+    {
+     "file": "section_00_target_test_normal_0003.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.26628008484840393
+    },
+    {
+     "file": "section_00_target_test_normal_0004.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.33641740679740906
+    },
+    {
+     "file": "section_00_target_test_normal_0005.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.27174124121665955
+    },
+    {
+     "file": "section_00_target_test_normal_0006.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.32780250906944275
+    },
+    {
+     "file": "section_00_target_test_normal_0007.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.34142670035362244
+    },
+    {
+     "file": "section_00_target_test_normal_0008.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.4023953676223755
+    },
+    {
+     "file": "section_00_target_test_normal_0009.wav",
+     "unit": "gearbox/section_00",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.2823428213596344
+    },
+    {
+     "file": "section_01_source_train_normal_0000_0_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2767113447189331
+    },
+    {
+     "file": "section_01_source_train_normal_0001_200_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2859402298927307
+    },
+    {
+     "file": "section_01_source_train_normal_0002_50_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.38510093092918396
+    },
+    {
+     "file": "section_01_source_train_normal_0003_120_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28860101103782654
+    },
+    {
+     "file": "section_01_source_train_normal_0004_200_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27314576506614685
+    },
+    {
+     "file": "section_01_source_train_normal_0005_50_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29029807448387146
+    },
+    {
+     "file": "section_01_source_train_normal_0006_100_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29398074746131897
+    },
+    {
+     "file": "section_01_source_train_normal_0007_200_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29164212942123413
+    },
+    {
+     "file": "section_01_source_train_normal_0008_200_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29401305317878723
+    },
+    {
+     "file": "section_01_source_train_normal_0009_100_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3054378628730774
+    },
+    {
+     "file": "section_01_source_train_normal_0010_0_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29511046409606934
+    },
+    {
+     "file": "section_01_source_train_normal_0011_120_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2658877372741699
+    },
+    {
+     "file": "section_01_source_train_normal_0012_0_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27425891160964966
+    },
+    {
+     "file": "section_01_source_train_normal_0013_50_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27888715267181396
+    },
+    {
+     "file": "section_01_source_train_normal_0014_50_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29522374272346497
+    },
+    {
+     "file": "section_01_source_train_normal_0015_50_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2720997929573059
+    },
+    {
+     "file": "section_01_source_train_normal_0016_200_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2965390384197235
+    },
+    {
+     "file": "section_01_source_train_normal_0017_120_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28002774715423584
+    },
+    {
+     "file": "section_01_source_train_normal_0018_100_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3626631796360016
+    },
+    {
+     "file": "section_01_source_train_normal_0019_0_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3003101348876953
+    },
+    {
+     "file": "section_01_source_train_normal_0020_0_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.4636717438697815
+    },
+    {
+     "file": "section_01_source_train_normal_0021_120_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29589125514030457
+    },
+    {
+     "file": "section_01_source_train_normal_0022_200_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2640841007232666
+    },
+    {
+     "file": "section_01_source_train_normal_0023_120_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3092147707939148
+    },
+    {
+     "file": "section_01_source_train_normal_0024_0_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2791065573692322
+    },
+    {
+     "file": "section_01_source_train_normal_0025_50_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.30876317620277405
+    },
+    {
+     "file": "section_01_source_train_normal_0026_100_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2712015211582184
+    },
+    {
+     "file": "section_01_source_train_normal_0027_0_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.280361533164978
+    },
+    {
+     "file": "section_01_source_train_normal_0028_150_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3015933334827423
+    },
+    {
+     "file": "section_01_source_train_normal_0029_150_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3139069080352783
+    },
+    {
+     "file": "section_01_source_train_normal_0030_0_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2704504132270813
+    },
+    {
+     "file": "section_01_source_train_normal_0031_0_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.26991215348243713
+    },
+    {
+     "file": "section_01_source_train_normal_0032_120_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.25896576046943665
+    },
+    {
+     "file": "section_01_source_train_normal_0033_120_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3218373656272888
+    },
+    {
+     "file": "section_01_source_train_normal_0034_120_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2902018427848816
+    },
+    {
+     "file": "section_01_source_train_normal_0035_200_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.26462942361831665
+    },
+    {
+     "file": "section_01_source_train_normal_0036_150_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27625998854637146
+    },
+    {
+     "file": "section_01_source_train_normal_0037_50_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2505781650543213
+    },
+    {
+     "file": "section_01_source_train_normal_0038_100_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29069894552230835
+    },
+    {
+     "file": "section_01_source_train_normal_0039_200_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3230922222137451
+    },
+    {
+     "file": "section_01_source_train_normal_0040_150_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28893885016441345
+    },
+    {
+     "file": "section_01_source_train_normal_0041_0_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.273493230342865
+    },
+    {
+     "file": "section_01_source_train_normal_0042_100_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3687724173069
+    },
+    {
+     "file": "section_01_source_train_normal_0043_100_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2696216404438019
+    },
+    {
+     "file": "section_01_source_train_normal_0044_50_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29226839542388916
+    },
+    {
+     "file": "section_01_source_train_normal_0045_150_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3030185103416443
+    },
+    {
+     "file": "section_01_source_train_normal_0046_200_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.25950509309768677
+    },
+    {
+     "file": "section_01_source_train_normal_0047_150_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2778034806251526
+    },
+    {
+     "file": "section_01_source_train_normal_0048_150_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.31801560521125793
+    },
+    {
+     "file": "section_01_source_train_normal_0049_200_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.33950576186180115
+    },
+    {
+     "file": "section_01_source_train_normal_0050_100_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29830583930015564
+    },
+    {
+     "file": "section_01_source_train_normal_0051_150_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2976378798484802
+    },
+    {
+     "file": "section_01_source_train_normal_0052_120_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2833671569824219
+    },
+    {
+     "file": "section_01_source_train_normal_0053_0_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29985731840133667
+    },
+    {
+     "file": "section_01_source_train_normal_0054_120_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.413821816444397
+    },
+    {
+     "file": "section_01_source_train_normal_0055_120_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.30433836579322815
+    },
+    {
+     "file": "section_01_source_train_normal_0056_50_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27289044857025146
+    },
+    {
+     "file": "section_01_source_train_normal_0057_0_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.310420423746109
+    },
+    {
+     "file": "section_01_source_train_normal_0058_0_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.34459853172302246
+    },
+    {
+     "file": "section_01_source_train_normal_0059_200_g_10_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_01",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.41348305344581604
+    },
+    {
+     "file": "section_01_source_test_anomaly_0000.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.27986639738082886
+    },
+    {
+     "file": "section_01_source_test_anomaly_0001.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3361925780773163
+    },
+    {
+     "file": "section_01_source_test_anomaly_0002.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3102385699748993
+    },
+    {
+     "file": "section_01_source_test_anomaly_0003.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.4320669174194336
+    },
+    {
+     "file": "section_01_source_test_anomaly_0004.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.36833956837654114
+    },
+    {
+     "file": "section_01_source_test_anomaly_0005.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.39467722177505493
+    },
+    {
+     "file": "section_01_source_test_anomaly_0006.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3090536594390869
+    },
+    {
+     "file": "section_01_source_test_anomaly_0007.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.30914151668548584
+    },
+    {
+     "file": "section_01_source_test_anomaly_0008.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3594644069671631
+    },
+    {
+     "file": "section_01_source_test_anomaly_0009.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3924911916255951
+    },
+    {
+     "file": "section_01_source_test_anomaly_0010.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.35727348923683167
+    },
+    {
+     "file": "section_01_source_test_anomaly_0011.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.38767746090888977
+    },
+    {
+     "file": "section_01_source_test_anomaly_0012.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3396455645561218
+    },
+    {
+     "file": "section_01_source_test_anomaly_0013.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.2873595058917999
+    },
+    {
+     "file": "section_01_source_test_anomaly_0014.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.28473034501075745
+    },
+    {
+     "file": "section_01_source_test_anomaly_0015.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3196535110473633
+    },
+    {
+     "file": "section_01_source_test_anomaly_0016.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.873069167137146
+    },
+    {
+     "file": "section_01_source_test_anomaly_0017.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3224506974220276
+    },
+    {
+     "file": "section_01_source_test_anomaly_0018.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.2884676456451416
+    },
+    {
+     "file": "section_01_source_test_anomaly_0019.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.26865795254707336
+    },
+    {
+     "file": "section_01_source_test_normal_0000.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.31850552558898926
+    },
+    {
+     "file": "section_01_source_test_normal_0001.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29715466499328613
+    },
+    {
+     "file": "section_01_source_test_normal_0002.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27143803238868713
+    },
+    {
+     "file": "section_01_source_test_normal_0003.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.30183514952659607
+    },
+    {
+     "file": "section_01_source_test_normal_0004.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.32822898030281067
+    },
+    {
+     "file": "section_01_source_test_normal_0005.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29596272110939026
+    },
+    {
+     "file": "section_01_source_test_normal_0006.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.33916038274765015
+    },
+    {
+     "file": "section_01_source_test_normal_0007.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3196820914745331
+    },
+    {
+     "file": "section_01_source_test_normal_0008.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3480222225189209
+    },
+    {
+     "file": "section_01_source_test_normal_0009.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2684575617313385
+    },
+    {
+     "file": "section_01_source_test_normal_0010.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.26529431343078613
+    },
+    {
+     "file": "section_01_source_test_normal_0011.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2868179976940155
+    },
+    {
+     "file": "section_01_source_test_normal_0012.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.26654520630836487
+    },
+    {
+     "file": "section_01_source_test_normal_0013.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3080531060695648
+    },
+    {
+     "file": "section_01_source_test_normal_0014.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2563348412513733
+    },
+    {
+     "file": "section_01_source_test_normal_0015.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.30104562640190125
+    },
+    {
+     "file": "section_01_source_test_normal_0016.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2722095549106598
+    },
+    {
+     "file": "section_01_source_test_normal_0017.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.43913590908050537
+    },
+    {
+     "file": "section_01_source_test_normal_0018.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2732573449611664
+    },
+    {
+     "file": "section_01_source_test_normal_0019.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27681484818458557
+    },
+    {
+     "file": "section_01_target_test_anomaly_0000.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.2968710958957672
+    },
+    {
+     "file": "section_01_target_test_anomaly_0001.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.2997461259365082
+    },
+    {
+     "file": "section_01_target_test_anomaly_0002.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.32067668437957764
+    },
+    {
+     "file": "section_01_target_test_anomaly_0003.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.29838114976882935
+    },
+    {
+     "file": "section_01_target_test_anomaly_0004.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.40275153517723083
+    },
+    {
+     "file": "section_01_target_test_anomaly_0005.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.2819249629974365
+    },
+    {
+     "file": "section_01_target_test_anomaly_0006.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.34072375297546387
+    },
+    {
+     "file": "section_01_target_test_anomaly_0007.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.3095748722553253
+    },
+    {
+     "file": "section_01_target_test_anomaly_0008.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.44528183341026306
+    },
+    {
+     "file": "section_01_target_test_anomaly_0009.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.28482282161712646
+    },
+    {
+     "file": "section_01_target_test_normal_0000.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.27277672290802
+    },
+    {
+     "file": "section_01_target_test_normal_0001.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.25637808442115784
+    },
+    {
+     "file": "section_01_target_test_normal_0002.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.32217976450920105
+    },
+    {
+     "file": "section_01_target_test_normal_0003.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.3216468393802643
+    },
+    {
+     "file": "section_01_target_test_normal_0004.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.2651977837085724
+    },
+    {
+     "file": "section_01_target_test_normal_0005.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.280794233083725
+    },
+    {
+     "file": "section_01_target_test_normal_0006.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.2890639007091522
+    },
+    {
+     "file": "section_01_target_test_normal_0007.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.34703028202056885
+    },
+    {
+     "file": "section_01_target_test_normal_0008.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.30245834589004517
+    },
+    {
+     "file": "section_01_target_test_normal_0009.wav",
+     "unit": "gearbox/section_01",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.32884061336517334
+    },
+    {
+     "file": "section_02_source_train_normal_0000_0_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.26880916953086853
+    },
+    {
+     "file": "section_02_source_train_normal_0001_100_g_15_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2635250389575958
+    },
+    {
+     "file": "section_02_source_train_normal_0002_100_g_15_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2731753885746002
+    },
+    {
+     "file": "section_02_source_train_normal_0003_100_g_20_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2630445659160614
+    },
+    {
+     "file": "section_02_source_train_normal_0004_100_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27721700072288513
+    },
+    {
+     "file": "section_02_source_train_normal_0005_100_g_25_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3583623766899109
+    },
+    {
+     "file": "section_02_source_train_normal_0006_0_g_15_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2757519781589508
+    },
+    {
+     "file": "section_02_source_train_normal_0007_0_g_20_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28271588683128357
+    },
+    {
+     "file": "section_02_source_train_normal_0008_100_g_20_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28881117701530457
+    },
+    {
+     "file": "section_02_source_train_normal_0009_100_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2895927429199219
+    },
+    {
+     "file": "section_02_source_train_normal_0010_0_g_20_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.24754273891448975
+    },
+    {
+     "file": "section_02_source_train_normal_0011_100_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27543142437934875
+    },
+    {
+     "file": "section_02_source_train_normal_0012_0_g_20_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.4063825309276581
+    },
+    {
+     "file": "section_02_source_train_normal_0013_0_g_15_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.30665990710258484
+    },
+    {
+     "file": "section_02_source_train_normal_0014_100_g_15_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2928304076194763
+    },
+    {
+     "file": "section_02_source_train_normal_0015_0_g_25_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2871799170970917
+    },
+    {
+     "file": "section_02_source_train_normal_0016_100_g_15_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3199886679649353
+    },
+    {
+     "file": "section_02_source_train_normal_0017_100_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.26353901624679565
+    },
+    {
+     "file": "section_02_source_train_normal_0018_0_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2908211648464203
+    },
+    {
+     "file": "section_02_source_train_normal_0019_0_g_20_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.30243730545043945
+    },
+    {
+     "file": "section_02_source_train_normal_0020_100_g_15_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28749996423721313
+    },
+    {
+     "file": "section_02_source_train_normal_0021_0_g_20_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2760622501373291
+    },
+    {
+     "file": "section_02_source_train_normal_0022_100_g_25_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3272740840911865
+    },
+    {
+     "file": "section_02_source_train_normal_0023_0_g_20_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28500157594680786
+    },
+    {
+     "file": "section_02_source_train_normal_0024_0_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2669672667980194
+    },
+    {
+     "file": "section_02_source_train_normal_0025_100_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3054446280002594
+    },
+    {
+     "file": "section_02_source_train_normal_0026_0_g_20_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2986415922641754
+    },
+    {
+     "file": "section_02_source_train_normal_0027_100_g_20_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2806476652622223
+    },
+    {
+     "file": "section_02_source_train_normal_0028_100_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2809867560863495
+    },
+    {
+     "file": "section_02_source_train_normal_0029_0_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2960619330406189
+    },
+    {
+     "file": "section_02_source_train_normal_0030_0_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.4061039984226227
+    },
+    {
+     "file": "section_02_source_train_normal_0031_100_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3161742687225342
+    },
+    {
+     "file": "section_02_source_train_normal_0032_0_g_15_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.32592496275901794
+    },
+    {
+     "file": "section_02_source_train_normal_0033_0_g_15_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.26799145340919495
+    },
+    {
+     "file": "section_02_source_train_normal_0034_100_g_20_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.250683069229126
+    },
+    {
+     "file": "section_02_source_train_normal_0035_100_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29310569167137146
+    },
+    {
+     "file": "section_02_source_train_normal_0036_100_g_15_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2866533100605011
+    },
+    {
+     "file": "section_02_source_train_normal_0037_0_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2645396590232849
+    },
+    {
+     "file": "section_02_source_train_normal_0038_100_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2857743501663208
+    },
+    {
+     "file": "section_02_source_train_normal_0039_100_g_15_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29609397053718567
+    },
+    {
+     "file": "section_02_source_train_normal_0040_0_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.24058020114898682
+    },
+    {
+     "file": "section_02_source_train_normal_0041_0_g_15_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.25264719128608704
+    },
+    {
+     "file": "section_02_source_train_normal_0042_0_g_15_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.25203633308410645
+    },
+    {
+     "file": "section_02_source_train_normal_0043_100_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.25632455945014954
+    },
+    {
+     "file": "section_02_source_train_normal_0044_100_g_20_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.24954243004322052
+    },
+    {
+     "file": "section_02_source_train_normal_0045_100_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28358128666877747
+    },
+    {
+     "file": "section_02_source_train_normal_0046_100_g_15_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2795277535915375
+    },
+    {
+     "file": "section_02_source_train_normal_0047_0_g_25_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2632838189601898
+    },
+    {
+     "file": "section_02_source_train_normal_0048_0_g_15_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2792532444000244
+    },
+    {
+     "file": "section_02_source_train_normal_0049_100_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "train",
+     "label": 0,
+     "condition": "source",
+     "score": 0.287652850151062
+    },
+    {
+     "file": "section_02_source_train_normal_0050_100_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.29273921251296997
+    },
+    {
+     "file": "section_02_source_train_normal_0051_0_g_20_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3843703269958496
+    },
+    {
+     "file": "section_02_source_train_normal_0052_0_g_15_mm_3000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28420984745025635
+    },
+    {
+     "file": "section_02_source_train_normal_0053_100_g_20_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2467479407787323
+    },
+    {
+     "file": "section_02_source_train_normal_0054_100_g_15_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2855309545993805
+    },
+    {
+     "file": "section_02_source_train_normal_0055_0_g_15_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3659190535545349
+    },
+    {
+     "file": "section_02_source_train_normal_0056_100_g_25_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.32212188839912415
+    },
+    {
+     "file": "section_02_source_train_normal_0057_0_g_20_mm_1000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3491043150424957
+    },
+    {
+     "file": "section_02_source_train_normal_0058_100_g_15_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.26795974373817444
+    },
+    {
+     "file": "section_02_source_train_normal_0059_100_g_20_mm_2000_mV_none.wav",
+     "unit": "gearbox/section_02",
+     "split": "val",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2534044086933136
+    },
+    {
+     "file": "section_02_source_test_anomaly_0000.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.40065714716911316
+    },
+    {
+     "file": "section_02_source_test_anomaly_0001.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.34252750873565674
+    },
+    {
+     "file": "section_02_source_test_anomaly_0002.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.35870373249053955
+    },
+    {
+     "file": "section_02_source_test_anomaly_0003.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.2999371290206909
+    },
+    {
+     "file": "section_02_source_test_anomaly_0004.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.35566410422325134
+    },
+    {
+     "file": "section_02_source_test_anomaly_0005.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3758455812931061
+    },
+    {
+     "file": "section_02_source_test_anomaly_0006.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.28601953387260437
+    },
+    {
+     "file": "section_02_source_test_anomaly_0007.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.2996857464313507
+    },
+    {
+     "file": "section_02_source_test_anomaly_0008.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.2781039774417877
+    },
+    {
+     "file": "section_02_source_test_anomaly_0009.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.36056867241859436
+    },
+    {
+     "file": "section_02_source_test_anomaly_0010.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.32518747448921204
+    },
+    {
+     "file": "section_02_source_test_anomaly_0011.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.29299870133399963
+    },
+    {
+     "file": "section_02_source_test_anomaly_0012.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.41120070219039917
+    },
+    {
+     "file": "section_02_source_test_anomaly_0013.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3252216875553131
+    },
+    {
+     "file": "section_02_source_test_anomaly_0014.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3616166412830353
+    },
+    {
+     "file": "section_02_source_test_anomaly_0015.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3457566201686859
+    },
+    {
+     "file": "section_02_source_test_anomaly_0016.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.4368094801902771
+    },
+    {
+     "file": "section_02_source_test_anomaly_0017.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3379436433315277
+    },
+    {
+     "file": "section_02_source_test_anomaly_0018.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.3357982337474823
+    },
+    {
+     "file": "section_02_source_test_anomaly_0019.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "source",
+     "score": 0.2874818742275238
+    },
+    {
+     "file": "section_02_source_test_normal_0000.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3493291735649109
+    },
+    {
+     "file": "section_02_source_test_normal_0001.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3430427014827728
+    },
+    {
+     "file": "section_02_source_test_normal_0002.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.46992573142051697
+    },
+    {
+     "file": "section_02_source_test_normal_0003.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2674068510532379
+    },
+    {
+     "file": "section_02_source_test_normal_0004.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2776636481285095
+    },
+    {
+     "file": "section_02_source_test_normal_0005.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.24306301772594452
+    },
+    {
+     "file": "section_02_source_test_normal_0006.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2820625901222229
+    },
+    {
+     "file": "section_02_source_test_normal_0007.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.28502923250198364
+    },
+    {
+     "file": "section_02_source_test_normal_0008.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.36761727929115295
+    },
+    {
+     "file": "section_02_source_test_normal_0009.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3181155323982239
+    },
+    {
+     "file": "section_02_source_test_normal_0010.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3444432318210602
+    },
+    {
+     "file": "section_02_source_test_normal_0011.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.26862838864326477
+    },
+    {
+     "file": "section_02_source_test_normal_0012.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.4215637445449829
+    },
+    {
+     "file": "section_02_source_test_normal_0013.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.5943865776062012
+    },
+    {
+     "file": "section_02_source_test_normal_0014.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.25621122121810913
+    },
+    {
+     "file": "section_02_source_test_normal_0015.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2573232352733612
+    },
+    {
+     "file": "section_02_source_test_normal_0016.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.27137458324432373
+    },
+    {
+     "file": "section_02_source_test_normal_0017.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.3362314701080322
+    },
+    {
+     "file": "section_02_source_test_normal_0018.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.4933459758758545
+    },
+    {
+     "file": "section_02_source_test_normal_0019.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "source",
+     "score": 0.2660010755062103
+    },
+    {
+     "file": "section_02_target_test_anomaly_0000.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.3315857946872711
+    },
+    {
+     "file": "section_02_target_test_anomaly_0001.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.3054879605770111
+    },
+    {
+     "file": "section_02_target_test_anomaly_0002.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.3715597093105316
+    },
+    {
+     "file": "section_02_target_test_anomaly_0003.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.29519447684288025
+    },
+    {
+     "file": "section_02_target_test_anomaly_0004.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.3716154992580414
+    },
+    {
+     "file": "section_02_target_test_anomaly_0005.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.2866491973400116
+    },
+    {
+     "file": "section_02_target_test_anomaly_0006.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.5100787281990051
+    },
+    {
+     "file": "section_02_target_test_anomaly_0007.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.38841021060943604
+    },
+    {
+     "file": "section_02_target_test_anomaly_0008.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.2851264774799347
+    },
+    {
+     "file": "section_02_target_test_anomaly_0009.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 1,
+     "condition": "target",
+     "score": 0.5256925821304321
+    },
+    {
+     "file": "section_02_target_test_normal_0000.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.5085684061050415
+    },
+    {
+     "file": "section_02_target_test_normal_0001.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.2739465832710266
+    },
+    {
+     "file": "section_02_target_test_normal_0002.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.3230750858783722
+    },
+    {
+     "file": "section_02_target_test_normal_0003.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.300304114818573
+    },
+    {
+     "file": "section_02_target_test_normal_0004.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.3049170672893524
+    },
+    {
+     "file": "section_02_target_test_normal_0005.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.3154129683971405
+    },
+    {
+     "file": "section_02_target_test_normal_0006.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.30885496735572815
+    },
+    {
+     "file": "section_02_target_test_normal_0007.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.30729445815086365
+    },
+    {
+     "file": "section_02_target_test_normal_0008.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.3525310456752777
+    },
+    {
+     "file": "section_02_target_test_normal_0009.wav",
+     "unit": "gearbox/section_02",
+     "split": "test",
+     "label": 0,
+     "condition": "target",
+     "score": 0.32384586334228516
+    }
+   ]
+  }
+ },
+ "seconds": 125.5
+}

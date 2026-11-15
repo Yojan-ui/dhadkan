@@ -1,0 +1,15 @@
+{
+  "_note": "MOCK dealer data for the demo. Prices, stock and dealers are invented, not quotes.",
+  "parts": [
+    {"fault": "bearing", "type": "pump", "part": "Ball bearing 6205-2RS (pair)", "dealer": "Bhosari Bearing House (mock)", "price_inr": 640, "in_stock": true, "lead_days": 0},
+    {"fault": "bearing", "type": "pump", "part": "Mechanical seal 25 mm", "dealer": "Bhosari Bearing House (mock)", "price_inr": 900, "in_stock": true, "lead_days": 0},
+    {"fault": "bearing", "type": "fan", "part": "Pillow block UCP 206", "dealer": "Chakan Industrial Stores (mock)", "price_inr": 780, "in_stock": true, "lead_days": 1},
+    {"fault": "bearing", "type": "gearbox", "part": "Taper roller bearing 30206", "dealer": "Chakan Industrial Stores (mock)", "price_inr": 1150, "in_stock": false, "lead_days": 3},
+    {"fault": "imbalance", "type": "fan", "part": "Balancing weights + labour", "dealer": "Pimpri Motor Rewinding (mock)", "price_inr": 1200, "in_stock": true, "lead_days": 0},
+    {"fault": "imbalance", "type": "pump", "part": "Impeller (cast iron, 125 mm)", "dealer": "Pimpri Motor Rewinding (mock)", "price_inr": 2400, "in_stock": false, "lead_days": 4},
+    {"fault": "loose_belt", "type": "fan", "part": "V-belt B-42", "dealer": "Chakan Industrial Stores (mock)", "price_inr": 260, "in_stock": true, "lead_days": 0},
+    {"fault": "loose_belt", "type": "pump", "part": "V-belt A-38", "dealer": "Bhosari Bearing House (mock)", "price_inr": 220, "in_stock": true, "lead_days": 0},
+    {"fault": "clog", "type": "pump", "part": "Foot valve + strainer 2 in", "dealer": "Bhosari Bearing House (mock)", "price_inr": 550, "in_stock": true, "lead_days": 0},
+    {"fault": "clog", "type": "gearbox", "part": "Gear oil EP-90, 5 L", "dealer": "Chakan Industrial Stores (mock)", "price_inr": 1650, "in_stock": true, "lead_days": 0}
+  ]
+}

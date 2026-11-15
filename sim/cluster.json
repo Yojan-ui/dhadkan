@@ -1,0 +1,173 @@
+{
+ "_note": "Simulated cluster. Each machine replays held-out clips of one real recorded unit (source). Locations, owners and service times are made up for the demo; service times and road speed are assumptions. A-F1 and B-F1 are the same blower model (both replay MIMII fan id_00), which is the case the registry evaluation supports. Loom and flour-mill machines replay MIMII DUE gearbox recordings, standing in for their gear drives; blowers replay MIMII fan. 'shape' only picks the 3D model.",
+ "start": "2026-11-09T06:00:00",
+ "tick_hours": 8,
+ "road_kmph": 22,
+ "technician": {
+  "name": "Ramesh (mistri)",
+  "base": "Pimpri",
+  "xy_km": [
+   3,
+   2
+  ],
+  "hours_per_day": 7,
+  "name_local": "रमेश",
+  "day_start": "09:00"
+ },
+ "service_hours": {
+  "pump": 1.0,
+  "fan": 0.75,
+  "gearbox": 1.5
+ },
+ "factories": [
+  {
+   "id": "A",
+   "name": "Shinde Engineering Works",
+   "area": "Bhosari MIDC",
+   "xy_km": [
+    0,
+    0
+   ],
+   "owner": "Sunil Shinde",
+   "language": "hi",
+   "phone": "+91-90000-00001",
+   "area_local": "भोसरी"
+  },
+  {
+   "id": "B",
+   "name": "Gupta Pumps & Fabrication",
+   "area": "Chakan",
+   "xy_km": [
+    17,
+    14
+   ],
+   "owner": "Rakesh Gupta",
+   "language": "mr",
+   "phone": "+91-90000-00002",
+   "area_local": "चाकण"
+  },
+  {
+   "id": "C",
+   "name": "Ansari Agro Processing",
+   "area": "Talegaon",
+   "xy_km": [
+    24,
+    -6
+   ],
+   "owner": "Salma Ansari",
+   "language": "hi",
+   "phone": "+91-90000-00003",
+   "area_local": "तळेगाव"
+  }
+ ],
+ "machines": [
+  {
+   "id": "A-P1",
+   "factory": "A",
+   "name": "Pump 1",
+   "name_local": "पंप 1",
+   "type": "pump",
+   "source": "pump/id_00",
+   "shape": "pump"
+  },
+  {
+   "id": "A-P2",
+   "factory": "A",
+   "name": "Pump 2",
+   "name_local": "पंप 2",
+   "type": "pump",
+   "source": "pump/id_02",
+   "shape": "pump"
+  },
+  {
+   "id": "A-F1",
+   "factory": "A",
+   "name": "Blower 1",
+   "name_local": "ब्लोअर 1",
+   "type": "fan",
+   "source": "fan/id_00",
+   "shape": "motor"
+  },
+  {
+   "id": "A-G1",
+   "factory": "A",
+   "name": "Loom 1",
+   "name_local": "लूम 1",
+   "type": "gearbox",
+   "source": "gearbox/section_00",
+   "shape": "loom"
+  },
+  {
+   "id": "B-P1",
+   "factory": "B",
+   "name": "Pump 1",
+   "name_local": "पंप 1",
+   "type": "pump",
+   "source": "pump/id_02",
+   "shape": "pump"
+  },
+  {
+   "id": "B-P2",
+   "factory": "B",
+   "name": "Pump 2",
+   "name_local": "पंप 2",
+   "type": "pump",
+   "source": "pump/id_00",
+   "shape": "pump"
+  },
+  {
+   "id": "B-F1",
+   "factory": "B",
+   "name": "Blower 1",
+   "name_local": "ब्लोअर 1",
+   "type": "fan",
+   "source": "fan/id_00",
+   "shape": "motor"
+  },
+  {
+   "id": "B-G1",
+   "factory": "B",
+   "name": "Loom 1",
+   "name_local": "लूम 1",
+   "type": "gearbox",
+   "source": "gearbox/section_01",
+   "shape": "loom"
+  },
+  {
+   "id": "C-P1",
+   "factory": "C",
+   "name": "Pump 1",
+   "name_local": "पंप 1",
+   "type": "pump",
+   "source": "pump/id_00",
+   "shape": "pump"
+  },
+  {
+   "id": "C-F1",
+   "factory": "C",
+   "name": "Blower 1",
+   "name_local": "ब्लोअर 1",
+   "type": "fan",
+   "source": "fan/id_02",
+   "shape": "motor"
+  },
+  {
+   "id": "C-F2",
+   "factory": "C",
+   "name": "Blower 2",
+   "name_local": "ब्लोअर 2",
+   "type": "fan",
+   "source": "fan/id_02",
+   "shape": "motor"
+  },
+  {
+   "id": "C-G1",
+   "factory": "C",
+   "name": "Flour mill 1",
+   "name_local": "आटा चक्की 1",
+   "type": "gearbox",
+   "source": "gearbox/section_02",
+   "shape": "mill"
+  }
+ ]
+}

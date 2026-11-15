@@ -1,0 +1,9 @@
+{
+ "sr": 16000,
+ "n_fft": 1024,
+ "hop": 512,
+ "n_mels": 64,
+ "frames": 32,
+ "window_hop_s": 0.5,
+ "log": "log10(mel_power + 1e-10)"
+}
