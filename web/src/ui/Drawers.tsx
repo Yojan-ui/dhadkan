@@ -1,7 +1,7 @@
 // Side drawers: Operator (demo controls), Evaluation (measured scores, including weak ones),
 // Log (every agent tool call and event).
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { m as anim } from "framer-motion";
 import { post, type Meta, type State } from "../api";
 import { fmtT } from "../theme";
 
@@ -17,13 +17,13 @@ export function Drawer({
   reduced: boolean;
 }) {
   return (
-    <motion.section
+    <anim.section
       className="drawer"
       role="dialog"
       aria-label={title}
       initial={reduced ? false : { x: 40, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.25 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
     >
       <header className="row between">
         <h2>{title}</h2>
@@ -32,7 +32,7 @@ export function Drawer({
         </button>
       </header>
       <div className="drawer-body">{children}</div>
-    </motion.section>
+    </anim.section>
   );
 }
 

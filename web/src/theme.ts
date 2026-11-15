@@ -112,21 +112,9 @@ export function fmtT(s: number | null | undefined) {
   return `${m}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 }
 
-/** Contiguous mel bands more than `z` std above this machine's normal -> "1.2-2.0 kHz" strings. */
-export function changedBands(bandZ: number[] | null, hz: number[], z = 3) {
-  if (!bandZ) return [];
-  const out: string[] = [];
-  let start = -1;
-  const k = (f: number) => (f >= 1000 ? `${(f / 1000).toFixed(1)} kHz` : `${Math.round(f)} Hz`);
-  for (let i = 0; i <= bandZ.length; i++) {
-    const on = i < bandZ.length && bandZ[i] > z;
-    if (on && start < 0) start = i;
-    if (!on && start >= 0) {
-      out.push(start === i - 1 ? k(hz[start]) : `${k(hz[start])}–${k(hz[i - 1])}`);
-      start = -1;
-    }
-  }
-  return out;
+/** Rupees with Indian digit grouping: 93310 -> "₹93,310". */
+export function inr(v: number) {
+  return `₹${Math.round(v).toLocaleString("en-IN")}`;
 }
 
 export function useMedia(q: string) {

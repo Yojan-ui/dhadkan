@@ -13,10 +13,15 @@ from typing import Any
 
 
 def plan(stops: list[dict[str, Any]], start_xy: Sequence[float], hours: float, kmph: float) -> dict[str, Any]:
-    """stops: [{id, xy_km, service_h, risk}] -> {order, hours, km, skipped}."""
+    """stops: [{id, xy_km, service_h, risk, value?}] -> {order, hours, km, skipped}.
+
+    Maximises the total `value` of the visited stops (falls back to `risk`).
+    """
+    w = [s.get("value", s["risk"]) for s in stops]
     n = len(stops)
     if n > 15:
-        stops = sorted(stops, key=lambda s: -s["risk"])[:15]
+        top = sorted(range(n), key=lambda i: -w[i])[:15]
+        stops, w = [stops[i] for i in top], [w[i] for i in top]
         n = 15
 
     def drive(a: Sequence[float], b: Sequence[float]) -> float:
@@ -44,7 +49,7 @@ def plan(stops: list[dict[str, Any]], start_xy: Sequence[float], hours: float, k
 
     choice = (0.0, 0.0, 0, -1)  # (risk, -hours, mask, last)
     for mask in range(1, full):
-        r = sum(stops[j]["risk"] for j in range(n) if mask >> j & 1)
+        r = sum(w[j] for j in range(n) if mask >> j & 1)
         for j in range(n):
             if best[mask][j] == INF:
                 continue

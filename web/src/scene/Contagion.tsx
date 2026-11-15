@@ -19,7 +19,7 @@ export interface ArcSpec {
   born: number;
 }
 
-export const DRAW_S = 1.3;
+export const DRAW_S = 0.3;
 const HOLD_S = 7,
   FADE_S = 1.2;
 
@@ -43,7 +43,7 @@ export function useArcs() {
             from: e.machine as string,
             to: c.machine,
             match: c.match,
-            born: now + i * 0.25,
+            born: now + i * 0.15,
             text: `${c.match ? "matches" : "no match"} · cos ${c.cosine.toFixed(2)} ${c.match ? ">" : "<"} ${c.level.toFixed(2)}${c.same_model ? " · same model" : ""}`,
           }));
           setArcs((a) => [...a, ...add]);

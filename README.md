@@ -35,7 +35,7 @@ The trained models and the evaluation record are committed, so `make setup && ma
 without `make data` / `make train` except for the audio replay itself, which needs the clips.
 
 ```bash
-make test      # pytest: scoring, thresholds, registry, outbox, agent guardrails, live server
+make test      # 103 tests: scoring, thresholds, registry, outbox, agent guardrails, forecast, live server
 make lint      # ruff + black, eslint + prettier, tsc --strict; zero warnings
 make dev       # API on :8600 + Vite with hot reload on :5173
 python -m server.folk    # optional: Whisper check on the sample voice notes -> docs/runs/asr_<UTC>.json
@@ -53,36 +53,96 @@ The registry API on its own: `uvicorn server.registry_api:create_app --factory -
 
 ## Demo
 
-Switch on **Demo replay** (top right). It resets the cluster and plays one reading every 10 s, each
-one a real 10 s MIMII clip scored by the exported `.tflite` model and streamed over a WebSocket at
-2 Hz (the log-mel slice, the 1 s window's anomaly score and loudness under the play cursor):
+`make demo` (or press **D**) starts the replay. A 90-second presenter script is in
+[docs/DEMO.md](docs/DEMO.md); before/after screenshots are in [docs/screenshots](docs/screenshots).
 
-1. **0:00** 3 sheds, 12 machines. Each machine shakes in proportion to its live window score, its
-   floor ring fills clockwise toward its own alarm level (grey, amber near alarm, orange at alarm or
-   on a registry match), and ripples rise with the clip's loudness.
-2. **0:40** scripted fault: factory A's blower (A-F1) starts replaying abnormal recordings.
+**First it records 14 days** (about 8 s): 42 readings per machine, each a real 10 s MIMII clip scored
+by the exported `.tflite` model, on a simulated clock (one reading every 8 h). From day 6, factory A's
+blower (A-F1) develops a *synthetic* fault: its abnormal recording mixed into its normal one, 3%
+stronger every reading. **Then it plays live**, one reading every 10 s, streamed at 2 Hz:
+
+1. **0:00** 3 sheds, 12 machines. Each machine shakes with its live window score, its floor ring fills
+   clockwise toward its own alarm level (grey, amber near, orange at alarm or on a registry match),
+   ripples rise with the clip's loudness, and each shed shows the rupees at risk in its machines.
+2. **0:40** A-F1 becomes the recorded faulty machine itself: the simulated breakdown.
 3. **0:50** the owner's Hindi voice note ("ब्लोअर में खट-खट की आवाज़ आ रही है") is transcribed by
    local Whisper; "khat-khat" maps to *bearing* through the lexicon (weak label).
 4. **1:10** the fingerprint is published. Arcs go from A-F1 to every blower in the other sheds,
-   labelled with the registry's actual cosine against each machine's flag level. B-F1 (the same
-   blower model) then gets a *synthetic* fault onset.
+   labelled with the registry's real cosine against each machine's flag level. B-F1 (same blower
+   model) then gets a *synthetic* fault onset.
 5. When B-F1 matches in 2 of its last 3 readings, its arc is redrawn and its ring pulses, the rules
-   agent runs, and the technician's route draws itself with arrival times.
+   agent plans the technician's day by rupees at risk, and the route draws itself with arrival times.
 6. The bottom bar shows the owner's SMS (Marathi for factory B, Hindi for A) with an English line
    under it. **हो / Ho** books the visit and the technician marker drives the route.
 
-Click a shed to fly into it, then a machine: the camera orbits it beside a live 3D waterfall
-(mel frequency x time x level; bands more than 3 std from that machine's normal in orange), a
-7-day risk trend, and **Play live sound** / **Play normal reference** (a held-out normal clip of
-the same recorded unit). **Operator** has the same steps as buttons, including **Run (Claude)**
-when `ANTHROPIC_API_KEY` is set; **Evaluation** shows the scores below; **Log** lists every agent
-tool call. Under 768 px wide the page switches to a 2D list with the same rings and never loads
-three.js. With `prefers-reduced-motion`, nothing shakes, ripples or tweens.
+Click a shed (or press 1-3), then a machine:
 
-In the logged run of the same script (`python -m server.story` ->
-`docs/runs/story_20261115T153252Z.json`), B-F1 was flagged at onset strength 0.2, three readings
-(one simulated day) before its own alarm. That is one replay, not a statistic; the statistic is the
-registry table below.
+- **Time machine.** A slider over the machine's last 14 days (arrow keys, Space to play). The 3D
+  machine's shake, its ring, the waterfall and every number rewind together to the chosen reading.
+  The strip marks the **first warning** (first reading at alarm or registry match) and **breaks
+  down** (the first reading that is the recorded faulty machine itself). What the owner said and what
+  the registry matched later are hidden when you look at a day before they happened.
+- **What changed in the sound.** For a flagged machine: the run of mel bands whose residual sits
+  furthest above that machine's own normal, the change in measured band power since its earliest
+  normal reading, a plain word for the pitch, a mechanic's rule of thumb (`server/sound_words.json`),
+  and **Before / Now** 3-second clips of the same stretch.
+- **Days to fault level.** A range ("likely 2.6-6.5 days") with a projected band: see below.
+- **Play live sound / Play normal reference** (a held-out normal clip of the same unit), a 3D
+  waterfall of the reading, and the model's measured AUC for that machine type.
+
+**Savings report (PDF)** in the breadcrumb (or the phone list) gives the factory owner one page:
+downtime avoided, emergency part markup avoided, idle wages saved, the visits it counts, what is at
+risk now, and every assumption. It says on the page that the data is simulated and the costs are
+assumptions. **Operator** has every step as a button, including **Run (Claude)** when
+`ANTHROPIC_API_KEY` is set and the shed's signal switch; **Evaluation** shows the scores below;
+**Log** lists every agent tool call; **?** lists the keyboard shortcuts. Under 768 px wide the page
+is a 2D list with the same rings and never loads three.js. With `prefers-reduced-motion`, nothing
+shakes, ripples or tweens; every other transition is 300 ms or less, easing out.
+
+### What the replay showed (one logged run, not a statistic)
+
+From `python -m server.story` -> `docs/runs/story_20261115T154737Z.json`, which runs the same
+replay script without waiting:
+
+- **A-F1 was flagged 5.3 days before it broke down** (first alarm Thu 19 Nov 06:00; the recorded
+  fault from Tue 24 Nov 14:00).
+- **Days to fault level, checked against what happened:** 19 estimates were made between the first
+  one and the breakdown; **12 of 19 ranges contained the real time**. The ranges were right in the
+  first days and too long in the last day, because the scripted breakdown arrives as a jump (onset
+  0.93 straight to the recorded fault) rather than a smooth rise.
+- **B-F1 matched the published fingerprint at onset strength 0.2, five readings before its own
+  alarm.**
+
+### Days to fault level
+
+The **fault level** of a machine is the median score, relative to its own alarm level, of its
+recorded unit's *faulty* clips in the evaluation record (20 clips each). The estimate is a straight
+line through the last 6 days of readings, projected to that level; the range is the 10th-90th
+percentile of the crossing time over a residual bootstrap. A slope needs a t-statistic of 3 to count.
+
+- These two settings were chosen on this demo's replay: with them, all 16 readings after A-F1's first
+  warning carry an estimate and none of 195 readings of healthy machines does. On 5,000 simulated
+  pure-noise series of 6 days, 0.42% got a false estimate (`tests/test_forecast.py` keeps it under 2%).
+- **No estimate where the model can't separate faults:** pump id_02 and all three gearbox sections
+  have recorded faults scoring 0.80-0.94 of their alarm level, below the alarm, so the page says so
+  instead of counting down.
+- MIMII has no run-to-failure recordings, and the growing faults in the demo are synthetic. This is an
+  extrapolation of the machine's own trend, not a failure model.
+
+**Rupees at risk** = the share of bootstrap trend lines that reach the fault level within 2 days x
+the breakdown cost. The breakdown cost uses `data/sim/costs.json` (unplanned downtime hours, lost
+output per hour, idle workers, wage, emergency part markup), which are **assumptions** a factory
+replaces with its own numbers, and `data/sim/parts_mock.json` (mock prices). The agent's route
+visits the stops with the most rupees at risk, with risk as the tie-break, and adds any machine that
+may reach its fault level within 2 days.
+
+### What changed in the sound: an honest example
+
+For A-F1 the strongest change is a **low rumble (46-93 Hz) up 532%**, and the rule of thumb for that
+band says "often a sign of imbalance or something loose", while the owner called it "khat-khat",
+which the lexicon maps to bearing. MIMII does not say which fault each abnormal clip is (its fan
+faults include imbalance, voltage change and clogging), so neither the rules nor the lexicon can be
+checked on this data. The page shows both and labels the rule as a rule of thumb.
 
 If the shed has no signal when the owner confirms, the fingerprint waits in the phone's outbox
 (`edge/outbox.py`: SQLite, retried with backoff, idempotency key so a retry after a lost reply is
@@ -110,9 +170,14 @@ server/      API, registry and agent
   route.py      technician route: exact best-risk-within-hours, shortest order, ETAs
   agent.py      4 tools (none can control a machine), Claude tool loop or fixed-order rules, all logged
   sim.py        3 factories x 4 machines replaying real clips
+  forecast.py   days to fault level: trend + bootstrap range; fault levels from the eval record
+  costs.py      breakdown cost and savings from data/sim/costs.json (assumptions)
+  explain.py    which band changed, by how much, in words; 3 s before/now clips (sound_words.json)
+  report.py     the owner's one-page savings PDF
+  story.py      runs the replay script without waiting and logs it (docs/runs/story_*.json)
 web/         React + Vite + TypeScript, react-three-fiber (instanced meshes, ~10-14 draw calls)
-data/        download.py (Zenodo range requests), sim/ (cluster, mock parts, voice notes), raw/ (ignored)
-docs/        media/, runs/ (every evaluation, ASR and story record the README cites)
+data/        download.py (Zenodo range requests), sim/ (cluster, cost assumptions, mock parts, voice notes), raw/ (ignored)
+docs/        DEMO.md, screenshots/ (before, after), media/, runs/ (every evaluation, ASR and story record cited here)
 tests/       pytest
 ```
 
@@ -204,7 +269,8 @@ What these numbers say:
   abnormal clip is, so we cannot score the fault-class mapping.
 - **Simulation.** Factory names, owners, phone numbers, locations, service hours (pump 1 h, fan
   0.75 h, gearbox 1.5 h), road speed (22 km/h) and the technician's 09:00 start are invented.
-  The looms and the flour mill replay MIMII DUE gearbox recordings, standing in for their gear
+  Breakdown costs (`data/sim/costs.json`) are assumptions too, and so is every rupee on screen and in
+  the savings PDF. The looms and the flour mill replay MIMII DUE gearbox recordings, standing in for their gear
   drives; the 3D shapes are only pictures. Voice notes are macOS
   text-to-speech, not real owners. Dealer parts and prices are mock data.
 - **Phone.** We export a 256 KB `.tflite` (dynamic-range int8 weights) and check it scores within

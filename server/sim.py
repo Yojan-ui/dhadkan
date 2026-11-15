@@ -10,6 +10,7 @@ Fault modes per machine:
   onset   SYNTHETIC: abnormal mixed into normal, strength rising each tick
 """
 
+import contextlib
 import json
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor
@@ -58,6 +59,8 @@ class Cluster:
         self.db = sqlite3.connect(node_db, check_same_thread=False)
         self.db.row_factory = sqlite3.Row
         self.db.executescript(SCHEMA)
+        with contextlib.suppress(sqlite3.OperationalError):  # databases from before per-machine onset speed
+            self.db.execute("ALTER TABLE state ADD COLUMN step REAL")
         self.reg = registry.connect(registry_db)
         self.models = {}
         self._scorers = {}  # one interpreter per machine, so a reading's 12 clips score in parallel
@@ -102,8 +105,11 @@ class Cluster:
         r = self.db.execute("SELECT mode, mix FROM state WHERE machine=?", (mid,)).fetchone()
         return (r["mode"], r["mix"]) if r else ("normal", 0.0)
 
-    def set_mode(self, mid: str, mode: str, mix: float = 0.0) -> None:
-        self.db.execute("INSERT OR REPLACE INTO state VALUES (?,?,?)", (mid, mode, mix))
+    def set_mode(self, mid: str, mode: str, mix: float = 0.0, step: float = ONSET_STEP) -> None:
+        """`step`: onset strength added per reading (SYNTHETIC onset only)."""
+        self.db.execute(
+            "INSERT OR REPLACE INTO state (machine, mode, mix, step) VALUES (?,?,?,?)", (mid, mode, mix, step)
+        )
         self.db.commit()
 
     def reset(self) -> None:
@@ -130,8 +136,10 @@ class Cluster:
     def next_mode(self, mid: str) -> tuple[str, float]:
         mode, mix = self.mode(mid)
         if mode == "onset":
-            mix = min(1.0, mix + ONSET_STEP)
-            self.set_mode(mid, "onset", mix)
+            row = self.db.execute("SELECT step FROM state WHERE machine=?", (mid,)).fetchone()
+            step = row["step"] if row and row["step"] is not None else ONSET_STEP
+            mix = min(1.0, mix + step)
+            self.set_mode(mid, "onset", mix, step)
         return mode, (1.0 if mode == "fault" else mix)
 
     def scorer(self, mid: str) -> EdgeModel:

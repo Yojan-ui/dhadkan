@@ -43,7 +43,7 @@ varying float vAlpha;
 void main() { if (vAlpha < 0.01) discard; gl_FragColor = vec4(0.82, 0.83, 0.85, vAlpha); }`;
 
 const PER = 3; // ripples per machine
-const PULSE_S = 1.4;
+const PULSE_S = 0.3;
 
 export function Rings({
   machines,
@@ -115,7 +115,7 @@ export function Rings({
     const fa = ringGeo.getAttribute("aFill") as THREE.InstancedBufferAttribute;
     const ca = ringGeo.getAttribute("aColor") as THREE.InstancedBufferAttribute;
     const pa = ringGeo.getAttribute("aPulse") as THREE.InstancedBufferAttribute;
-    const k = reduced ? 1 : 1 - Math.exp(-dt * 3);
+    const k = reduced ? 1 : 1 - Math.exp(-dt * 10); // ~95% of the way in 300 ms
     machines.forEach((m, i) => {
       const target = fill(m);
       shown.current[i] = (shown.current[i] ?? 0) + (target - (shown.current[i] ?? 0)) * k;

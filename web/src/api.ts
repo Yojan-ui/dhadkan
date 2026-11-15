@@ -45,6 +45,71 @@ export interface Machine {
   latest: Reading | null;
   history: { tick: number; ts: string; risk: number; match: boolean }[];
   band_z: number[] | null;
+  forecast: Forecast | null;
+  rupees_at_risk: number;
+}
+export type ForecastStatus = "estimate" | "no_trend" | "too_few" | "at_fault_level" | "not_separable";
+export interface Forecast {
+  status: ForecastStatus;
+  level: number;
+  window_days: number;
+  low?: number | null;
+  mid?: number | null;
+  high?: number | null;
+  share_beyond_horizon?: number;
+  band?: { day: number; lo: number; fit: number; hi: number }[];
+  fault_level_clips?: number;
+}
+export interface HistoryRow {
+  tick: number;
+  ts: string;
+  risk: number;
+  risk3: number;
+  status: Status;
+  mode: string;
+  mix: number;
+  match: boolean;
+  forecast?: Forecast;
+}
+export interface History {
+  machine: string;
+  days: number;
+  tick_hours: number;
+  rows: HistoryRow[];
+  first_warning: { tick: number; ts: string; status: Status } | null;
+  fault_sound: { tick: number; ts: string; mode: string; mix: number } | null;
+  fault_level: { level: number; healthy: number; n: number };
+}
+export interface PastReading {
+  machine: string;
+  tick: number;
+  ts: string;
+  mode: string;
+  mix: number;
+  clip: string;
+  score: number;
+  threshold: number;
+  risk: number;
+  spec: number[][];
+  risk_slices: number[];
+  energy: number[];
+  band_z: number[];
+}
+export interface Explanation {
+  status: "ok" | "no_clear_band" | "no_normal_reading";
+  machine: string;
+  lo_band?: number;
+  hi_band?: number;
+  lo_hz?: number;
+  hi_hz?: number;
+  change_pct?: number;
+  word?: string;
+  hint?: string;
+  start_s?: number;
+  now: { tick: number; ts: string; clip: string };
+  before: { tick: number; ts: string; clip: string } | null;
+  owner_said: string | null;
+  fault: string | null;
 }
 export interface Leg {
   machine: string;
@@ -129,7 +194,7 @@ export interface State {
   route: Route | null;
   tool_calls: ToolCall[];
   events: LiveEvent[];
-  replay: { on: boolean; phase: string; t: number | null };
+  replay: { on: boolean; phase: string; t: number | null; progress?: number };
   link: { up: boolean; pending: number };
 }
 export interface Factory {
@@ -288,7 +353,36 @@ class Store {
     this.emit();
   }
 
+  /** Time machine: play a past reading for one machine in place of its live stream. */
+  past: { id: string; reading: PastReading } | null = null;
+
+  travel(id: string, reading: PastReading) {
+    this.past = { id, reading };
+    const n = reading.spec.length;
+    this.spec[id] = Array.from(
+      { length: HISTORY },
+      (_, k) => reading.spec[(((this.slice - HISTORY + 1 + k) % n) + n) % n],
+    );
+    this.emit();
+  }
+
+  backToLive() {
+    if (!this.past) return;
+    const id = this.past.id;
+    this.past = null;
+    this.spec[id] = [];
+    this.prefill(id);
+  }
+
   private setFrame(m: Record<string, FrameM>) {
+    if (this.past && m[this.past.id]) {
+      const { reading } = this.past;
+      const i = this.slice % reading.spec.length;
+      m = {
+        ...m,
+        [this.past.id]: { risk: reading.risk_slices[i], energy: reading.energy[i], spec: reading.spec[i] },
+      };
+    }
     this.frame = m;
     this.frameAt = performance.now();
     for (const [id, f] of Object.entries(m)) {
@@ -314,6 +408,13 @@ export function useFrame() {
 }
 export function useConnected() {
   return useSyncExternalStore(store.subscribe, () => store.connected);
+}
+
+export async function get<T>(path: string): Promise<T> {
+  const r = await fetch(path);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.detail ?? r.statusText);
+  return j as T;
 }
 
 export async function post<T = unknown>(path: string, body: unknown = {}): Promise<T> {

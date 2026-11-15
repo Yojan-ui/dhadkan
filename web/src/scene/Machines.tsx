@@ -118,7 +118,7 @@ export function Machines({ machines, factories, pos, hover, selected, reduced, o
   useFrame(({ clock }, dt) => {
     if (reduced) return;
     const t = clock.elapsedTime;
-    const k = 1 - Math.exp(-dt * 4);
+    const k = 1 - Math.exp(-dt * 10);
     const amp = machines.map((m, i) => {
       const target = store.frame[m.id]?.risk ?? 0;
       live.current[i] += (target - live.current[i]) * k;

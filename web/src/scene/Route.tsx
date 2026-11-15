@@ -5,12 +5,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { store, type Factory, type LiveEvent, type Machine, type Route as R } from "../api";
-import { C, fmtClock } from "../theme";
+import { C, fmtClock, inr } from "../theme";
 import { ease, useKeyed } from "./fx";
 import { Label } from "./labels";
 import { SHED, world } from "./layout";
 
-const LEG_S = 1.1; // seconds to draw one leg
+const LEG_S = 0.3; // seconds to draw one leg (legs draw one after another)
 const Y = 0.2;
 
 interface Stop {
@@ -34,7 +34,7 @@ export function useRoute(
   dayStart: string,
   reduced: boolean,
 ): RoutePlan | null {
-  const key = `${route?.planned_at}|${route?.stops.join()}|${machines.map((m) => m.status).join()}|${dayStart}`;
+  const key = `${route?.planned_at}|${route?.stops.join()}|${machines.map((m) => m.status + m.rupees_at_risk).join()}|${dayStart}`;
   const stops = useKeyed<Stop[]>(key, () => {
     if (!route || !route.legs.length) return [];
     const base = world(route.base_xy).setY(Y);
@@ -49,7 +49,8 @@ export function useRoute(
     route.legs.forEach((l, i) => {
       const m = machines.find((x) => x.id === l.machine);
       const door = world(byF[l.factory].xy_km).add(new THREE.Vector3(0, Y, SHED.d / 2 + 0.45));
-      const text = `${i + 1} · ${m?.name ?? l.machine} (${l.machine}) · ${fmtClock(l.arrive)}–${fmtClock(l.leave, false)}`;
+      const risk = m && m.rupees_at_risk > 0 ? ` · ${inr(m.rupees_at_risk)} at risk` : "";
+      const text = `${i + 1} · ${m?.name ?? l.machine} (${l.machine}) · ${fmtClock(l.arrive)}–${fmtClock(l.leave, false)}${risk}`;
       const prev = out[out.length - 1];
       if (prev.point.distanceTo(door) < 0.01) prev.label += `\n${text}`;
       else out.push({ point: door, label: text, hot: m?.status === "early_match" });
@@ -163,8 +164,8 @@ export function RouteMesh({ plan, reduced }: { plan: RoutePlan; reduced: boolean
       if (!reduced) {
         let t = now - drive;
         for (let i = 0; i < legs - 1; i++) {
-          const dur = 1.6,
-            pause = 0.7;
+          const dur = 0.3,
+            pause = 0.25;
           if (t < dur) {
             u = at[i] + (at[i + 1] - at[i]) * ease(t / dur);
             break;

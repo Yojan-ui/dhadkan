@@ -1,7 +1,7 @@
 // Under 768 px: factory > machine > health as a plain list. No three.js is loaded.
 import type { Meta, State } from "../api";
 import { useFrame } from "../api";
-import { mechanicLine, STATUS_WORD } from "../theme";
+import { inr, mechanicLine, STATUS_WORD } from "../theme";
 import { HealthRing } from "./bits";
 
 export function PhoneList({
@@ -18,8 +18,18 @@ export function PhoneList({
     <div className="phone">
       {meta.factories.map((f) => (
         <section key={f.id}>
-          <h2>
-            <span className="mono">{f.id}</span> {f.name} <small className="muted">{f.area}</small>
+          <h2 className="row between">
+            <span>
+              <span className="mono">{f.id}</span> {f.name} <small className="muted">{f.area}</small>
+            </span>
+            <a
+              className="report-link small"
+              href={`/api/report/${f.id}.pdf`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Savings PDF
+            </a>
           </h2>
           <ul>
             {state.machines
@@ -37,6 +47,9 @@ export function PhoneList({
                         <span className="mono small">{STATUS_WORD[m.status]}</span>
                       </span>
                       <span className="small muted">{mechanicLine(m, meta.factories)}</span>
+                      {m.rupees_at_risk > 0 && (
+                        <span className="small accent mono">{inr(m.rupees_at_risk)} at risk in 2 days</span>
+                      )}
                     </span>
                     <span className="mono small num">
                       {m.risk3?.toFixed(2) ?? "--"}

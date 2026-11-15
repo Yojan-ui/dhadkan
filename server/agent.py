@@ -15,11 +15,12 @@ from collections import defaultdict
 from datetime import timedelta
 from typing import Any
 
-from . import alerts, registry, route
+from . import alerts, costs, forecast, registry, route
 from .config import PARTS
 from .sim import Cluster
 
 MODEL = "claude-opus-5-5"
+RISK_HORIZON_DAYS = 2.0  # rupees at risk = chance of reaching the fault level within 2 days x breakdown cost
 WATCH = 0.95  # risk at which a machine is shown as "watch" (display only)
 DAYS = alerts.DAY["en"]
 
@@ -29,7 +30,10 @@ TOOLS = [
         "description": "Every machine in the cluster ranked by risk. risk = latest anomaly score / "
         "that machine's own alarm level (1.0 = at alarm), averaged over the last 3 "
         "readings. status is alarm, early_match (2 of the last 3 readings resemble a fault "
-        "confirmed at another factory, below alarm), watch, or ok.",
+        "confirmed at another factory, below alarm), watch, or ok. days_to_fault_level is a "
+        "straight-line estimate (10th-90th percentile range, days) of when the machine will sound "
+        "like its recorded faulty clips; status not_separable/no_trend/too_few means no estimate. "
+        "rupees_at_risk = chance of reaching that level within 2 days x breakdown cost (assumed costs).",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -41,8 +45,9 @@ TOOLS = [
     {
         "name": "plan_technician_route",
         "description": "Shortest route for today over machines with risk at or above risk_threshold "
-        "(plus early_match machines), fitted into the technician's hours. Returns "
-        "the stops in order and the machines that do not fit today.",
+        "(plus early_match machines and any machine that may reach its fault level within 2 days), "
+        "fitted into the technician's hours, choosing the stops with the most rupees at risk. "
+        "Returns the stops in order and the machines that do not fit today.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -129,11 +134,8 @@ class Tools:
             hist = self.c.history(mid)
             if not hist:
                 continue
-            last3 = hist[-3:]
-            risk = sum(r["risk"] for r in last3) / len(last3)
+            risk, matched, status = status_of(hist[-3:])
             latest = hist[-1]
-            hits = [r["match_cos"] is not None and r["match_cos"] > r["match_level"] for r in last3]
-            matched = sum(hits) >= 2  # one stray match is not enough
 
             fp = None
             if latest["match_fp"] is not None:
@@ -147,10 +149,10 @@ class Tools:
                 )
             own = [x for x in registry.fingerprints(self.c.reg, m["type"]) if x["machine"] == mid]
             known = own[-1]["fault"] if own else (fp["fault"] if fp and matched else None)
-            status = (
-                "alarm" if risk >= 1.0 else "early_match" if matched else "watch" if risk >= WATCH else "ok"
-            )
             f = self.c.factories[m["factory"]]
+            est = forecast.from_history(hist, self.c.cfg["tick_hours"], m["source"])
+            cost = costs.breakdown(m["factory"], m["type"], known, self.c.cfg["service_hours"][m["type"]])
+            p_soon = forecast.p_before(est, RISK_HORIZON_DAYS)
             rows.append(
                 {
                     "machine_id": mid,
@@ -162,6 +164,8 @@ class Tools:
                     "days_rising": days_rising(hist),
                     "status": status,
                     "known_fault": known,
+                    "days_to_fault_level": {k: est.get(k) for k in ("status", "low", "mid", "high", "level")},
+                    "rupees_at_risk": round(p_soon * cost["breakdown_cost_inr"]),
                     "registry": (
                         None
                         if fp is None
@@ -177,7 +181,9 @@ class Tools:
                     ),
                 }
             )
-        rows.sort(key=lambda r: (-(r["status"] in ("alarm", "early_match")), -r["risk"]))
+        rows.sort(
+            key=lambda r: (-(r["status"] in ("alarm", "early_match")), -r["rupees_at_risk"], -r["risk"])
+        )
         return [r for r in rows if r["risk"] >= min_risk or r["status"] == "early_match"]
 
     def plan_technician_route(
@@ -186,14 +192,18 @@ class Tools:
         tech = self.c.cfg["technician"]
         stops = []
         for r in self.get_risk_ranking():
-            if r["risk"] >= risk_threshold or r["status"] == "early_match":
+            soon = (r["days_to_fault_level"]["low"] or 99) <= RISK_HORIZON_DAYS
+            if r["risk"] >= risk_threshold or r["status"] == "early_match" or soon:
                 m = self.c.machines[r["machine_id"]]
+                risk = max(r["risk"], 1.0 if r["status"] == "early_match" else 0)
                 stops.append(
                     {
                         "id": m["id"],
                         "xy_km": self.c.factories[m["factory"]]["xy_km"],
                         "service_h": self.c.cfg["service_hours"][m["type"]],
-                        "risk": max(r["risk"], 1.0 if r["status"] == "early_match" else 0),
+                        "risk": risk,
+                        # rupees at risk decide who is visited first; risk breaks ties
+                        "value": r["rupees_at_risk"] + risk,
                     }
                 )
         hours = hours_available or tech["hours_per_day"]
@@ -212,6 +222,9 @@ class Tools:
             "drive_km": p["km"],
             "hours_used": p["hours"],
             "not_today": [name(i) for i in p["skipped"]],
+            "rupees_at_risk_visited": round(
+                sum(s["value"] - s["risk"] for s in stops if s["id"] in p["order"])
+            ),
         }
 
     def draft_owner_alert(self, machine_id: str, kind: str, visit_day: str) -> dict[str, Any]:
@@ -271,6 +284,15 @@ class Tools:
             "source": "MOCK dealer data",
             "parts": [p for p in parts if p["fault"] == fault and p["type"] == machine_type],
         }
+
+
+def status_of(last3: list[dict[str, Any]]) -> tuple[float, bool, str]:
+    """(risk over the last 3 readings, registry match in 2 of 3, status) as the dashboard shows it."""
+    risk = sum(r["risk"] for r in last3) / len(last3)
+    hits = [r["match_cos"] is not None and r["match_cos"] > r["match_level"] for r in last3]
+    matched = sum(hits) >= 2  # one stray match is not enough
+    status = "alarm" if risk >= 1.0 else "early_match" if matched else "watch" if risk >= WATCH else "ok"
+    return risk, matched, status
 
 
 def days_rising(hist: list[dict[str, Any]]) -> int:

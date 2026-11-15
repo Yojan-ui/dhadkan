@@ -18,10 +18,12 @@ export function Waterfall({
   machine,
   at,
   reduced,
+  hotBands,
 }: {
   machine: Machine;
   at: THREE.Vector3;
   reduced: boolean;
+  hotBands: [number, number] | null;
 }) {
   const group = useRef<THREE.Group>(null);
   const seen = useRef(0);
@@ -33,7 +35,14 @@ export function Waterfall({
   }, []);
   useEffect(() => () => geo.dispose(), [geo]);
   const mat = useMemo(() => new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }), []);
-  const hot = useMemo(() => (machine.band_z ?? []).map((z) => z > 3), [machine.band_z]);
+  // orange: the band the explanation names; otherwise every band >3 std from this machine's normal
+  const hot = useMemo(
+    () =>
+      hotBands
+        ? Array.from({ length: COLS }, (_, i) => i >= hotBands[0] && i <= hotBands[1])
+        : (machine.band_z ?? []).map((z) => z > 3),
+    [machine.band_z, hotBands],
+  );
 
   const lo = useMemo(() => new THREE.Color("#25272b"), []);
   const hi = useMemo(() => new THREE.Color("#a3a7ae"), []);

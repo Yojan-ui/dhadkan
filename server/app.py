@@ -41,14 +41,19 @@ from edge.config import HOP, N_MELS, RUNS, SR
 from edge.outbox import Outbox
 from edge.runtime import EdgeModel
 
-from . import agent, folk, registry, route
+from . import agent, costs, folk, forecast, registry, report, route
+from . import explain as sound
 from .config import NODE_DB, VOICE_NOTE, WEB_DIST
 from .sim import Cluster
 
 SLICES = 20  # 10 s reading -> 20 slices of 0.5 s (the 2 Hz stream)
 FRAME_S = 0.5
 FAULT_MACHINE, SIMILAR_MACHINE = "A-F1", "B-F1"
-REPLAY_FAULT_AT, REPLAY_LABEL_AT, REPLAY_PUBLISH_AT, REPLAY_MAX = 4, 5, 7, 20  # in readings
+REPLAY_FAULT_AT, REPLAY_LABEL_AT, REPLAY_PUBLISH_AT, REPLAY_MAX = 4, 5, 7, 20  # live readings
+# Before the live part, the replay records 14 simulated days (fast) in which A-F1's
+# bearing sound grows slowly: a SYNTHETIC onset from day 6, +0.03 strength per reading.
+SEED_DAYS, SEED_ONSET_AT, SEED_ONSET_STEP = 14, 15, 0.03
+TIME_MACHINE_DAYS = 14
 
 
 def _wav(audio: np.ndarray) -> bytes:
@@ -125,12 +130,13 @@ class Live:
         self.outbox = Outbox(Path(node_db or NODE_DB).with_name("outbox.db"), self._send)
         self.cache = {}  # machine -> analysis of its latest reading
         self._readings: dict[tuple[str, int], dict[str, Any]] = {}  # rebuilt past readings (LRU-ish)
+        self._explained: dict[tuple[str, int], dict[str, Any]] = {}
         self.tick = -1  # tick of the cached analysis (read by the stream without the DB)
         self.cursor = 0
         self.events, self.seq = [], 0
         self.version = 0
         self.pending_label = None
-        self.replay = {"on": False, "started": None, "phase": "off"}
+        self.replay: dict[str, Any] = {"on": False, "started": None, "phase": "off", "progress": 0.0}
         self.prev_status = {}
         self.mel_hz = librosa.mel_frequencies(N_MELS + 2, fmin=0, fmax=SR / 2)[1:-1].tolist()
         with self.lock:
@@ -251,6 +257,8 @@ class Live:
                         "days_rising": r.get("days_rising", 0),
                         "known_fault": r.get("known_fault"),
                         "registry": r.get("registry"),
+                        "forecast": self._forecast(mid, hist),
+                        "rupees_at_risk": r.get("rupees_at_risk", 0),
                         "latest": last
                         and {
                             k: last[k]
@@ -327,7 +335,199 @@ class Live:
                 "score": row["score"],
                 "threshold": row["threshold"],
                 "risk": row["risk"],
-                **self._readings[key],
+                **{k: v for k, v in self._readings[key].items() if k != "risk"},
+                "risk_slices": self._readings[key]["risk"],
+            }
+
+    def _forecast(self, mid: str, hist: list[dict[str, Any]]) -> dict[str, Any] | None:
+        if not hist:
+            return None
+        src = self.c.machines[mid]["source"]
+        est = forecast.public(forecast.from_history(hist, self.c.cfg["tick_hours"], src))
+        return {**est, "fault_level_clips": forecast.fault_levels()[src]["n"]}
+
+    def history(self, mid: str, days: float = TIME_MACHINE_DAYS) -> dict[str, Any]:
+        """Each reading of the last `days`, with the status and estimate as they stood at that moment."""
+        with self.lock:
+            hist = self.c.history(mid)
+        m, th = self.c.machines[mid], self.c.cfg["tick_hours"]
+        rows = []
+        for i, h in enumerate(hist):
+            risk3, _, status = agent.status_of(hist[max(0, i - 2) : i + 1])
+            rows.append(
+                {
+                    "tick": h["tick"],
+                    "ts": h["ts"],
+                    "risk": round(h["risk"], 3),
+                    "risk3": round(risk3, 3),
+                    "status": status,
+                    "mode": h["mode"],
+                    "mix": round(h["mix"], 3),
+                    "match": h["match_cos"] is not None and h["match_cos"] > h["match_level"],
+                }
+            )
+        warn = next((r for r in rows if r["status"] in ("alarm", "early_match")), None)
+        broke = next((r for r in rows if r["mode"] == "fault" or r["mix"] >= 1.0), None)
+        keep = int(days * 24 / th)
+        for i in range(max(0, len(rows) - keep), len(rows)):
+            rows[i]["forecast"] = forecast.public(forecast.from_history(hist[: i + 1], th, m["source"]))
+        return {
+            "machine": mid,
+            "days": days,
+            "tick_hours": th,
+            "rows": rows[-keep:],
+            "first_warning": warn and {k: warn[k] for k in ("tick", "ts", "status")},
+            "fault_sound": broke and {k: broke[k] for k in ("tick", "ts", "mode", "mix")},
+            "fault_level": forecast.fault_levels()[m["source"]],
+        }
+
+    def _audio_of(self, mid: str, row: dict[str, Any]) -> np.ndarray:
+        audio, _ = self.c.audio(mid, row["tick"], row["mode"], row["mix"])
+        return audio
+
+    def explain(self, mid: str) -> dict[str, Any]:
+        """Why this machine is flagged, by sound: band, change vs its earliest normal reading, words."""
+        with self.lock:
+            hist = self.c.history(mid)
+            if not hist:
+                raise HTTPException(404, "no reading yet")
+            now = hist[-1]
+            key = (mid, now["tick"])
+            if key in self._explained:
+                return self._explained[key]
+            before = next((h for h in hist if h["mode"] == "normal"), None)
+            m = self.c.machines[mid]
+            now_audio = self._audio_of(mid, now)
+            r = self.c.scorer(mid).score_audio(now_audio, m["source"])
+            if before is None or before["tick"] == now["tick"]:
+                out: dict[str, Any] = {"status": "no_normal_reading"}
+            else:
+                out = sound.explain(now_audio, self._audio_of(mid, before), r["band_z"], self.mel_hz)
+            fp = next((f for f in reversed(registry.fingerprints(self.c.reg)) if f["machine"] == mid), None)
+            rank = next((x for x in self.ranking() if x["machine_id"] == mid), {})
+            out.update(
+                machine=mid,
+                now={k: now[k] for k in ("tick", "ts", "clip", "mode", "mix")},
+                before=before and {k: before[k] for k in ("tick", "ts", "clip", "mode", "mix")},
+                owner_said=(fp or (rank.get("registry") or {})).get("owner_label"),
+                fault=rank.get("known_fault"),
+            )
+            self._explained[key] = out
+            return out
+
+    def explain_clip(self, mid: str, which: str) -> np.ndarray:
+        ex = self.explain(mid)
+        if ex.get("status") != "ok":
+            raise HTTPException(404, "no clear band to play")
+        row = ex["now"] if which == "now" else ex["before"]
+        with self.lock:
+            audio = self._audio_of(mid, row)
+        return sound.cut(audio, ex["start_s"])
+
+    def savings(self, factory: str) -> dict[str, Any]:
+        """Numbers for the owner's savings report: approved visits, each counted once, and what is at risk now."""
+        if factory not in self.c.factories:
+            raise HTTPException(404, "unknown factory")
+        with self.lock:
+            f = self.c.factories[factory]
+            rank = {r["machine_id"]: r for r in self.ranking()}
+            route = self.route()
+            legs = {leg["machine"]: leg for leg in (route or {}).get("legs", [])}
+            visits, seen = [], set()
+            for msg in self.messages():
+                mid = msg["machine"]
+                if msg["factory"] != factory or msg["approved"] != 1 or mid in seen:
+                    continue
+                seen.add(mid)
+                m = self.c.machines[mid]
+                h = self.history(mid)
+                r = rank.get(mid, {})
+                cost = costs.breakdown(
+                    factory, m["type"], r.get("known_fault"), self.c.cfg["service_hours"][m["type"]]
+                )
+                reg = r.get("registry") or {}
+                if (h["first_warning"] or {}).get("status") == "early_match":
+                    fault = (reg.get("fault") or "a").replace("_", " ")
+                    how = f"sounded like the {fault} fault confirmed at {reg.get('from_area', 'another factory')}, before its own alarm"
+                else:
+                    how = "its own sound crossed its alarm level"
+                    if r.get("known_fault"):
+                        how += f"; owner's word: {r['known_fault'].replace('_', ' ')}"
+                visits.append(
+                    {
+                        "machine": mid,
+                        "name": m["name"],
+                        "first_warning": h["first_warning"] and h["first_warning"]["ts"].replace("T", " "),
+                        "how": how,
+                        "visit": (legs.get(mid) or {}).get("arrive", msg["visit_day"]).replace("T", " "),
+                        **cost,
+                    }
+                )
+            keys = ("output_inr", "part_markup_inr", "wages_inr", "saved_inr", "downtime_avoided_h")
+            totals = {k: sum(v[k] for v in visits) for k in keys}
+            watch = []
+            for mid, m in self.c.machines.items():
+                if m["factory"] != factory or mid not in rank:
+                    continue
+                est = rank[mid]["days_to_fault_level"]
+                days = {
+                    "estimate": (
+                        f"likely {est['low']}-{est['high']} days"
+                        if est.get("high") is not None
+                        else f"at least {est['low']} days"
+                    ),
+                    "at_fault_level": "sounds like its recorded fault now",
+                    "no_trend": "no upward trend",
+                    "too_few": "too few readings yet",
+                    "not_separable": "no estimate: faults score below alarm here",
+                }[est["status"]]
+                watch.append(
+                    {
+                        "machine": mid,
+                        "name": m["name"],
+                        "status": rank[mid]["status"],
+                        "days": days,
+                        "rupees_at_risk": rank[mid]["rupees_at_risk"],
+                    }
+                )
+            c = costs.load()
+            first, last = self.c.now(0), self.c.now()
+            month = last.strftime("%B %Y")
+            period = (
+                f"{month} (month to date: readings {first:%d %b} - {last:%d %b %Y})"
+                if first.month == last.month
+                else f"readings {first:%d %b %Y} - {last:%d %b %Y}"
+            )
+            return {
+                "factory": f,
+                "period_label": period,
+                "visits": visits,
+                "totals": totals,
+                "watch": watch,
+                "assumptions": [
+                    ("lost output per hour, this factory", f"Rs {c['output_per_hour_inr'][factory]:,}"),
+                    (
+                        "unplanned downtime (pump / blower / gearbox)",
+                        " / ".join(
+                            f"{c['unplanned_downtime_hours'][t]} h" for t in ("pump", "fan", "gearbox")
+                        ),
+                    ),
+                    (
+                        "idle workers (pump / blower / gearbox)",
+                        " / ".join(str(c["workers_idle"][t]) for t in ("pump", "fan", "gearbox")),
+                    ),
+                    ("wage per worker-hour", f"Rs {c['wage_per_hour_inr']}"),
+                    (
+                        "emergency part markup",
+                        f"{round(c['emergency_part_markup'] * 100)}% on MOCK dealer prices",
+                    ),
+                    (
+                        "planned service time",
+                        " / ".join(f"{self.c.cfg['service_hours'][t]} h" for t in ("pump", "fan", "gearbox")),
+                    ),
+                ],
+                "generated": time.strftime("%Y-%m-%d %H:%M"),
+                "source": "node.db (readings, messages), registry.db, data/sim/costs.json",
             }
 
     def meta(self) -> dict[str, Any]:
@@ -524,7 +724,7 @@ class Live:
         with self.lock:
             self.c.reset()
             self.cache, self.pending_label, self.prev_status, self.tick = {}, None, {}, -1
-            self._readings = {}
+            self._readings, self._explained = {}, {}
             self.outbox.db.execute("DELETE FROM outbox")
             self.outbox.db.commit()
             self.link_up = True
@@ -532,12 +732,31 @@ class Live:
             self.event("reset")
 
     # -- demo replay ----------------------------------------------------------
-    async def run_replay(self, tick_s: float = SLICES * FRAME_S) -> None:
-        """Scripted demo on recorded MIMII clips. Fault on A-F1 at 0:40 (reading 4)."""
+    def _seed(self, days: float) -> None:
+        """Record `days` of history quickly; A-F1's bearing sound starts growing (SYNTHETIC) on day 6."""
+        n = int(days * 24 / self.c.cfg["tick_hours"])
+        for k in range(n):
+            with self.lock:
+                if k == SEED_ONSET_AT:
+                    self.c.set_mode(FAULT_MACHINE, "onset", 0.0, SEED_ONSET_STEP)
+                self.c.step()
+            self.replay["progress"] = round((k + 1) / n, 3)
+            if k % 3 == 2:
+                self.version += 1
+        with self.lock:
+            self._analyse()
+            self.prev_status = {r["machine_id"]: r["status"] for r in self.ranking()}
+            self.event("seeded", days=days, readings=n)
+
+    async def run_replay(self, tick_s: float = SLICES * FRAME_S, seed_days: float = SEED_DAYS) -> None:
+        """Scripted demo on recorded MIMII clips: 14 recorded days, then live with A-F1's fault at 0:40."""
         await asyncio.to_thread(self.reset)
-        self.replay.update(on=True, started=time.monotonic(), phase="baseline")
+        self.replay.update(on=True, started=None, phase="recording 14 days", progress=0.0)
+        self.version += 1
         label_task = None
         try:
+            await asyncio.to_thread(self._seed, seed_days)
+            self.replay.update(started=time.monotonic(), phase="live", progress=1.0)
             for k in range(REPLAY_MAX + 1):
                 t0 = time.monotonic()
                 if k == REPLAY_FAULT_AT:
@@ -547,14 +766,15 @@ class Live:
                     self.replay["phase"] = "voice note"
                     label_task = asyncio.create_task(asyncio.to_thread(self.label))
                 if k == REPLAY_PUBLISH_AT:
-                    await label_task
+                    if label_task:
+                        await label_task
                     self.replay["phase"] = "published"
                     await asyncio.to_thread(self.publish, REPLAY_PUBLISH_AT - REPLAY_FAULT_AT)
                     await asyncio.to_thread(self.set_mode, SIMILAR_MACHINE, "onset")
                 await asyncio.to_thread(self.step)
                 b = next(m for m in self.ranking() if m["machine_id"] == SIMILAR_MACHINE)
                 if k > REPLAY_PUBLISH_AT and (b["status"] == "early_match" or k == REPLAY_MAX):
-                    await asyncio.sleep(2.5)  # let the match pulse land before the route
+                    await asyncio.sleep(min(2.5, tick_s))  # let the match pulse land before the route
                     self.replay["phase"] = "digest"
                     await asyncio.to_thread(self.run_agent, "rules")
                     break
@@ -728,7 +948,7 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
         return {"on": body.on}
 
     @app.get("/api/audio/{mid}/{kind}.wav")
-    def audio(mid: str, kind: str) -> Response:
+    def audio(mid: str, kind: str, tick: int | None = None) -> Response:
         """live: the 10 s the model scored last. normal: a held-out normal clip of the same unit."""
         if mid not in live.c.machines or kind not in ("live", "normal"):
             raise HTTPException(404)
@@ -747,6 +967,10 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
             if not hist:
                 raise HTTPException(404, "no reading yet")
             h = hist[0]
+            if tick is not None:  # a past reading, for the time machine
+                h = next((x for x in live.c.history(mid) if x["tick"] == tick), None)
+                if h is None:
+                    raise HTTPException(404, f"no reading {tick}")
             a, name = live.c.audio(mid, h["tick"], h["mode"], h["mix"])
         return Response(_wav(a), media_type="audio/wav", headers={"X-Clip": name})
 
@@ -755,6 +979,36 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
         if mid not in live.c.machines:
             raise HTTPException(404, "unknown machine")
         return live.reading(mid, tick)
+
+    @app.get("/api/history/{mid}")
+    def history(mid: str) -> dict[str, Any]:
+        if mid not in live.c.machines:
+            raise HTTPException(404, "unknown machine")
+        return live.history(mid)
+
+    @app.get("/api/explain/{mid}")
+    def explain(mid: str) -> dict[str, Any]:
+        if mid not in live.c.machines:
+            raise HTTPException(404, "unknown machine")
+        return live.explain(mid)
+
+    @app.get("/api/explain/{mid}/{which}.wav")
+    def explain_clip(mid: str, which: str) -> Response:
+        if mid not in live.c.machines or which not in ("before", "now"):
+            raise HTTPException(404)
+        return Response(_wav(live.explain_clip(mid, which)), media_type="audio/wav")
+
+    @app.get("/api/report/{factory}.pdf")
+    def report_pdf(factory: str) -> Response:
+        pdf = report.render(live.savings(factory))
+        name = f"dhadkan-savings-{factory}.pdf"
+        return Response(
+            pdf, media_type="application/pdf", headers={"Content-Disposition": f'inline; filename="{name}"'}
+        )
+
+    @app.get("/api/report/{factory}")
+    def report_json(factory: str) -> dict[str, Any]:
+        return live.savings(factory)
 
     @app.get("/api/voice_note.wav")
     def voice_note() -> Response:

@@ -129,12 +129,15 @@ def test_websocket_sends_state_then_frames(tmp_path):
 def test_replay_script(tmp_path, monkeypatch):
     monkeypatch.setattr(folk, "transcribe", lambda path, language=None, **k: (NOTE, language))
     lv = app_mod.Live(tmp_path / "n.db", tmp_path / "r.db")
-    asyncio.run(lv.run_replay(tick_s=0))
+    asyncio.run(lv.run_replay(tick_s=0, seed_days=2))
     kinds = [e["kind"] for e in lv.events]
+    seed = 2 * 24 // 8
+    assert kinds[0] in ("reset", "seeded") and "seeded" in kinds
     fault = next(e for e in lv.events if e["kind"] == "mode" and e["machine"] == "A-F1")
     assert fault["mode"] == "fault"
-    readings_before = [e for e in lv.events[: lv.events.index(fault)] if e["kind"] == "reading"]
-    assert len(readings_before) == app_mod.REPLAY_FAULT_AT  # 0:40 at 10 s per reading
+    live_readings = [e for e in lv.events[: lv.events.index(fault)] if e["kind"] == "reading"]
+    assert len(live_readings) == app_mod.REPLAY_FAULT_AT  # 0:40 at 10 s per live reading
+    assert lv.c.history("A-F1")[seed + app_mod.REPLAY_FAULT_AT]["mode"] == "fault"
     assert kinds.index("label") < kinds.index("published") < kinds.index("digest")
     assert lv.replay["phase"] == "awaiting owner" and lv.replay["on"] is False
     onset = next(e for e in lv.events if e["kind"] == "mode" and e["machine"] == "B-F1")

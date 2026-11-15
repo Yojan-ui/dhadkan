@@ -644,3 +644,114 @@ select.input {
     opacity: 1;
   }
 }
+
+/* phase 2: time machine, countdown, explanation, skeletons */
+.ink {
+  color: var(--ink);
+}
+.skel {
+  background: #24262a;
+  border-radius: 6px;
+}
+.scene-skel {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+  background: var(--bg);
+}
+.skel-sheds {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  padding: 120px 80px;
+}
+.skel-shed {
+  height: 220px;
+  transform: skewY(-8deg);
+}
+.bar {
+  height: 6px;
+  background: #2f3237;
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s ease-out;
+}
+.tm {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.tm-range {
+  width: 100%;
+  accent-color: var(--accent);
+  margin: 0;
+}
+.tm-mark {
+  font: 9px var(--mono);
+}
+.tm-note {
+  margin: 0;
+}
+.fc {
+  display: grid;
+  gap: 4px;
+}
+.fc-words {
+  margin: 0;
+  font-size: 15px;
+}
+.fc-words.hot {
+  color: var(--accent);
+}
+.fc p.small {
+  margin: 0;
+}
+.why {
+  display: grid;
+  gap: 6px;
+  border-left: 3px solid var(--accent);
+  padding: 4px 0 4px 10px;
+}
+.why p {
+  margin: 0;
+}
+.why-head {
+  font-size: 15px;
+}
+.report-link {
+  color: var(--muted);
+  margin-left: 12px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.report-link:hover {
+  color: var(--ink);
+}
+.crumbs .report-link {
+  pointer-events: auto;
+}
+.shed-label small.accent {
+  color: var(--accent);
+}
+kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 1px 6px;
+  border: 1px solid #3a3d43;
+  border-radius: 4px;
+  background: var(--panel2);
+  font-size: 12px;
+}
+.mmain .accent {
+  color: var(--accent);
+}

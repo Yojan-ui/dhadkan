@@ -2,7 +2,7 @@
 // owner's language; the English line under it is the same template in English.
 // Approving books the visit; nothing here can touch a machine.
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m as anim } from "framer-motion";
 import { post, type Factory, type Machine, type Message, type Route } from "../api";
 import { fmtClock } from "../theme";
 
@@ -52,7 +52,7 @@ export function ApprovalBar({
   return (
     <AnimatePresence>
       {msg ? (
-        <motion.div
+        <anim.div
           key={msg.id}
           className="approval"
           role="region"
@@ -60,7 +60,7 @@ export function ApprovalBar({
           initial={reduced ? false : { y: 60, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={reduced ? undefined : { y: 60, opacity: 0 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
         >
           <div className="who small muted">
             <span className="mono">
@@ -99,9 +99,9 @@ export function ApprovalBar({
             )}
           </div>
           {msg.reply && <div className="small muted">Reply "{msg.reply}" was unclear; asking again.</div>}
-        </motion.div>
+        </anim.div>
       ) : last ? (
-        <motion.div
+        <anim.div
           key={`done-${last.id}`}
           className="approval done"
           initial={reduced ? false : { opacity: 0 }}
@@ -111,7 +111,7 @@ export function ApprovalBar({
             {factories.find((x) => x.id === last.factory)?.owner} replied "{last.reply}" ·{" "}
             {last.approved ? `visit booked (${last.visit_day})` : "no visit"} · {last.machine}
           </span>
-        </motion.div>
+        </anim.div>
       ) : null}
     </AnimatePresence>
   );

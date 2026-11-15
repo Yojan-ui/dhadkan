@@ -6,7 +6,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import type { Factory, Machine, Meta, State } from "../api";
-import { C } from "../theme";
+import { C, inr } from "../theme";
 import { CameraRig, type View } from "./CameraRig";
 import { ArcLabels, Contagion, useArcs } from "./Contagion";
 import { Label, LabelProjector } from "./labels";
@@ -19,7 +19,10 @@ import { Waterfall, WaterfallLabels } from "./Waterfall";
 
 interface Props {
   state: State;
+  machines: Machine[]; // state.machines, with the time-machine reading swapped in for the selected one
   meta: Meta;
+  hotBands: [number, number] | null; // band the alert explanation points at
+
   view: View;
   reduced: boolean;
   hover: string | null;
@@ -117,7 +120,17 @@ function Stats({ out }: { out: React.RefObject<HTMLDivElement | null> }) {
   return null;
 }
 
-export default function Scene({ state, meta, view, reduced, hover, onHover, onView }: Props) {
+export default function Scene({
+  state,
+  machines,
+  meta,
+  view,
+  reduced,
+  hover,
+  onHover,
+  onView,
+  hotBands,
+}: Props) {
   const [aspect, setAspect] = useState(() => window.innerWidth / Math.max(1, window.innerHeight - 52));
   useEffect(() => {
     const f = () => setAspect(window.innerWidth / Math.max(1, window.innerHeight - 52));
@@ -125,7 +138,6 @@ export default function Scene({ state, meta, view, reduced, hover, onHover, onVi
     return () => window.removeEventListener("resize", f);
   }, []);
   const factories = meta.factories;
-  const machines = state.machines;
   const pos = useKeyed(machines.map((m) => m.id + m.factory).join(), () =>
     machinePositions(factories, machines),
   );
@@ -136,6 +148,8 @@ export default function Scene({ state, meta, view, reduced, hover, onHover, onVi
   const debug = new URLSearchParams(location.search).has("debug");
   const statsEl = useRef<HTMLDivElement>(null);
   const arcs = useArcs();
+  const atRisk: Record<string, number> = {};
+  for (const m of machines) atRisk[m.factory] = (atRisk[m.factory] ?? 0) + m.rupees_at_risk;
   const plan = useRoute(state.route, factories, machines, meta.technician.day_start, reduced);
   const wfAt = sel && pos[sel.id] ? pos[sel.id].clone().add(new THREE.Vector3(2.3, 1.75, -0.3)) : null;
   const inMachine = view.kind === "machine";
@@ -197,7 +211,7 @@ export default function Scene({ state, meta, view, reduced, hover, onHover, onVi
           <Contagion arcs={arcs} machines={machines} pos={pos} reduced={reduced} />
           {plan && <RouteMesh plan={plan} reduced={reduced} />}
         </group>
-        {sel && wfAt && <Waterfall machine={sel} at={wfAt} reduced={reduced} />}
+        {sel && wfAt && <Waterfall machine={sel} at={wfAt} reduced={reduced} hotBands={hotBands} />}
 
         <OrbitControls
           makeDefault
@@ -224,6 +238,7 @@ export default function Scene({ state, meta, view, reduced, hover, onHover, onVi
                 >
                   <span className="mono">{f.id}</span> {f.name}
                   <small>{f.area}</small>
+                  {atRisk[f.id] > 0 && <small className="accent mono">{inr(atRisk[f.id])} at risk</small>}
                 </button>
               </Label>
             );

@@ -1,0 +1,273 @@
+{
+ "run_id": "20261115T154737Z",
+ "replay_phase": "awaiting owner",
+ "label": {
+  "seq": 12,
+  "kind": "label",
+  "clock": "2026-11-25T06:00",
+  "replay_t": 4.0,
+  "sound": "khat-khat",
+  "fault": "bearing",
+  "scores": {
+   "bearing": 0.7,
+   "imbalance": 0.1,
+   "loose_belt": 0.2,
+   "clog": 0.0
+  },
+  "source": "lexicon",
+  "id": 1,
+  "text": "ब्लूर में खत्खत की आबाज आरही है, कल सी ज्यादा है",
+  "machine": "A-F1",
+  "factory": "A",
+  "via": "whisper"
+ },
+ "messages": [
+  {
+   "factory": "A",
+   "body": "ब्लोअर 1: बेयरिंग की आवाज़ 3 दिन से बढ़ रही है। गुरुवार से पहले जाँच करवा लें। रमेश को गुरुवार को भेजें? जवाब दें: हाँ / ना"
+  },
+  {
+   "factory": "B",
+   "body": "ब्लोअर 1: भोसरीमधल्या एका मशीनमध्ये बेअरिंग खराब होण्याआधी जसा आवाज होता, तसा आवाज येतोय. अजून अलार्म नाही, गुरुवारच्या आधी एकदा दाखवून घ्या. रमेशला गुरुवारी पाठवू का? उत्तर द्या: हो / नाही"
+  }
+ ],
+ "b_f1": {
+  "readings": [
+   {
+    "ts": "2026-11-25T14:00",
+    "mix": 0.1,
+    "risk3": 0.851,
+    "status": "ok"
+   },
+   {
+    "ts": "2026-11-25T22:00",
+    "mix": 0.2,
+    "risk3": 0.899,
+    "status": "early_match"
+   },
+   {
+    "ts": "2026-11-26T06:00",
+    "mix": 0.3,
+    "risk3": 0.957,
+    "status": "early_match"
+   },
+   {
+    "ts": "2026-11-26T14:00",
+    "mix": 0.4,
+    "risk3": 0.932,
+    "status": "early_match"
+   },
+   {
+    "ts": "2026-11-26T22:00",
+    "mix": 0.5,
+    "risk3": 0.921,
+    "status": "early_match"
+   },
+   {
+    "ts": "2026-11-27T06:00",
+    "mix": 0.6,
+    "risk3": 0.942,
+    "status": "early_match"
+   },
+   {
+    "ts": "2026-11-27T14:00",
+    "mix": 0.7,
+    "risk3": 1.109,
+    "status": "alarm"
+   }
+  ],
+  "first_early_match_reading": 1,
+  "first_alarm_reading": 6,
+  "mix_at_early_match": 0.2,
+  "readings_of_warning": 5
+ },
+ "a_f1": {
+  "first_warning": {
+   "tick": 30,
+   "ts": "2026-11-19T06:00",
+   "status": "alarm"
+  },
+  "fault_sound": {
+   "tick": 46,
+   "ts": "2026-11-24T14:00",
+   "mode": "fault",
+   "mix": 1.0
+  },
+  "days_warned_before_fault_sound": 5.33,
+  "estimates": [
+   {
+    "ts": "2026-11-18T14:00",
+    "status": "ok",
+    "low": 5.4,
+    "mid": 8.4,
+    "high": 12.9,
+    "actual_days": 6.0,
+    "inside": true
+   },
+   {
+    "ts": "2026-11-18T22:00",
+    "status": "ok",
+    "low": 4.9,
+    "mid": 7.3,
+    "high": 10.9,
+    "actual_days": 5.67,
+    "inside": true
+   },
+   {
+    "ts": "2026-11-19T06:00",
+    "status": "alarm",
+    "low": 4.1,
+    "mid": 6.2,
+    "high": 9.2,
+    "actual_days": 5.33,
+    "inside": true
+   },
+   {
+    "ts": "2026-11-19T14:00",
+    "status": "alarm",
+    "low": 4.1,
+    "mid": 6.3,
+    "high": 9.9,
+    "actual_days": 5.0,
+    "inside": true
+   },
+   {
+    "ts": "2026-11-19T22:00",
+    "status": "alarm",
+    "low": 4.9,
+    "mid": 7.1,
+    "high": 11.5,
+    "actual_days": 4.67,
+    "inside": false
+   },
+   {
+    "ts": "2026-11-20T06:00",
+    "status": "alarm",
+    "low": 4.1,
+    "mid": 6.3,
+    "high": 11.2,
+    "actual_days": 4.33,
+    "inside": true
+   },
+   {
+    "ts": "2026-11-20T14:00",
+    "status": "alarm",
+    "low": 3.1,
+    "mid": 5.0,
+    "high": 8.8,
+    "actual_days": 4.0,
+    "inside": true
+   },
+   {
+    "ts": "2026-11-20T22:00",
+    "status": "alarm",
+    "low": 3.5,
+    "mid": 5.9,
+    "high": 10.2,
+    "actual_days": 3.67,
+    "inside": true
+   },
+   {
+    "ts": "2026-11-21T06:00",
+    "status": "alarm",
+    "low": 2.6,
+    "mid": 4.3,
+    "high": 6.4,
+    "actual_days": 3.33,
+    "inside": true
+   },
+   {
+    "ts": "2026-11-21T14:00",
+    "status": "alarm",
+    "low": 2.4,
+    "mid": 3.9,
+    "high": 6.6,
+    "actual_days": 3.0,
+    "inside": true
+   },
+   {
+    "ts": "2026-11-21T22:00",
+    "status": "alarm",
+    "low": 2.6,
+    "mid": 4.1,
+    "high": 6.5,
+    "actual_days": 2.67,
+    "inside": true
+   },
+   {
+    "ts": "2026-11-22T06:00",
+    "status": "alarm",
+    "low": 2.5,
+    "mid": 4.1,
+    "high": 7.0,
+    "actual_days": 2.33,
+    "inside": false
+   },
+   {
+    "ts": "2026-11-22T14:00",
+    "status": "alarm",
+    "low": 1.9,
+    "mid": 3.4,
+    "high": 6.0,
+    "actual_days": 2.0,
+    "inside": true
+   },
+   {
+    "ts": "2026-11-22T22:00",
+    "status": "alarm",
+    "low": 1.6,
+    "mid": 3.0,
+    "high": 5.0,
+    "actual_days": 1.67,
+    "inside": true
+   },
+   {
+    "ts": "2026-11-23T06:00",
+    "status": "alarm",
+    "low": 2.4,
+    "mid": 4.3,
+    "high": 7.9,
+    "actual_days": 1.33,
+    "inside": false
+   },
+   {
+    "ts": "2026-11-23T14:00",
+    "status": "alarm",
+    "low": 3.0,
+    "mid": 5.4,
+    "high": 11.2,
+    "actual_days": 1.0,
+    "inside": false
+   },
+   {
+    "ts": "2026-11-23T22:00",
+    "status": "alarm",
+    "low": 1.9,
+    "mid": 3.7,
+    "high": 6.7,
+    "actual_days": 0.67,
+    "inside": false
+   },
+   {
+    "ts": "2026-11-24T06:00",
+    "status": "alarm",
+    "low": 2.0,
+    "mid": 3.9,
+    "high": 7.0,
+    "actual_days": 0.33,
+    "inside": false
+   },
+   {
+    "ts": "2026-11-24T14:00",
+    "status": "alarm",
+    "low": 1.4,
+    "mid": 3.4,
+    "high": 6.4,
+    "actual_days": 0.0,
+    "inside": false
+   }
+  ],
+  "inside_range": 12,
+  "estimates_made": 19
+ }
+}

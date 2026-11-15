@@ -1,0 +1,16 @@
+{
+ "_note": "Plain words for a frequency band, and mechanics' rules of thumb for what a change there often means. The rules come from general maintenance practice; MIMII does not say which fault each clip is, so they are not validated by this project. Edit freely.",
+ "pitch": [
+  {"below_hz": 300, "word": "low rumble"},
+  {"below_hz": 1200, "word": "deep hum"},
+  {"below_hz": 4000, "word": "high-pitched whine"},
+  {"below_hz": 99999, "word": "hiss or squeal"}
+ ],
+ "louder": {
+  "low rumble": "often a sign of imbalance or something loose",
+  "deep hum": "often a sign of misalignment or a worn belt",
+  "high-pitched whine": "often a sign of bearing wear",
+  "hiss or squeal": "often a sign of bearing wear or rubbing; on a pump, cavitation or a blockage"
+ },
+ "quieter": "part of its normal sound has dropped away; often a slipping belt or a blockage"
+}
