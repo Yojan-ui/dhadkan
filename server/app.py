@@ -1087,10 +1087,14 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
 
     app = FastAPI(title="Dhadkan live", lifespan=lifespan)
     app.state.live = live
-    from . import ingest, mill_api
+    from . import cc_api, ingest, mill_api
+    from .brain import Brain
 
+    brain = Brain(live, Path(node_db or NODE_DB).parent)
+    app.state.brain = brain
     app.include_router(mill_api.router())
     app.include_router(ingest.router())
+    app.include_router(cc_api.router(brain))
 
     def busy() -> None:
         if live.replay["on"]:

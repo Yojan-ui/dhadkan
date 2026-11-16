@@ -23,6 +23,10 @@ screens: `?view=owner&f=A&lang=hi` and `?view=mechanic&f=A`. If the internet fai
 | Production-stop decisions stay with the owner | no tool can stop a machine; paid actions refuse to run without an approved approval (checked again at send time) | [tests/test_maint_agent.py](../tests/test_maint_agent.py), [tests/test_guardrails.py](../tests/test_guardrails.py) |
 | Simulated or recorded signals | the flour-mill story replays real MIMII DUE recordings; everything simulated is labelled on screen | [server/flourmill.py](../server/flourmill.py), `?view=mill` |
 
+**The command centre (default page):** Settings → Demo scenario → *Start fault* on C-F2, then *DEMO · play
+readings*. Watch the agents board (AI Agents), approve on the recommendation, report the repair on the
+machine, and read the verification on Maintenance Jobs. Tests: tests/test_command_centre.py.
+
 **The 6-minute path:** `make serve`, open `?view=mill`, press *Play to the next decision*, cut and
 restore the network, approve the visit, play to the end. Headless: `make mill`. The audit of the
 repository before these changes is in [AUDIT.md](AUDIT.md).

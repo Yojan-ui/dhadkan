@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { MechanicScreen } from "./screens/Mechanic";
 import { MillScreen } from "./screens/Mill";
+import { CommandCentre } from "./cc/CommandCentre";
 import { OwnerScreen } from "./screens/Owner";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { get, post, store, useConnected, useLive, useMeta, type Machine, type PastReading } from "./api";
@@ -36,6 +37,8 @@ export default function App() {
   }
   if (view === "mechanic") return <MechanicScreen factory={q.get("f")} />;
   if (view === "mill") return <MillScreen />;
+  // the command centre is the default; the earlier cluster screen stays at ?view=cluster
+  if (view !== "cluster" && !window.matchMedia("(max-width: 767px)").matches) return <CommandCentre />;
   return (
     <LazyMotion features={domAnimation} strict>
       <Main />

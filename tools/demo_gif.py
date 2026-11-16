@@ -69,7 +69,7 @@ def main() -> None:
         with sync_playwright() as p:
             browser = p.chromium.launch(channel="chrome", headless=True, args=["--use-angle=metal"])
             page = browser.new_page(viewport={"width": 1440, "height": 860}, device_scale_factor=1)
-            page.goto(base + "/?m=A-G1")
+            page.goto(base + "/?view=cluster&m=A-G1")  # the cluster screen, where Demo mode lives
             page.wait_for_timeout(4000)
             t0 = time.monotonic()
 

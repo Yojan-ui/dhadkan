@@ -121,6 +121,44 @@ without input, and the factory never spins. Rendering: one instanced mesh per pa
 occlusion, if the frame rate falls. Measured 54-57 fps on this Mac with and without a 4x CPU throttle
 (`?debug`); not measured on a low-end laptop.
 
+## Command centre and agents (2026-11-16)
+
+```mermaid
+flowchart LR
+  SIM["simulated cluster<br/>server/sim.py<br/>(recorded clips, 12 machines)"] -->|"on_step: audio per machine"| OBS
+  subgraph Brain["server/brain.py: runs on the factory node, offline"]
+    OBS["Observation<br/>summary + quality + own normal"] --> MEM["Memory<br/>baselines, history"]
+    OBS --> INT["Intelligence<br/>health, evidence"] --> PRE["Prediction<br/>time to threshold"]
+    PRE --> ORC["Orchestrator<br/>case per anomaly"]
+    ORC --> PLN["Planning<br/>window, downtime, priority"]
+    ORC --> TEC["Technician & Procurement<br/>people, stock, cited costs"]
+    ORC --> EXE["Execution<br/>ask, book once, queue offline"]
+    ORC --> VER["Verification<br/>vs baseline v1"]
+  end
+  EXE -->|"approval needed"| OWN["owner (role: owner)<br/>/api/cc/decide"]
+  EXE -->|"link up"| CLD["cloud replica<br/>audit + WhatsApp replies"]
+  Brain --> API["/api/cc/* + WebSocket version"] --> UI["web/src/cc/: command centre<br/>+ 3D twin (web/src/scene/)"]
+```
+
+- **Agents are code with responsibilities, not messages.** `server/agents.py` names them, maps every
+  orchestrator step to the agent that owns it (`STEP_AGENT`), and records each run (task, status, observation,
+  tools, one-line reasoning from the step's own result, result, retries) in `agent_runs` beside the cases, and
+  in the hash-chained audit log. Observation, intelligence and prediction record one run per reading cycle.
+- **Persistence:** `data/brain_edge.db` (readings and baselines), `data/brain_maint.db` (cases, steps,
+  idempotent actions, approvals, repairs, agent runs, op log, audit), `data/brain_cloud.db` (replica). A
+  restart resumes open cases where they stopped (`tests/test_command_centre.py`). On first start against an
+  existing cluster the memory agent learns each machine's normal from its recorded history.
+- **Safety:** no tool stops a machine; bookings and purchases need an approved approval for the same case,
+  checked when created and when sent; `/api/cc/decide` needs the owner role (`server/auth.py`; demo mode when
+  no tokens are configured, and the UI says "demo login").
+- **Offline:** everything above runs locally; only the cloud replica and outward messages need the link
+  (the top-bar switch simulates a cut). Messages queue and go out once.
+- **Local vs cloud:** local: readings, baselines, health, agents, cases, approvals. Cloud: the audit copy and
+  the owner's WhatsApp replies. No step needs an LLM.
+- **UI:** `web/src/cc/` (data contract `data.ts`, panels, pages, machine detail); the 3D twin is
+  `web/src/scene/` with machine states mapped from the agents' health (`withHealth`). The earlier cluster screen
+  is `?view=cluster`.
+
 ## Data and state
 
 - **Committed:** trained `.tflite` models and per-machine thresholds (`edge/models/`), the IMS demo pack, every evaluation

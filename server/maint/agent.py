@@ -62,10 +62,37 @@ RANK = {
 }
 PLAN_MEASURE = ["recall", "request_measurement", "await_change"]
 PLAN_MONITOR = ["recall", "notify_watch", "await_change"]
-PLAN_FIX = ["recall", "find_technician", "check_parts", "estimate_cost", "request_approval", "await_approval",
+PLAN_FIX = ["recall", "plan_inspection", "find_technician", "check_parts", "estimate_cost", "request_approval", "await_approval",
             "book_job", "await_repair", "request_post_repair_readings", "verify_repair"]  # fmt: skip
 GATED = {"book_job": "booking", "order_part": "purchase"}
 PRIORITY = {"notify_owner_urgent"}
+
+
+def summarise(step: str, r: Any) -> str:
+    """One line of reasoning for the agent board, from the step's own result (no LLM)."""
+    if not isinstance(r, dict):
+        return step.replace("_", " ")
+    if step == "recall":
+        return r.get("note") or (f"{r.get('earlier_cases', 0)} earlier cases, {r.get('repairs', 0)} repairs; "
+                                 f"baseline from {r.get('baseline_v1_learned_from')} readings")  # fmt: skip
+    if step == "plan_inspection":
+        return (f"priority {r['priority']} of {r['of']}; from {r['earliest_day']}; window {r['window']}; "
+                f"about {r['expected_downtime_h']} h down")  # fmt: skip
+    if step == "find_technician":
+        return f"{r.get('name')} on {r.get('day')}: {r.get('why')}"
+    if step == "check_parts":
+        return "; ".join(f"{x['fault'].replace('_', ' ')}: {'order needed' if x['order_needed'] else 'listed'}"
+                         for x in r.get("candidates", []))  # fmt: skip
+    if step == "estimate_cost":
+        i = r.get("inspection", {})
+        return f"inspection Rs {i.get('low_inr')}-{i.get('high_inr')}; {len(r.get('if_found', []))} cited part ranges"
+    if step == "await_approval":
+        return f"approved by {r.get('approved_by')} via {r.get('channel')}"
+    if step == "book_job":
+        return f"booked {r.get('technician')} for {r.get('day')}"
+    if step == "verify_repair":
+        return f"{r.get('outcome')}: median risk {r.get('before_median_risk')} -> {r.get('after_median_risk')} vs v1"
+    return str(r.get("summary") or r.get("asked") or r.get("told") or step.replace("_", " "))[:200]
 
 
 class ApprovalRequired(PermissionError):
@@ -88,11 +115,15 @@ def plan_for(urgency: str) -> list[str]:
 
 class Tools:
     def __init__(self, transport: Transport | None = None, technicians: Technicians | None = None,
-                 parts: Parts | None = None, contacts: dict[str, str] | None = None) -> None:  # fmt: skip
+                 parts: Parts | None = None, contacts: dict[str, str] | None = None,
+                 factories: dict[str, dict[str, Any]] | None = None,
+                 service_hours: dict[str, float] | None = None) -> None:  # fmt: skip
         self.transport = transport or Transport()
         self.technicians = technicians or Technicians()
         self.parts = parts or Parts()
         self.contacts = contacts or {"owner": "owner", "supervisor": "supervisor"}
+        self.factories = factories or {}  # id -> profile (power cuts, shifts) for the planning agent
+        self.service_hours = service_hours or {}  # machine type -> planned service hours (assumption)
 
     @property
     def network(self) -> Network:
@@ -101,11 +132,12 @@ class Tools:
 
 class MaintenanceAgent:
     def __init__(self, store: Store, baselines: BaselineStore, tools: Tools | None = None,
-                 clock: Any = time.time, a: dict[str, Any] | None = None) -> None:  # fmt: skip
+                 clock: Any = time.time, a: dict[str, Any] | None = None, activity: Any = None) -> None:  # fmt: skip
         self.s, self.b, self.t = store, baselines, tools or Tools()
         self.clock = clock
         self.s.clock = clock
         self.a = {**ASSUMPTIONS, **(a or {})}
+        self.activity = activity  # server/agents.Activity: which named agent ran which step (optional)
 
     # ---------------------------------------------------------------- observe / reason
     def observe(self, machine: str, health: dict[str, Any], reading_ref: Any = None) -> dict[str, Any] | None:
@@ -124,6 +156,12 @@ class MaintenanceAgent:
             self.b.set_hold(machine, True)  # nothing recorded during a case is learned as normal
             self.s.log("agent", "case_opened", cid, urgency=urgency, severity=health.get("severity"),
                        evidence=health.get("evidence"), confidence=health.get("confidence"))  # fmt: skip
+            if self.activity:
+                self.activity.record("orchestrator", "open a case and assign the plan", "completed", machine=machine,
+                                     case_id=cid, observation="; ".join(health.get("evidence") or [])[:300],
+                                     tools=["cases.create", "baseline.set_hold"],
+                                     reasoning=f"urgency {urgency} ({health.get('confidence')} confidence): plan of "
+                                               f"{len(plan_for(urgency))} steps", running_status="investigating")  # fmt: skip
             return self.s.case(cid)
         ctx = case["context"]
         ctx["history"] = [*ctx["history"], self._snap(health, reading_ref)][-20:]
@@ -273,13 +311,16 @@ class MaintenanceAgent:
             if step["next_try"] > self.clock():
                 break
             self.s.set_step(cid, step["idx"], status="running")
+            run = self._run(c, step)
             try:
                 result = getattr(self, f"_step_{step['name']}")(c, step)
             except Waiting as w:
                 now = next(s for s in self.s.steps(cid) if s["idx"] == step["idx"])
                 if now["status"] == "running":  # a step that re-planned (skipped itself) stays skipped
                     self.s.set_step(cid, step["idx"], status="waiting", error=str(w))
+                    self._run_wait(run, step, str(w))
                     break
+                self._run_end(run, "completed", None, f"re-planned: {w}")
                 continue
             except ApprovalRequired as e:
                 # the approval changed after it was checked (a conflicting answer arrived): ask again
@@ -287,6 +328,7 @@ class MaintenanceAgent:
                 if wait is not None:
                     self.s.set_step(cid, wait["idx"], status="pending")
                 self.s.set_step(cid, step["idx"], status="waiting", error=str(e))
+                self._run_wait(run, step, str(e), status="awaiting_approval")
                 continue
             except ToolError as e:
                 n = step["attempts"] + 1
@@ -294,12 +336,73 @@ class MaintenanceAgent:
                 self.s.set_step(
                     cid, step["idx"], status="retry", attempts=n, next_try=self.clock() + delay, error=str(e)
                 )
+                if run is not None and self.activity:
+                    self.activity.update(run, "retrying", error=str(e), retry=True)
+                break
+            except Exception as e:  # a bug or a refused action: the step fails visibly, the case stays open
+                self.s.set_step(cid, step["idx"], status="failed", error=f"{type(e).__name__}: {e}")
+                self._run_end(run, "failed", None, f"{type(e).__name__}: {e}")
+                self.s.log("agent", "step_failed", cid, step=step["name"], error=str(e))
                 break
             self.s.set_step(cid, step["idx"], status="done", result=result, error=None)
             self.s.log("agent", "step_done", cid, step=step["name"], result=result)
+            self._run_end(run, "completed", result, summarise(step["name"], result))
         return self.s.case(cid)
 
+    # ---------------------------------------------------------------- agent activity
+    def _run(self, c: dict[str, Any], step: dict[str, Any]) -> int | None:
+        if not self.activity:
+            return None
+        from server.agents import STEP_AGENT
+
+        agent, status, tools = STEP_AGENT.get(step["name"], ("orchestrator", "executing", []))
+        prev = self.activity.open_for_step(c["id"], step["idx"])
+        if prev:  # a step that was waiting continues the same run
+            self.activity.update(prev["id"], status)
+            return int(prev["id"])
+        last = (c["context"].get("history") or [{}])[-1]
+        return int(self.activity.start(agent, step["name"].replace("_", " "), status, machine=c["machine"],
+                                       case_id=c["id"], step=step["idx"], tools=tools,
+                                       observation=f"urgency {c['urgency']}, recent risk {last.get('risk')}"))  # fmt: skip
+
+    def _run_wait(self, run: int | None, step: dict[str, Any], why: str, status: str | None = None) -> None:
+        if run is None or not self.activity:
+            return
+        from server.agents import STEP_AGENT
+
+        self.activity.update(run, status or STEP_AGENT.get(step["name"], ("", "monitoring", []))[1], error=why,
+                             reasoning=why)  # fmt: skip
+
+    def _run_end(self, run: int | None, status: str, result: Any, reasoning: str) -> None:
+        if run is not None and self.activity:
+            self.activity.finish(run, status, result, reasoning)
+
     # ---------------------------------------------------------------- steps
+    def _step_plan_inspection(self, c: dict[str, Any], st: dict[str, Any]) -> dict[str, Any]:
+        """Planning agent: when to look, how long the machine is down, and in what order across open cases."""
+        m = self.s.machine(c["machine"])
+        prof = self.t.factories.get(m["factory"], {})
+        opened = sorted(self.s.cases(open_only=True), key=lambda x: (-RANK[x["urgency"]], x["opened"]))
+        queue = [x["id"] for x in opened if "book_job" in x["plan"]]
+        position = queue.index(c["id"]) if c["id"] in queue else 0
+        per_day = 2  # assumption: a technician fits two inspection visits in a day
+        today = datetime.fromtimestamp(self.clock()).date()
+        earliest = today + timedelta(days=position // per_day)
+        cuts = prof.get("power_cuts") or []
+        window = (f"{cuts[0][0]}-{cuts[0][1]}, during the scheduled power cut (the machine is off anyway)" if cuts
+                  else "first hour of the shift (assumption)")  # fmt: skip
+        downtime = float(self.t.service_hours.get(m["mtype"], 2.0))
+        same_site = [x["machine"] for x in opened if x["id"] != c["id"] and "book_job" in x["plan"]
+                     and self.s.machine(x["machine"])["factory"] == m["factory"]]  # fmt: skip
+        plan = {"priority": position + 1, "of": len(queue), "earliest_day": earliest.isoformat(), "window": window,
+                "expected_downtime_h": downtime, "downtime_basis": "planned service hours by machine type (assumption)",
+                "combine_with": same_site,
+                "alternatives": ["keep running and re-measure in one cycle (owner's choice)",
+                                 "inspect at the next planned stop"]}  # fmt: skip
+        cur = self.s.case(c["id"])
+        self.s.update_case(c["id"], cur["version"], context=cur["context"] | {"plan": plan})
+        return plan
+
     def _owner(self, c: dict[str, Any], purpose: str, text: str, to: str = "owner") -> dict[str, Any]:
         return self.act(
             c["id"], "notify", purpose, {"to": self.t.contacts[to], "text": text, "machine": c["machine"]}
@@ -362,6 +465,9 @@ class MaintenanceAgent:
         bad = {r["technician"] for r in reps if r["outcome"] in ("failed",)}
         exclude = set(ctx.get("declined", [])) | bad
         today = datetime.fromtimestamp(self.clock()).date()
+        start = ctx.get("plan", {}).get("earliest_day")
+        if start and start > today.isoformat():  # the planning agent put this case behind more urgent ones
+            today = datetime.fromisoformat(start).date()
         for d in range(self.a["search_days"] + 1):
             day = today + timedelta(days=d)
             found = self.t.technicians.find(skill, day, exclude)

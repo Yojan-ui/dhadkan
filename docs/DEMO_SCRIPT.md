@@ -1,5 +1,6 @@
 # Demo script: 5–7 minutes
 
+The default page is now the command centre; **Demo mode** below is on the cluster screen at `?view=cluster`.
 Follows the six slides in [PITCH.md](PITCH.md) with a live run of **Demo mode** in the middle. Every
 number you say must be on screen, in [RESULTS.md](RESULTS.md), or in PITCH.md with its source or its
 "assumption" label. Don't say anything else.

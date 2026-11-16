@@ -117,7 +117,15 @@ MIMII DUE gearbox recordings; the mill, people, stock, clock, network cut and re
 or simulated. Headless: `make mill`. Device readings (phone, ESP32 vibration node, uploads):
 `/api/ingest`, try `python -m tools.sim_device --vibration --fault-after 30`.
 
-**Demo mode** (button in the top bar):
+**Command centre (the default page, `make demo`):** the 3D digital twin of the three demo factories, a
+telemetry table, the agents' recommendations and workflows, and 12 sections (machines, live telemetry,
+predictive maintenance, AI agents, maintenance jobs, technicians, spare parts, analytics, event history,
+settings). The eight named agents work every reading: Settings → *Demo scenario* switches a blower to its
+recorded fault clips, then *DEMO · play readings* advances the clock; approve the visit on the
+recommendation, report the repair on the machine, and the verification agent checks it against the
+machine's first learned normal. See docs/ARCHITECTURE.md "Command centre and agents".
+
+**Demo mode** (button in the top bar of the earlier cluster screen, `?view=cluster`):
 1. It replays NASA IMS test 2, bearing 1 as Loom 1's motor bearing. That bearing failed on the outer
    race in February 2004 after about 7 days.
 2. When the health score crosses the alarm, the CWRU classifier names the fault from the real
@@ -219,6 +227,13 @@ The summary below is written by `python -m edge.results` from the records in `do
   power state: in the cluster, "stopped" and "sensor lost" are set with the panel's *Simulate* buttons and
   labelled simulated. A real install would mark a machine stopped from its own quiet readings
   (`edge/baseline.py` "not running") or the owner's word. Frame rate was measured on one Mac only.
+- **The command centre's machines are sound-only.** Temperature and vibration columns say "no sensor";
+  RPM is the nameplate figure (an assumption). On the replayed blower recordings the loudness detector is
+  intermittent for fan id_00 (B-F1, A-F1: a fault reading every few cycles, so the case stays at "measure
+  again") and persistent for fan id_02 (C-F1, C-F2), which the scenario uses. Performance counts only
+  "reported running per reading cycle"; there is no production counter, so no OEE.
+- **The agents' reasoning is deterministic code, not an LLM.** Each run's one-line reasoning is written by
+  the step that did the work. Claude is optional elsewhere (diagnosis wording) and never makes a decision.
 - **ESP32 node untested on hardware.** `hardware/esp32_vibration` is written; the server side is
   tested with a simulated device only.
 - **The agent cannot control a machine.** No tool stops, slows or switches one; paid actions need the

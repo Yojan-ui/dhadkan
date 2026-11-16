@@ -71,6 +71,7 @@ class Cluster:
         self._scorers = {}  # one interpreter per machine, so a reading's 12 clips score in parallel
         self._pool = ThreadPoolExecutor(max_workers=8)
         self._pools = None
+        self.on_step: list[Any] = []  # callbacks(tick, {machine: (audio, result)}) after every reading
 
     # -- clips ------------------------------------------------------------
     def pools(self) -> dict[str, dict[int, list[Path]]]:
@@ -202,6 +203,8 @@ class Cluster:
         )  # the clock moves even if all are quiet
         if not live:
             self.db.commit()
+            for cb in self.on_step:
+                cb(tick, {})
             return {}
         for mid, clip, audio, r in self._pool.map(play, live):
             m = self.machines[mid]
@@ -240,6 +243,8 @@ class Cluster:
                 ),
             )
         self.db.commit()
+        for cb in self.on_step:
+            cb(tick, out)
         return out
 
     # -- queries ----------------------------------------------------------
