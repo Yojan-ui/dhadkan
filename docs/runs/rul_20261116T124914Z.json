@@ -1,0 +1,9321 @@
+{
+ "run_id": "20261116T124914Z",
+ "git_rev": "f5be4d4",
+ "code_sha256": "8dee234ba5c1bc389740ca04006559974e45614bde333b647648198e404b1b64",
+ "meaning": "days until the health score reaches the maintenance threshold (not a failure date)",
+ "protocol": "leave one failed bearing out: threshold, trend window and interval calibration from the other three; estimates every ~1/400 of the run from the held-out bearing's first alarm",
+ "bearings": {
+  "1st_test/b3": {
+   "threshold": 160.96,
+   "own_end_level": 22.01,
+   "window_days": 1.0,
+   "first_alarm_day": 8.516226851851853,
+   "reached_threshold_day": null,
+   "end_day": 34.482,
+   "lead_time_days": 25.97,
+   "metrics": {
+    "vs_threshold": {
+     "checks": 384,
+     "states": {
+      "estimate": 53,
+      "no_trend": 198,
+      "insufficient_data": 133,
+      "at_threshold": 0
+     },
+     "estimates_scored": 0
+    },
+    "vs_end_of_run": {
+     "checks": 384,
+     "states": {
+      "estimate": 53,
+      "no_trend": 198,
+      "insufficient_data": 133,
+      "at_threshold": 0
+     },
+     "estimates_scored": 53,
+     "mae_days": 10.752,
+     "rmse_days": 12.386,
+     "median_abs_error_days": 10.879,
+     "bias_days": 0.621,
+     "interval_coverage": 0.623,
+     "nominal_coverage": 0.8
+    }
+   },
+   "rows": [
+    {
+     "day": 8.516,
+     "status": "insufficient_data",
+     "to_end": 25.965,
+     "to_threshold": null
+    },
+    {
+     "day": 8.551,
+     "status": "insufficient_data",
+     "to_end": 25.931,
+     "to_threshold": null
+    },
+    {
+     "day": 8.586,
+     "status": "insufficient_data",
+     "to_end": 25.896,
+     "to_threshold": null
+    },
+    {
+     "day": 8.62,
+     "status": "insufficient_data",
+     "to_end": 25.861,
+     "to_threshold": null
+    },
+    {
+     "day": 8.655,
+     "status": "insufficient_data",
+     "to_end": 25.827,
+     "to_threshold": null
+    },
+    {
+     "day": 8.69,
+     "status": "insufficient_data",
+     "to_end": 25.792,
+     "to_threshold": null
+    },
+    {
+     "day": 8.725,
+     "status": "insufficient_data",
+     "to_end": 25.757,
+     "to_threshold": null
+    },
+    {
+     "day": 8.759,
+     "status": "no_trend",
+     "to_end": 25.722,
+     "to_threshold": null
+    },
+    {
+     "day": 8.794,
+     "status": "no_trend",
+     "to_end": 25.688,
+     "to_threshold": null
+    },
+    {
+     "day": 8.829,
+     "status": "no_trend",
+     "to_end": 25.653,
+     "to_threshold": null
+    },
+    {
+     "day": 8.863,
+     "status": "no_trend",
+     "to_end": 25.618,
+     "to_threshold": null
+    },
+    {
+     "day": 8.898,
+     "status": "no_trend",
+     "to_end": 25.583,
+     "to_threshold": null
+    },
+    {
+     "day": 9.004,
+     "status": "insufficient_data",
+     "to_end": 25.478,
+     "to_threshold": null
+    },
+    {
+     "day": 9.038,
+     "status": "insufficient_data",
+     "to_end": 25.443,
+     "to_threshold": null
+    },
+    {
+     "day": 9.073,
+     "status": "insufficient_data",
+     "to_end": 25.408,
+     "to_threshold": null
+    },
+    {
+     "day": 9.108,
+     "status": "insufficient_data",
+     "to_end": 25.374,
+     "to_threshold": null
+    },
+    {
+     "day": 9.143,
+     "status": "insufficient_data",
+     "to_end": 25.339,
+     "to_threshold": null
+    },
+    {
+     "day": 9.177,
+     "status": "insufficient_data",
+     "to_end": 25.304,
+     "to_threshold": null
+    },
+    {
+     "day": 9.212,
+     "status": "insufficient_data",
+     "to_end": 25.27,
+     "to_threshold": null
+    },
+    {
+     "day": 9.247,
+     "status": "insufficient_data",
+     "to_end": 25.235,
+     "to_threshold": null
+    },
+    {
+     "day": 9.281,
+     "status": "estimate",
+     "to_end": 25.2,
+     "to_threshold": null,
+     "low": 1.82,
+     "mid": 4.1,
+     "high": 19.5
+    },
+    {
+     "day": 9.316,
+     "status": "estimate",
+     "to_end": 25.165,
+     "to_threshold": null,
+     "low": 2.04,
+     "mid": 4.6,
+     "high": 21.87
+    },
+    {
+     "day": 9.351,
+     "status": "estimate",
+     "to_end": 25.131,
+     "to_threshold": null,
+     "low": 2.49,
+     "mid": 5.6,
+     "high": 26.63
+    },
+    {
+     "day": 9.386,
+     "status": "estimate",
+     "to_end": 25.096,
+     "to_threshold": null,
+     "low": 2.71,
+     "mid": 6.1,
+     "high": 29.01
+    },
+    {
+     "day": 9.42,
+     "status": "estimate",
+     "to_end": 25.061,
+     "to_threshold": null,
+     "low": 2.66,
+     "mid": 6.0,
+     "high": 28.53
+    },
+    {
+     "day": 9.455,
+     "status": "estimate",
+     "to_end": 25.027,
+     "to_threshold": null,
+     "low": 2.89,
+     "mid": 6.5,
+     "high": 30.91
+    },
+    {
+     "day": 9.49,
+     "status": "estimate",
+     "to_end": 24.992,
+     "to_threshold": null,
+     "low": 3.15,
+     "mid": 7.1,
+     "high": 33.76
+    },
+    {
+     "day": 9.525,
+     "status": "estimate",
+     "to_end": 24.957,
+     "to_threshold": null,
+     "low": 3.82,
+     "mid": 8.6,
+     "high": 40.89
+    },
+    {
+     "day": 9.559,
+     "status": "estimate",
+     "to_end": 24.922,
+     "to_threshold": null,
+     "low": 4.57,
+     "mid": 10.3,
+     "high": 48.98
+    },
+    {
+     "day": 9.594,
+     "status": "estimate",
+     "to_end": 24.888,
+     "to_threshold": null,
+     "low": 4.88,
+     "mid": 11.0,
+     "high": 52.31
+    },
+    {
+     "day": 9.629,
+     "status": "estimate",
+     "to_end": 24.853,
+     "to_threshold": null,
+     "low": 5.37,
+     "mid": 12.1,
+     "high": 57.54
+    },
+    {
+     "day": 9.663,
+     "status": "estimate",
+     "to_end": 24.818,
+     "to_threshold": null,
+     "low": 5.51,
+     "mid": 12.4,
+     "high": 58.96
+    },
+    {
+     "day": 9.698,
+     "status": "estimate",
+     "to_end": 24.783,
+     "to_threshold": null,
+     "low": 5.55,
+     "mid": 12.5,
+     "high": 59.44
+    },
+    {
+     "day": 9.733,
+     "status": "estimate",
+     "to_end": 24.749,
+     "to_threshold": null,
+     "low": 7.41,
+     "mid": 16.7,
+     "high": 79.41
+    },
+    {
+     "day": 9.768,
+     "status": "estimate",
+     "to_end": 24.714,
+     "to_threshold": null,
+     "low": 8.04,
+     "mid": 18.1,
+     "high": 86.07
+    },
+    {
+     "day": 9.802,
+     "status": "estimate",
+     "to_end": 24.679,
+     "to_threshold": null,
+     "low": 9.59,
+     "mid": 21.6,
+     "high": 102.71
+    },
+    {
+     "day": 9.837,
+     "status": "estimate",
+     "to_end": 24.645,
+     "to_threshold": null,
+     "low": 11.19,
+     "mid": 25.2,
+     "high": 119.83
+    },
+    {
+     "day": 9.872,
+     "status": "no_trend",
+     "to_end": 24.61,
+     "to_threshold": null
+    },
+    {
+     "day": 9.906,
+     "status": "no_trend",
+     "to_end": 24.575,
+     "to_threshold": null
+    },
+    {
+     "day": 9.941,
+     "status": "no_trend",
+     "to_end": 24.54,
+     "to_threshold": null
+    },
+    {
+     "day": 9.976,
+     "status": "no_trend",
+     "to_end": 24.506,
+     "to_threshold": null
+    },
+    {
+     "day": 10.011,
+     "status": "no_trend",
+     "to_end": 24.471,
+     "to_threshold": null
+    },
+    {
+     "day": 10.045,
+     "status": "no_trend",
+     "to_end": 24.436,
+     "to_threshold": null
+    },
+    {
+     "day": 10.08,
+     "status": "no_trend",
+     "to_end": 24.402,
+     "to_threshold": null
+    },
+    {
+     "day": 10.115,
+     "status": "no_trend",
+     "to_end": 24.367,
+     "to_threshold": null
+    },
+    {
+     "day": 10.15,
+     "status": "no_trend",
+     "to_end": 24.332,
+     "to_threshold": null
+    },
+    {
+     "day": 10.184,
+     "status": "no_trend",
+     "to_end": 24.297,
+     "to_threshold": null
+    },
+    {
+     "day": 10.219,
+     "status": "no_trend",
+     "to_end": 24.263,
+     "to_threshold": null
+    },
+    {
+     "day": 10.254,
+     "status": "no_trend",
+     "to_end": 24.228,
+     "to_threshold": null
+    },
+    {
+     "day": 10.288,
+     "status": "no_trend",
+     "to_end": 24.193,
+     "to_threshold": null
+    },
+    {
+     "day": 10.323,
+     "status": "no_trend",
+     "to_end": 24.158,
+     "to_threshold": null
+    },
+    {
+     "day": 10.358,
+     "status": "no_trend",
+     "to_end": 24.124,
+     "to_threshold": null
+    },
+    {
+     "day": 10.393,
+     "status": "no_trend",
+     "to_end": 24.089,
+     "to_threshold": null
+    },
+    {
+     "day": 10.427,
+     "status": "no_trend",
+     "to_end": 24.054,
+     "to_threshold": null
+    },
+    {
+     "day": 10.462,
+     "status": "no_trend",
+     "to_end": 24.02,
+     "to_threshold": null
+    },
+    {
+     "day": 11.908,
+     "status": "insufficient_data",
+     "to_end": 22.574,
+     "to_threshold": null
+    },
+    {
+     "day": 11.941,
+     "status": "insufficient_data",
+     "to_end": 22.54,
+     "to_threshold": null
+    },
+    {
+     "day": 11.976,
+     "status": "insufficient_data",
+     "to_end": 22.506,
+     "to_threshold": null
+    },
+    {
+     "day": 12.011,
+     "status": "insufficient_data",
+     "to_end": 22.471,
+     "to_threshold": null
+    },
+    {
+     "day": 12.045,
+     "status": "insufficient_data",
+     "to_end": 22.436,
+     "to_threshold": null
+    },
+    {
+     "day": 12.08,
+     "status": "insufficient_data",
+     "to_end": 22.402,
+     "to_threshold": null
+    },
+    {
+     "day": 16.129,
+     "status": "insufficient_data",
+     "to_end": 18.353,
+     "to_threshold": null
+    },
+    {
+     "day": 16.163,
+     "status": "insufficient_data",
+     "to_end": 18.318,
+     "to_threshold": null
+    },
+    {
+     "day": 16.198,
+     "status": "insufficient_data",
+     "to_end": 18.283,
+     "to_threshold": null
+    },
+    {
+     "day": 16.233,
+     "status": "insufficient_data",
+     "to_end": 18.249,
+     "to_threshold": null
+    },
+    {
+     "day": 16.268,
+     "status": "insufficient_data",
+     "to_end": 18.214,
+     "to_threshold": null
+    },
+    {
+     "day": 16.302,
+     "status": "insufficient_data",
+     "to_end": 18.179,
+     "to_threshold": null
+    },
+    {
+     "day": 16.337,
+     "status": "insufficient_data",
+     "to_end": 18.145,
+     "to_threshold": null
+    },
+    {
+     "day": 16.372,
+     "status": "no_trend",
+     "to_end": 18.11,
+     "to_threshold": null
+    },
+    {
+     "day": 16.406,
+     "status": "no_trend",
+     "to_end": 18.075,
+     "to_threshold": null
+    },
+    {
+     "day": 16.441,
+     "status": "no_trend",
+     "to_end": 18.04,
+     "to_threshold": null
+    },
+    {
+     "day": 16.955,
+     "status": "insufficient_data",
+     "to_end": 17.527,
+     "to_threshold": null
+    },
+    {
+     "day": 16.99,
+     "status": "insufficient_data",
+     "to_end": 17.492,
+     "to_threshold": null
+    },
+    {
+     "day": 17.025,
+     "status": "insufficient_data",
+     "to_end": 17.457,
+     "to_threshold": null
+    },
+    {
+     "day": 17.059,
+     "status": "insufficient_data",
+     "to_end": 17.422,
+     "to_threshold": null
+    },
+    {
+     "day": 17.094,
+     "status": "insufficient_data",
+     "to_end": 17.388,
+     "to_threshold": null
+    },
+    {
+     "day": 17.129,
+     "status": "insufficient_data",
+     "to_end": 17.353,
+     "to_threshold": null
+    },
+    {
+     "day": 17.163,
+     "status": "insufficient_data",
+     "to_end": 17.318,
+     "to_threshold": null
+    },
+    {
+     "day": 17.198,
+     "status": "no_trend",
+     "to_end": 17.283,
+     "to_threshold": null
+    },
+    {
+     "day": 17.233,
+     "status": "no_trend",
+     "to_end": 17.249,
+     "to_threshold": null
+    },
+    {
+     "day": 17.268,
+     "status": "no_trend",
+     "to_end": 17.214,
+     "to_threshold": null
+    },
+    {
+     "day": 17.302,
+     "status": "estimate",
+     "to_end": 17.179,
+     "to_threshold": null,
+     "low": 2.8,
+     "mid": 6.3,
+     "high": 29.96
+    },
+    {
+     "day": 17.337,
+     "status": "estimate",
+     "to_end": 17.145,
+     "to_threshold": null,
+     "low": 3.11,
+     "mid": 7.0,
+     "high": 33.29
+    },
+    {
+     "day": 17.372,
+     "status": "estimate",
+     "to_end": 17.11,
+     "to_threshold": null,
+     "low": 3.33,
+     "mid": 7.5,
+     "high": 35.66
+    },
+    {
+     "day": 17.406,
+     "status": "no_trend",
+     "to_end": 17.075,
+     "to_threshold": null
+    },
+    {
+     "day": 17.441,
+     "status": "no_trend",
+     "to_end": 17.04,
+     "to_threshold": null
+    },
+    {
+     "day": 17.476,
+     "status": "no_trend",
+     "to_end": 17.006,
+     "to_threshold": null
+    },
+    {
+     "day": 17.511,
+     "status": "no_trend",
+     "to_end": 16.971,
+     "to_threshold": null
+    },
+    {
+     "day": 17.545,
+     "status": "no_trend",
+     "to_end": 16.936,
+     "to_threshold": null
+    },
+    {
+     "day": 17.58,
+     "status": "no_trend",
+     "to_end": 16.902,
+     "to_threshold": null
+    },
+    {
+     "day": 17.615,
+     "status": "no_trend",
+     "to_end": 16.867,
+     "to_threshold": null
+    },
+    {
+     "day": 17.65,
+     "status": "estimate",
+     "to_end": 16.832,
+     "to_threshold": null,
+     "low": 8.61,
+     "mid": 19.4,
+     "high": 92.25
+    },
+    {
+     "day": 17.684,
+     "status": "estimate",
+     "to_end": 16.797,
+     "to_threshold": null,
+     "low": 8.97,
+     "mid": 20.2,
+     "high": 96.05
+    },
+    {
+     "day": 17.719,
+     "status": "no_trend",
+     "to_end": 16.763,
+     "to_threshold": null
+    },
+    {
+     "day": 17.754,
+     "status": "no_trend",
+     "to_end": 16.728,
+     "to_threshold": null
+    },
+    {
+     "day": 17.788,
+     "status": "estimate",
+     "to_end": 16.693,
+     "to_threshold": null,
+     "low": 11.19,
+     "mid": 25.2,
+     "high": 119.83
+    },
+    {
+     "day": 17.823,
+     "status": "estimate",
+     "to_end": 16.658,
+     "to_threshold": null,
+     "low": 11.63,
+     "mid": 26.2,
+     "high": 124.58
+    },
+    {
+     "day": 17.854,
+     "status": "estimate",
+     "to_end": 16.628,
+     "to_threshold": null,
+     "low": 11.05,
+     "mid": 24.9,
+     "high": 118.4
+    },
+    {
+     "day": 17.889,
+     "status": "estimate",
+     "to_end": 16.593,
+     "to_threshold": null,
+     "low": 10.3,
+     "mid": 23.2,
+     "high": 110.32
+    },
+    {
+     "day": 17.923,
+     "status": "estimate",
+     "to_end": 16.558,
+     "to_threshold": null,
+     "low": 10.03,
+     "mid": 22.6,
+     "high": 107.46
+    },
+    {
+     "day": 17.958,
+     "status": "estimate",
+     "to_end": 16.524,
+     "to_threshold": null,
+     "low": 11.23,
+     "mid": 25.3,
+     "high": 120.3
+    },
+    {
+     "day": 17.993,
+     "status": "estimate",
+     "to_end": 16.489,
+     "to_threshold": null,
+     "low": 13.9,
+     "mid": 31.3,
+     "high": 148.83
+    },
+    {
+     "day": 18.027,
+     "status": "no_trend",
+     "to_end": 16.454,
+     "to_threshold": null
+    },
+    {
+     "day": 18.062,
+     "status": "no_trend",
+     "to_end": 16.419,
+     "to_threshold": null
+    },
+    {
+     "day": 18.097,
+     "status": "no_trend",
+     "to_end": 16.385,
+     "to_threshold": null
+    },
+    {
+     "day": 18.132,
+     "status": "no_trend",
+     "to_end": 16.35,
+     "to_threshold": null
+    },
+    {
+     "day": 18.166,
+     "status": "no_trend",
+     "to_end": 16.315,
+     "to_threshold": null
+    },
+    {
+     "day": 18.201,
+     "status": "no_trend",
+     "to_end": 16.281,
+     "to_threshold": null
+    },
+    {
+     "day": 18.236,
+     "status": "no_trend",
+     "to_end": 16.246,
+     "to_threshold": null
+    },
+    {
+     "day": 18.416,
+     "status": "insufficient_data",
+     "to_end": 16.065,
+     "to_threshold": null
+    },
+    {
+     "day": 18.451,
+     "status": "insufficient_data",
+     "to_end": 16.031,
+     "to_threshold": null
+    },
+    {
+     "day": 18.486,
+     "status": "insufficient_data",
+     "to_end": 15.996,
+     "to_threshold": null
+    },
+    {
+     "day": 18.521,
+     "status": "insufficient_data",
+     "to_end": 15.961,
+     "to_threshold": null
+    },
+    {
+     "day": 18.555,
+     "status": "insufficient_data",
+     "to_end": 15.926,
+     "to_threshold": null
+    },
+    {
+     "day": 18.59,
+     "status": "insufficient_data",
+     "to_end": 15.892,
+     "to_threshold": null
+    },
+    {
+     "day": 18.625,
+     "status": "insufficient_data",
+     "to_end": 15.857,
+     "to_threshold": null
+    },
+    {
+     "day": 18.659,
+     "status": "insufficient_data",
+     "to_end": 15.822,
+     "to_threshold": null
+    },
+    {
+     "day": 18.694,
+     "status": "no_trend",
+     "to_end": 15.787,
+     "to_threshold": null
+    },
+    {
+     "day": 18.729,
+     "status": "no_trend",
+     "to_end": 15.753,
+     "to_threshold": null
+    },
+    {
+     "day": 18.764,
+     "status": "no_trend",
+     "to_end": 15.718,
+     "to_threshold": null
+    },
+    {
+     "day": 18.798,
+     "status": "no_trend",
+     "to_end": 15.683,
+     "to_threshold": null
+    },
+    {
+     "day": 18.833,
+     "status": "no_trend",
+     "to_end": 15.649,
+     "to_threshold": null
+    },
+    {
+     "day": 18.868,
+     "status": "no_trend",
+     "to_end": 15.614,
+     "to_threshold": null
+    },
+    {
+     "day": 18.902,
+     "status": "no_trend",
+     "to_end": 15.579,
+     "to_threshold": null
+    },
+    {
+     "day": 18.937,
+     "status": "no_trend",
+     "to_end": 15.544,
+     "to_threshold": null
+    },
+    {
+     "day": 18.972,
+     "status": "no_trend",
+     "to_end": 15.51,
+     "to_threshold": null
+    },
+    {
+     "day": 19.007,
+     "status": "no_trend",
+     "to_end": 15.475,
+     "to_threshold": null
+    },
+    {
+     "day": 19.041,
+     "status": "no_trend",
+     "to_end": 15.44,
+     "to_threshold": null
+    },
+    {
+     "day": 19.076,
+     "status": "no_trend",
+     "to_end": 15.406,
+     "to_threshold": null
+    },
+    {
+     "day": 19.111,
+     "status": "no_trend",
+     "to_end": 15.371,
+     "to_threshold": null
+    },
+    {
+     "day": 19.146,
+     "status": "no_trend",
+     "to_end": 15.336,
+     "to_threshold": null
+    },
+    {
+     "day": 19.18,
+     "status": "no_trend",
+     "to_end": 15.301,
+     "to_threshold": null
+    },
+    {
+     "day": 22.983,
+     "status": "insufficient_data",
+     "to_end": 11.498,
+     "to_threshold": null
+    },
+    {
+     "day": 23.018,
+     "status": "insufficient_data",
+     "to_end": 11.464,
+     "to_threshold": null
+    },
+    {
+     "day": 23.053,
+     "status": "insufficient_data",
+     "to_end": 11.429,
+     "to_threshold": null
+    },
+    {
+     "day": 23.087,
+     "status": "insufficient_data",
+     "to_end": 11.394,
+     "to_threshold": null
+    },
+    {
+     "day": 23.122,
+     "status": "insufficient_data",
+     "to_end": 11.359,
+     "to_threshold": null
+    },
+    {
+     "day": 23.157,
+     "status": "insufficient_data",
+     "to_end": 11.325,
+     "to_threshold": null
+    },
+    {
+     "day": 23.192,
+     "status": "insufficient_data",
+     "to_end": 11.29,
+     "to_threshold": null
+    },
+    {
+     "day": 23.245,
+     "status": "no_trend",
+     "to_end": 11.237,
+     "to_threshold": null
+    },
+    {
+     "day": 23.279,
+     "status": "no_trend",
+     "to_end": 11.202,
+     "to_threshold": null
+    },
+    {
+     "day": 23.314,
+     "status": "no_trend",
+     "to_end": 11.167,
+     "to_threshold": null
+    },
+    {
+     "day": 23.349,
+     "status": "no_trend",
+     "to_end": 11.133,
+     "to_threshold": null
+    },
+    {
+     "day": 23.384,
+     "status": "no_trend",
+     "to_end": 11.098,
+     "to_threshold": null
+    },
+    {
+     "day": 23.418,
+     "status": "no_trend",
+     "to_end": 11.063,
+     "to_threshold": null
+    },
+    {
+     "day": 23.453,
+     "status": "no_trend",
+     "to_end": 11.029,
+     "to_threshold": null
+    },
+    {
+     "day": 23.488,
+     "status": "no_trend",
+     "to_end": 10.994,
+     "to_threshold": null
+    },
+    {
+     "day": 23.522,
+     "status": "no_trend",
+     "to_end": 10.959,
+     "to_threshold": null
+    },
+    {
+     "day": 23.557,
+     "status": "no_trend",
+     "to_end": 10.924,
+     "to_threshold": null
+    },
+    {
+     "day": 23.592,
+     "status": "no_trend",
+     "to_end": 10.89,
+     "to_threshold": null
+    },
+    {
+     "day": 23.627,
+     "status": "no_trend",
+     "to_end": 10.855,
+     "to_threshold": null
+    },
+    {
+     "day": 23.661,
+     "status": "no_trend",
+     "to_end": 10.82,
+     "to_threshold": null
+    },
+    {
+     "day": 23.696,
+     "status": "no_trend",
+     "to_end": 10.786,
+     "to_threshold": null
+    },
+    {
+     "day": 23.731,
+     "status": "no_trend",
+     "to_end": 10.751,
+     "to_threshold": null
+    },
+    {
+     "day": 23.766,
+     "status": "no_trend",
+     "to_end": 10.716,
+     "to_threshold": null
+    },
+    {
+     "day": 23.8,
+     "status": "no_trend",
+     "to_end": 10.681,
+     "to_threshold": null
+    },
+    {
+     "day": 23.835,
+     "status": "no_trend",
+     "to_end": 10.647,
+     "to_threshold": null
+    },
+    {
+     "day": 23.87,
+     "status": "no_trend",
+     "to_end": 10.612,
+     "to_threshold": null
+    },
+    {
+     "day": 23.904,
+     "status": "no_trend",
+     "to_end": 10.577,
+     "to_threshold": null
+    },
+    {
+     "day": 23.939,
+     "status": "no_trend",
+     "to_end": 10.542,
+     "to_threshold": null
+    },
+    {
+     "day": 23.974,
+     "status": "no_trend",
+     "to_end": 10.508,
+     "to_threshold": null
+    },
+    {
+     "day": 24.009,
+     "status": "no_trend",
+     "to_end": 10.473,
+     "to_threshold": null
+    },
+    {
+     "day": 24.043,
+     "status": "no_trend",
+     "to_end": 10.438,
+     "to_threshold": null
+    },
+    {
+     "day": 24.078,
+     "status": "no_trend",
+     "to_end": 10.404,
+     "to_threshold": null
+    },
+    {
+     "day": 24.113,
+     "status": "no_trend",
+     "to_end": 10.369,
+     "to_threshold": null
+    },
+    {
+     "day": 24.147,
+     "status": "no_trend",
+     "to_end": 10.334,
+     "to_threshold": null
+    },
+    {
+     "day": 24.182,
+     "status": "no_trend",
+     "to_end": 10.299,
+     "to_threshold": null
+    },
+    {
+     "day": 24.217,
+     "status": "no_trend",
+     "to_end": 10.265,
+     "to_threshold": null
+    },
+    {
+     "day": 24.252,
+     "status": "no_trend",
+     "to_end": 10.23,
+     "to_threshold": null
+    },
+    {
+     "day": 24.286,
+     "status": "no_trend",
+     "to_end": 10.195,
+     "to_threshold": null
+    },
+    {
+     "day": 24.321,
+     "status": "no_trend",
+     "to_end": 10.161,
+     "to_threshold": null
+    },
+    {
+     "day": 24.356,
+     "status": "no_trend",
+     "to_end": 10.126,
+     "to_threshold": null
+    },
+    {
+     "day": 24.391,
+     "status": "no_trend",
+     "to_end": 10.091,
+     "to_threshold": null
+    },
+    {
+     "day": 24.425,
+     "status": "no_trend",
+     "to_end": 10.056,
+     "to_threshold": null
+    },
+    {
+     "day": 24.46,
+     "status": "no_trend",
+     "to_end": 10.022,
+     "to_threshold": null
+    },
+    {
+     "day": 24.495,
+     "status": "no_trend",
+     "to_end": 9.987,
+     "to_threshold": null
+    },
+    {
+     "day": 24.529,
+     "status": "no_trend",
+     "to_end": 9.952,
+     "to_threshold": null
+    },
+    {
+     "day": 24.564,
+     "status": "no_trend",
+     "to_end": 9.917,
+     "to_threshold": null
+    },
+    {
+     "day": 24.599,
+     "status": "no_trend",
+     "to_end": 9.883,
+     "to_threshold": null
+    },
+    {
+     "day": 24.634,
+     "status": "no_trend",
+     "to_end": 9.848,
+     "to_threshold": null
+    },
+    {
+     "day": 24.668,
+     "status": "no_trend",
+     "to_end": 9.813,
+     "to_threshold": null
+    },
+    {
+     "day": 24.703,
+     "status": "no_trend",
+     "to_end": 9.779,
+     "to_threshold": null
+    },
+    {
+     "day": 24.738,
+     "status": "no_trend",
+     "to_end": 9.744,
+     "to_threshold": null
+    },
+    {
+     "day": 24.772,
+     "status": "no_trend",
+     "to_end": 9.709,
+     "to_threshold": null
+    },
+    {
+     "day": 24.807,
+     "status": "no_trend",
+     "to_end": 9.674,
+     "to_threshold": null
+    },
+    {
+     "day": 24.842,
+     "status": "no_trend",
+     "to_end": 9.64,
+     "to_threshold": null
+    },
+    {
+     "day": 24.877,
+     "status": "no_trend",
+     "to_end": 9.605,
+     "to_threshold": null
+    },
+    {
+     "day": 24.911,
+     "status": "no_trend",
+     "to_end": 9.57,
+     "to_threshold": null
+    },
+    {
+     "day": 24.946,
+     "status": "no_trend",
+     "to_end": 9.536,
+     "to_threshold": null
+    },
+    {
+     "day": 24.981,
+     "status": "no_trend",
+     "to_end": 9.501,
+     "to_threshold": null
+    },
+    {
+     "day": 25.016,
+     "status": "no_trend",
+     "to_end": 9.466,
+     "to_threshold": null
+    },
+    {
+     "day": 25.05,
+     "status": "no_trend",
+     "to_end": 9.431,
+     "to_threshold": null
+    },
+    {
+     "day": 25.085,
+     "status": "estimate",
+     "to_end": 9.397,
+     "to_threshold": null,
+     "low": 11.1,
+     "mid": 25.0,
+     "high": 118.88
+    },
+    {
+     "day": 25.12,
+     "status": "estimate",
+     "to_end": 9.362,
+     "to_threshold": null,
+     "low": 10.48,
+     "mid": 23.6,
+     "high": 112.22
+    },
+    {
+     "day": 25.154,
+     "status": "estimate",
+     "to_end": 9.327,
+     "to_threshold": null,
+     "low": 11.59,
+     "mid": 26.1,
+     "high": 124.11
+    },
+    {
+     "day": 25.189,
+     "status": "estimate",
+     "to_end": 9.292,
+     "to_threshold": null,
+     "low": 11.19,
+     "mid": 25.2,
+     "high": 119.83
+    },
+    {
+     "day": 25.224,
+     "status": "estimate",
+     "to_end": 9.258,
+     "to_threshold": null,
+     "low": 11.32,
+     "mid": 25.5,
+     "high": 121.25
+    },
+    {
+     "day": 25.259,
+     "status": "estimate",
+     "to_end": 9.223,
+     "to_threshold": null,
+     "low": 11.99,
+     "mid": 27.0,
+     "high": 128.39
+    },
+    {
+     "day": 25.293,
+     "status": "no_trend",
+     "to_end": 9.188,
+     "to_threshold": null
+    },
+    {
+     "day": 25.328,
+     "status": "no_trend",
+     "to_end": 9.154,
+     "to_threshold": null
+    },
+    {
+     "day": 25.928,
+     "status": "insufficient_data",
+     "to_end": 8.554,
+     "to_threshold": null
+    },
+    {
+     "day": 25.963,
+     "status": "insufficient_data",
+     "to_end": 8.519,
+     "to_threshold": null
+    },
+    {
+     "day": 25.997,
+     "status": "insufficient_data",
+     "to_end": 8.484,
+     "to_threshold": null
+    },
+    {
+     "day": 26.032,
+     "status": "insufficient_data",
+     "to_end": 8.45,
+     "to_threshold": null
+    },
+    {
+     "day": 26.067,
+     "status": "insufficient_data",
+     "to_end": 8.415,
+     "to_threshold": null
+    },
+    {
+     "day": 26.101,
+     "status": "insufficient_data",
+     "to_end": 8.38,
+     "to_threshold": null
+    },
+    {
+     "day": 26.136,
+     "status": "insufficient_data",
+     "to_end": 8.345,
+     "to_threshold": null
+    },
+    {
+     "day": 26.171,
+     "status": "insufficient_data",
+     "to_end": 8.311,
+     "to_threshold": null
+    },
+    {
+     "day": 26.206,
+     "status": "no_trend",
+     "to_end": 8.276,
+     "to_threshold": null
+    },
+    {
+     "day": 26.24,
+     "status": "no_trend",
+     "to_end": 8.241,
+     "to_threshold": null
+    },
+    {
+     "day": 26.275,
+     "status": "no_trend",
+     "to_end": 8.207,
+     "to_threshold": null
+    },
+    {
+     "day": 26.31,
+     "status": "no_trend",
+     "to_end": 8.172,
+     "to_threshold": null
+    },
+    {
+     "day": 26.345,
+     "status": "no_trend",
+     "to_end": 8.137,
+     "to_threshold": null
+    },
+    {
+     "day": 26.379,
+     "status": "no_trend",
+     "to_end": 8.102,
+     "to_threshold": null
+    },
+    {
+     "day": 26.414,
+     "status": "no_trend",
+     "to_end": 8.068,
+     "to_threshold": null
+    },
+    {
+     "day": 26.449,
+     "status": "no_trend",
+     "to_end": 8.033,
+     "to_threshold": null
+    },
+    {
+     "day": 26.483,
+     "status": "no_trend",
+     "to_end": 7.998,
+     "to_threshold": null
+    },
+    {
+     "day": 26.518,
+     "status": "no_trend",
+     "to_end": 7.963,
+     "to_threshold": null
+    },
+    {
+     "day": 26.553,
+     "status": "no_trend",
+     "to_end": 7.929,
+     "to_threshold": null
+    },
+    {
+     "day": 26.588,
+     "status": "no_trend",
+     "to_end": 7.894,
+     "to_threshold": null
+    },
+    {
+     "day": 26.622,
+     "status": "no_trend",
+     "to_end": 7.859,
+     "to_threshold": null
+    },
+    {
+     "day": 26.657,
+     "status": "no_trend",
+     "to_end": 7.825,
+     "to_threshold": null
+    },
+    {
+     "day": 26.692,
+     "status": "no_trend",
+     "to_end": 7.79,
+     "to_threshold": null
+    },
+    {
+     "day": 26.726,
+     "status": "no_trend",
+     "to_end": 7.755,
+     "to_threshold": null
+    },
+    {
+     "day": 26.761,
+     "status": "no_trend",
+     "to_end": 7.72,
+     "to_threshold": null
+    },
+    {
+     "day": 26.796,
+     "status": "no_trend",
+     "to_end": 7.686,
+     "to_threshold": null
+    },
+    {
+     "day": 26.831,
+     "status": "no_trend",
+     "to_end": 7.651,
+     "to_threshold": null
+    },
+    {
+     "day": 26.865,
+     "status": "no_trend",
+     "to_end": 7.616,
+     "to_threshold": null
+    },
+    {
+     "day": 26.9,
+     "status": "no_trend",
+     "to_end": 7.582,
+     "to_threshold": null
+    },
+    {
+     "day": 26.935,
+     "status": "no_trend",
+     "to_end": 7.547,
+     "to_threshold": null
+    },
+    {
+     "day": 26.97,
+     "status": "no_trend",
+     "to_end": 7.512,
+     "to_threshold": null
+    },
+    {
+     "day": 27.004,
+     "status": "no_trend",
+     "to_end": 7.477,
+     "to_threshold": null
+    },
+    {
+     "day": 27.039,
+     "status": "no_trend",
+     "to_end": 7.443,
+     "to_threshold": null
+    },
+    {
+     "day": 27.074,
+     "status": "no_trend",
+     "to_end": 7.408,
+     "to_threshold": null
+    },
+    {
+     "day": 27.108,
+     "status": "no_trend",
+     "to_end": 7.373,
+     "to_threshold": null
+    },
+    {
+     "day": 27.143,
+     "status": "no_trend",
+     "to_end": 7.338,
+     "to_threshold": null
+    },
+    {
+     "day": 27.178,
+     "status": "no_trend",
+     "to_end": 7.304,
+     "to_threshold": null
+    },
+    {
+     "day": 27.213,
+     "status": "no_trend",
+     "to_end": 7.269,
+     "to_threshold": null
+    },
+    {
+     "day": 27.247,
+     "status": "no_trend",
+     "to_end": 7.234,
+     "to_threshold": null
+    },
+    {
+     "day": 27.282,
+     "status": "no_trend",
+     "to_end": 7.2,
+     "to_threshold": null
+    },
+    {
+     "day": 27.886,
+     "status": "insufficient_data",
+     "to_end": 6.595,
+     "to_threshold": null
+    },
+    {
+     "day": 27.979,
+     "status": "insufficient_data",
+     "to_end": 6.503,
+     "to_threshold": null
+    },
+    {
+     "day": 28.014,
+     "status": "insufficient_data",
+     "to_end": 6.468,
+     "to_threshold": null
+    },
+    {
+     "day": 28.048,
+     "status": "insufficient_data",
+     "to_end": 6.433,
+     "to_threshold": null
+    },
+    {
+     "day": 28.083,
+     "status": "insufficient_data",
+     "to_end": 6.398,
+     "to_threshold": null
+    },
+    {
+     "day": 28.118,
+     "status": "insufficient_data",
+     "to_end": 6.364,
+     "to_threshold": null
+    },
+    {
+     "day": 28.153,
+     "status": "insufficient_data",
+     "to_end": 6.329,
+     "to_threshold": null
+    },
+    {
+     "day": 28.187,
+     "status": "insufficient_data",
+     "to_end": 6.294,
+     "to_threshold": null
+    },
+    {
+     "day": 28.222,
+     "status": "no_trend",
+     "to_end": 6.26,
+     "to_threshold": null
+    },
+    {
+     "day": 28.257,
+     "status": "no_trend",
+     "to_end": 6.225,
+     "to_threshold": null
+    },
+    {
+     "day": 28.291,
+     "status": "no_trend",
+     "to_end": 6.19,
+     "to_threshold": null
+    },
+    {
+     "day": 28.326,
+     "status": "no_trend",
+     "to_end": 6.155,
+     "to_threshold": null
+    },
+    {
+     "day": 28.361,
+     "status": "no_trend",
+     "to_end": 6.121,
+     "to_threshold": null
+    },
+    {
+     "day": 28.396,
+     "status": "no_trend",
+     "to_end": 6.086,
+     "to_threshold": null
+    },
+    {
+     "day": 28.989,
+     "status": "insufficient_data",
+     "to_end": 5.493,
+     "to_threshold": null
+    },
+    {
+     "day": 29.005,
+     "status": "insufficient_data",
+     "to_end": 5.476,
+     "to_threshold": null
+    },
+    {
+     "day": 29.023,
+     "status": "insufficient_data",
+     "to_end": 5.459,
+     "to_threshold": null
+    },
+    {
+     "day": 29.04,
+     "status": "insufficient_data",
+     "to_end": 5.442,
+     "to_threshold": null
+    },
+    {
+     "day": 29.057,
+     "status": "insufficient_data",
+     "to_end": 5.424,
+     "to_threshold": null
+    },
+    {
+     "day": 29.075,
+     "status": "insufficient_data",
+     "to_end": 5.407,
+     "to_threshold": null
+    },
+    {
+     "day": 29.092,
+     "status": "insufficient_data",
+     "to_end": 5.39,
+     "to_threshold": null
+    },
+    {
+     "day": 29.109,
+     "status": "insufficient_data",
+     "to_end": 5.372,
+     "to_threshold": null
+    },
+    {
+     "day": 29.127,
+     "status": "insufficient_data",
+     "to_end": 5.355,
+     "to_threshold": null
+    },
+    {
+     "day": 29.144,
+     "status": "insufficient_data",
+     "to_end": 5.337,
+     "to_threshold": null
+    },
+    {
+     "day": 29.162,
+     "status": "insufficient_data",
+     "to_end": 5.32,
+     "to_threshold": null
+    },
+    {
+     "day": 29.179,
+     "status": "insufficient_data",
+     "to_end": 5.303,
+     "to_threshold": null
+    },
+    {
+     "day": 29.196,
+     "status": "insufficient_data",
+     "to_end": 5.285,
+     "to_threshold": null
+    },
+    {
+     "day": 29.214,
+     "status": "insufficient_data",
+     "to_end": 5.268,
+     "to_threshold": null
+    },
+    {
+     "day": 29.231,
+     "status": "insufficient_data",
+     "to_end": 5.251,
+     "to_threshold": null
+    },
+    {
+     "day": 29.248,
+     "status": "no_trend",
+     "to_end": 5.233,
+     "to_threshold": null
+    },
+    {
+     "day": 29.266,
+     "status": "no_trend",
+     "to_end": 5.216,
+     "to_threshold": null
+    },
+    {
+     "day": 29.283,
+     "status": "no_trend",
+     "to_end": 5.199,
+     "to_threshold": null
+    },
+    {
+     "day": 29.3,
+     "status": "no_trend",
+     "to_end": 5.181,
+     "to_threshold": null
+    },
+    {
+     "day": 29.318,
+     "status": "no_trend",
+     "to_end": 5.164,
+     "to_threshold": null
+    },
+    {
+     "day": 29.335,
+     "status": "no_trend",
+     "to_end": 5.146,
+     "to_threshold": null
+    },
+    {
+     "day": 29.353,
+     "status": "no_trend",
+     "to_end": 5.129,
+     "to_threshold": null
+    },
+    {
+     "day": 29.498,
+     "status": "insufficient_data",
+     "to_end": 4.983,
+     "to_threshold": null
+    },
+    {
+     "day": 29.533,
+     "status": "insufficient_data",
+     "to_end": 4.949,
+     "to_threshold": null
+    },
+    {
+     "day": 29.568,
+     "status": "insufficient_data",
+     "to_end": 4.914,
+     "to_threshold": null
+    },
+    {
+     "day": 29.603,
+     "status": "insufficient_data",
+     "to_end": 4.879,
+     "to_threshold": null
+    },
+    {
+     "day": 29.637,
+     "status": "insufficient_data",
+     "to_end": 4.844,
+     "to_threshold": null
+    },
+    {
+     "day": 29.672,
+     "status": "insufficient_data",
+     "to_end": 4.81,
+     "to_threshold": null
+    },
+    {
+     "day": 29.707,
+     "status": "insufficient_data",
+     "to_end": 4.775,
+     "to_threshold": null
+    },
+    {
+     "day": 29.741,
+     "status": "no_trend",
+     "to_end": 4.74,
+     "to_threshold": null
+    },
+    {
+     "day": 29.776,
+     "status": "no_trend",
+     "to_end": 4.705,
+     "to_threshold": null
+    },
+    {
+     "day": 29.811,
+     "status": "no_trend",
+     "to_end": 4.671,
+     "to_threshold": null
+    },
+    {
+     "day": 29.933,
+     "status": "insufficient_data",
+     "to_end": 4.549,
+     "to_threshold": null
+    },
+    {
+     "day": 29.967,
+     "status": "insufficient_data",
+     "to_end": 4.515,
+     "to_threshold": null
+    },
+    {
+     "day": 30.002,
+     "status": "insufficient_data",
+     "to_end": 4.48,
+     "to_threshold": null
+    },
+    {
+     "day": 30.036,
+     "status": "insufficient_data",
+     "to_end": 4.445,
+     "to_threshold": null
+    },
+    {
+     "day": 30.133,
+     "status": "insufficient_data",
+     "to_end": 4.348,
+     "to_threshold": null
+    },
+    {
+     "day": 30.209,
+     "status": "insufficient_data",
+     "to_end": 4.273,
+     "to_threshold": null
+    },
+    {
+     "day": 30.243,
+     "status": "insufficient_data",
+     "to_end": 4.238,
+     "to_threshold": null
+    },
+    {
+     "day": 30.278,
+     "status": "insufficient_data",
+     "to_end": 4.203,
+     "to_threshold": null
+    },
+    {
+     "day": 30.313,
+     "status": "insufficient_data",
+     "to_end": 4.169,
+     "to_threshold": null
+    },
+    {
+     "day": 30.348,
+     "status": "insufficient_data",
+     "to_end": 4.134,
+     "to_threshold": null
+    },
+    {
+     "day": 30.382,
+     "status": "insufficient_data",
+     "to_end": 4.099,
+     "to_threshold": null
+    },
+    {
+     "day": 30.417,
+     "status": "insufficient_data",
+     "to_end": 4.065,
+     "to_threshold": null
+    },
+    {
+     "day": 30.452,
+     "status": "no_trend",
+     "to_end": 4.03,
+     "to_threshold": null
+    },
+    {
+     "day": 30.486,
+     "status": "no_trend",
+     "to_end": 3.995,
+     "to_threshold": null
+    },
+    {
+     "day": 30.521,
+     "status": "no_trend",
+     "to_end": 3.96,
+     "to_threshold": null
+    },
+    {
+     "day": 30.556,
+     "status": "no_trend",
+     "to_end": 3.926,
+     "to_threshold": null
+    },
+    {
+     "day": 30.591,
+     "status": "no_trend",
+     "to_end": 3.891,
+     "to_threshold": null
+    },
+    {
+     "day": 30.625,
+     "status": "no_trend",
+     "to_end": 3.856,
+     "to_threshold": null
+    },
+    {
+     "day": 30.66,
+     "status": "no_trend",
+     "to_end": 3.822,
+     "to_threshold": null
+    },
+    {
+     "day": 30.695,
+     "status": "no_trend",
+     "to_end": 3.787,
+     "to_threshold": null
+    },
+    {
+     "day": 30.73,
+     "status": "no_trend",
+     "to_end": 3.752,
+     "to_threshold": null
+    },
+    {
+     "day": 30.764,
+     "status": "no_trend",
+     "to_end": 3.717,
+     "to_threshold": null
+    },
+    {
+     "day": 30.799,
+     "status": "no_trend",
+     "to_end": 3.683,
+     "to_threshold": null
+    },
+    {
+     "day": 30.834,
+     "status": "no_trend",
+     "to_end": 3.648,
+     "to_threshold": null
+    },
+    {
+     "day": 30.868,
+     "status": "no_trend",
+     "to_end": 3.613,
+     "to_threshold": null
+    },
+    {
+     "day": 30.903,
+     "status": "no_trend",
+     "to_end": 3.578,
+     "to_threshold": null
+    },
+    {
+     "day": 30.938,
+     "status": "estimate",
+     "to_end": 3.544,
+     "to_threshold": null,
+     "low": 10.34,
+     "mid": 23.3,
+     "high": 110.79
+    },
+    {
+     "day": 30.973,
+     "status": "estimate",
+     "to_end": 3.509,
+     "to_threshold": null,
+     "low": 8.79,
+     "mid": 19.8,
+     "high": 94.15
+    },
+    {
+     "day": 31.007,
+     "status": "estimate",
+     "to_end": 3.474,
+     "to_threshold": null,
+     "low": 8.08,
+     "mid": 18.2,
+     "high": 86.54
+    },
+    {
+     "day": 31.042,
+     "status": "estimate",
+     "to_end": 3.44,
+     "to_threshold": null,
+     "low": 7.41,
+     "mid": 16.7,
+     "high": 79.41
+    },
+    {
+     "day": 31.077,
+     "status": "estimate",
+     "to_end": 3.405,
+     "to_threshold": null,
+     "low": 7.06,
+     "mid": 15.9,
+     "high": 75.6
+    },
+    {
+     "day": 31.111,
+     "status": "estimate",
+     "to_end": 3.37,
+     "to_threshold": null,
+     "low": 6.93,
+     "mid": 15.6,
+     "high": 74.18
+    },
+    {
+     "day": 31.146,
+     "status": "estimate",
+     "to_end": 3.335,
+     "to_threshold": null,
+     "low": 5.68,
+     "mid": 12.8,
+     "high": 60.86
+    },
+    {
+     "day": 31.181,
+     "status": "estimate",
+     "to_end": 3.301,
+     "to_threshold": null,
+     "low": 5.51,
+     "mid": 12.4,
+     "high": 58.96
+    },
+    {
+     "day": 31.216,
+     "status": "estimate",
+     "to_end": 3.266,
+     "to_threshold": null,
+     "low": 5.02,
+     "mid": 11.3,
+     "high": 53.73
+    },
+    {
+     "day": 31.25,
+     "status": "estimate",
+     "to_end": 3.231,
+     "to_threshold": null,
+     "low": 4.88,
+     "mid": 11.0,
+     "high": 52.31
+    },
+    {
+     "day": 31.285,
+     "status": "estimate",
+     "to_end": 3.197,
+     "to_threshold": null,
+     "low": 4.4,
+     "mid": 9.9,
+     "high": 47.07
+    },
+    {
+     "day": 31.32,
+     "status": "estimate",
+     "to_end": 3.162,
+     "to_threshold": null,
+     "low": 4.04,
+     "mid": 9.1,
+     "high": 43.27
+    },
+    {
+     "day": 31.466,
+     "status": "insufficient_data",
+     "to_end": 3.016,
+     "to_threshold": null
+    },
+    {
+     "day": 31.5,
+     "status": "insufficient_data",
+     "to_end": 2.981,
+     "to_threshold": null
+    },
+    {
+     "day": 31.535,
+     "status": "insufficient_data",
+     "to_end": 2.947,
+     "to_threshold": null
+    },
+    {
+     "day": 31.57,
+     "status": "insufficient_data",
+     "to_end": 2.912,
+     "to_threshold": null
+    },
+    {
+     "day": 31.605,
+     "status": "insufficient_data",
+     "to_end": 2.877,
+     "to_threshold": null
+    },
+    {
+     "day": 31.639,
+     "status": "insufficient_data",
+     "to_end": 2.842,
+     "to_threshold": null
+    },
+    {
+     "day": 31.674,
+     "status": "insufficient_data",
+     "to_end": 2.808,
+     "to_threshold": null
+    },
+    {
+     "day": 31.709,
+     "status": "insufficient_data",
+     "to_end": 2.773,
+     "to_threshold": null
+    },
+    {
+     "day": 31.743,
+     "status": "no_trend",
+     "to_end": 2.738,
+     "to_threshold": null
+    },
+    {
+     "day": 31.778,
+     "status": "no_trend",
+     "to_end": 2.703,
+     "to_threshold": null
+    },
+    {
+     "day": 31.813,
+     "status": "no_trend",
+     "to_end": 2.669,
+     "to_threshold": null
+    },
+    {
+     "day": 31.848,
+     "status": "no_trend",
+     "to_end": 2.634,
+     "to_threshold": null
+    },
+    {
+     "day": 31.882,
+     "status": "no_trend",
+     "to_end": 2.599,
+     "to_threshold": null
+    },
+    {
+     "day": 31.917,
+     "status": "no_trend",
+     "to_end": 2.565,
+     "to_threshold": null
+    },
+    {
+     "day": 31.952,
+     "status": "no_trend",
+     "to_end": 2.53,
+     "to_threshold": null
+    },
+    {
+     "day": 31.986,
+     "status": "no_trend",
+     "to_end": 2.495,
+     "to_threshold": null
+    },
+    {
+     "day": 32.021,
+     "status": "no_trend",
+     "to_end": 2.46,
+     "to_threshold": null
+    },
+    {
+     "day": 32.056,
+     "status": "no_trend",
+     "to_end": 2.426,
+     "to_threshold": null
+    },
+    {
+     "day": 32.091,
+     "status": "no_trend",
+     "to_end": 2.391,
+     "to_threshold": null
+    },
+    {
+     "day": 32.125,
+     "status": "no_trend",
+     "to_end": 2.356,
+     "to_threshold": null
+    },
+    {
+     "day": 32.16,
+     "status": "no_trend",
+     "to_end": 2.322,
+     "to_threshold": null
+    },
+    {
+     "day": 32.195,
+     "status": "no_trend",
+     "to_end": 2.287,
+     "to_threshold": null
+    },
+    {
+     "day": 32.23,
+     "status": "no_trend",
+     "to_end": 2.252,
+     "to_threshold": null
+    },
+    {
+     "day": 32.351,
+     "status": "insufficient_data",
+     "to_end": 2.131,
+     "to_threshold": null
+    },
+    {
+     "day": 32.385,
+     "status": "insufficient_data",
+     "to_end": 2.096,
+     "to_threshold": null
+    },
+    {
+     "day": 32.42,
+     "status": "insufficient_data",
+     "to_end": 2.061,
+     "to_threshold": null
+    },
+    {
+     "day": 32.455,
+     "status": "insufficient_data",
+     "to_end": 2.027,
+     "to_threshold": null
+    },
+    {
+     "day": 32.49,
+     "status": "insufficient_data",
+     "to_end": 1.992,
+     "to_threshold": null
+    },
+    {
+     "day": 32.524,
+     "status": "insufficient_data",
+     "to_end": 1.957,
+     "to_threshold": null
+    },
+    {
+     "day": 32.559,
+     "status": "insufficient_data",
+     "to_end": 1.923,
+     "to_threshold": null
+    },
+    {
+     "day": 32.594,
+     "status": "estimate",
+     "to_end": 1.888,
+     "to_threshold": null,
+     "low": 0.75,
+     "mid": 1.7,
+     "high": 8.08
+    },
+    {
+     "day": 32.628,
+     "status": "estimate",
+     "to_end": 1.853,
+     "to_threshold": null,
+     "low": 0.62,
+     "mid": 1.4,
+     "high": 6.66
+    },
+    {
+     "day": 32.663,
+     "status": "estimate",
+     "to_end": 1.818,
+     "to_threshold": null,
+     "low": 0.62,
+     "mid": 1.4,
+     "high": 6.66
+    },
+    {
+     "day": 32.698,
+     "status": "estimate",
+     "to_end": 1.784,
+     "to_threshold": null,
+     "low": 0.58,
+     "mid": 1.3,
+     "high": 6.18
+    },
+    {
+     "day": 32.733,
+     "status": "estimate",
+     "to_end": 1.749,
+     "to_threshold": null,
+     "low": 0.67,
+     "mid": 1.5,
+     "high": 7.13
+    },
+    {
+     "day": 32.767,
+     "status": "estimate",
+     "to_end": 1.714,
+     "to_threshold": null,
+     "low": 0.62,
+     "mid": 1.4,
+     "high": 6.66
+    },
+    {
+     "day": 32.837,
+     "status": "insufficient_data",
+     "to_end": 1.645,
+     "to_threshold": null
+    },
+    {
+     "day": 32.872,
+     "status": "insufficient_data",
+     "to_end": 1.61,
+     "to_threshold": null
+    },
+    {
+     "day": 32.927,
+     "status": "insufficient_data",
+     "to_end": 1.555,
+     "to_threshold": null
+    },
+    {
+     "day": 33.036,
+     "status": "insufficient_data",
+     "to_end": 1.446,
+     "to_threshold": null
+    },
+    {
+     "day": 33.07,
+     "status": "insufficient_data",
+     "to_end": 1.411,
+     "to_threshold": null
+    },
+    {
+     "day": 33.105,
+     "status": "insufficient_data",
+     "to_end": 1.377,
+     "to_threshold": null
+    },
+    {
+     "day": 33.14,
+     "status": "insufficient_data",
+     "to_end": 1.342,
+     "to_threshold": null
+    },
+    {
+     "day": 33.174,
+     "status": "insufficient_data",
+     "to_end": 1.307,
+     "to_threshold": null
+    },
+    {
+     "day": 33.209,
+     "status": "insufficient_data",
+     "to_end": 1.273,
+     "to_threshold": null
+    },
+    {
+     "day": 33.244,
+     "status": "insufficient_data",
+     "to_end": 1.238,
+     "to_threshold": null
+    },
+    {
+     "day": 33.279,
+     "status": "insufficient_data",
+     "to_end": 1.203,
+     "to_threshold": null
+    },
+    {
+     "day": 33.313,
+     "status": "no_trend",
+     "to_end": 1.168,
+     "to_threshold": null
+    },
+    {
+     "day": 33.348,
+     "status": "no_trend",
+     "to_end": 1.134,
+     "to_threshold": null
+    },
+    {
+     "day": 33.383,
+     "status": "no_trend",
+     "to_end": 1.099,
+     "to_threshold": null
+    },
+    {
+     "day": 33.417,
+     "status": "no_trend",
+     "to_end": 1.064,
+     "to_threshold": null
+    },
+    {
+     "day": 33.452,
+     "status": "no_trend",
+     "to_end": 1.029,
+     "to_threshold": null
+    },
+    {
+     "day": 33.487,
+     "status": "no_trend",
+     "to_end": 0.995,
+     "to_threshold": null
+    },
+    {
+     "day": 33.966,
+     "status": "insufficient_data",
+     "to_end": 0.516,
+     "to_threshold": null
+    },
+    {
+     "day": 34.001,
+     "status": "insufficient_data",
+     "to_end": 0.481,
+     "to_threshold": null
+    },
+    {
+     "day": 34.036,
+     "status": "insufficient_data",
+     "to_end": 0.446,
+     "to_threshold": null
+    },
+    {
+     "day": 34.07,
+     "status": "insufficient_data",
+     "to_end": 0.411,
+     "to_threshold": null
+    },
+    {
+     "day": 34.105,
+     "status": "insufficient_data",
+     "to_end": 0.377,
+     "to_threshold": null
+    },
+    {
+     "day": 34.14,
+     "status": "insufficient_data",
+     "to_end": 0.342,
+     "to_threshold": null
+    },
+    {
+     "day": 34.463,
+     "status": "insufficient_data",
+     "to_end": 0.018,
+     "to_threshold": null
+    }
+   ]
+  },
+  "1st_test/b4": {
+   "threshold": 160.96,
+   "own_end_level": 27.03,
+   "window_days": 1.0,
+   "first_alarm_day": 8.516226851851853,
+   "reached_threshold_day": null,
+   "end_day": 34.482,
+   "lead_time_days": 25.97,
+   "metrics": {
+    "vs_threshold": {
+     "checks": 384,
+     "states": {
+      "estimate": 88,
+      "no_trend": 163,
+      "insufficient_data": 133,
+      "at_threshold": 0
+     },
+     "estimates_scored": 0
+    },
+    "vs_end_of_run": {
+     "checks": 384,
+     "states": {
+      "estimate": 88,
+      "no_trend": 163,
+      "insufficient_data": 133,
+      "at_threshold": 0
+     },
+     "estimates_scored": 88,
+     "mae_days": 8.228,
+     "rmse_days": 11.467,
+     "median_abs_error_days": 3.172,
+     "bias_days": -3.778,
+     "interval_coverage": 0.807,
+     "nominal_coverage": 0.8
+    }
+   },
+   "rows": [
+    {
+     "day": 8.516,
+     "status": "insufficient_data",
+     "to_end": 25.965,
+     "to_threshold": null
+    },
+    {
+     "day": 8.551,
+     "status": "insufficient_data",
+     "to_end": 25.931,
+     "to_threshold": null
+    },
+    {
+     "day": 8.586,
+     "status": "insufficient_data",
+     "to_end": 25.896,
+     "to_threshold": null
+    },
+    {
+     "day": 8.62,
+     "status": "insufficient_data",
+     "to_end": 25.861,
+     "to_threshold": null
+    },
+    {
+     "day": 8.655,
+     "status": "insufficient_data",
+     "to_end": 25.827,
+     "to_threshold": null
+    },
+    {
+     "day": 8.69,
+     "status": "insufficient_data",
+     "to_end": 25.792,
+     "to_threshold": null
+    },
+    {
+     "day": 8.725,
+     "status": "insufficient_data",
+     "to_end": 25.757,
+     "to_threshold": null
+    },
+    {
+     "day": 8.759,
+     "status": "no_trend",
+     "to_end": 25.722,
+     "to_threshold": null
+    },
+    {
+     "day": 8.794,
+     "status": "no_trend",
+     "to_end": 25.688,
+     "to_threshold": null
+    },
+    {
+     "day": 8.829,
+     "status": "no_trend",
+     "to_end": 25.653,
+     "to_threshold": null
+    },
+    {
+     "day": 8.863,
+     "status": "no_trend",
+     "to_end": 25.618,
+     "to_threshold": null
+    },
+    {
+     "day": 8.898,
+     "status": "no_trend",
+     "to_end": 25.583,
+     "to_threshold": null
+    },
+    {
+     "day": 9.004,
+     "status": "insufficient_data",
+     "to_end": 25.478,
+     "to_threshold": null
+    },
+    {
+     "day": 9.038,
+     "status": "insufficient_data",
+     "to_end": 25.443,
+     "to_threshold": null
+    },
+    {
+     "day": 9.073,
+     "status": "insufficient_data",
+     "to_end": 25.408,
+     "to_threshold": null
+    },
+    {
+     "day": 9.108,
+     "status": "insufficient_data",
+     "to_end": 25.374,
+     "to_threshold": null
+    },
+    {
+     "day": 9.143,
+     "status": "insufficient_data",
+     "to_end": 25.339,
+     "to_threshold": null
+    },
+    {
+     "day": 9.177,
+     "status": "insufficient_data",
+     "to_end": 25.304,
+     "to_threshold": null
+    },
+    {
+     "day": 9.212,
+     "status": "insufficient_data",
+     "to_end": 25.27,
+     "to_threshold": null
+    },
+    {
+     "day": 9.247,
+     "status": "insufficient_data",
+     "to_end": 25.235,
+     "to_threshold": null
+    },
+    {
+     "day": 9.281,
+     "status": "estimate",
+     "to_end": 25.2,
+     "to_threshold": null,
+     "low": 1.15,
+     "mid": 3.5,
+     "high": 16.68
+    },
+    {
+     "day": 9.316,
+     "status": "estimate",
+     "to_end": 25.165,
+     "to_threshold": null,
+     "low": 1.48,
+     "mid": 4.5,
+     "high": 21.45
+    },
+    {
+     "day": 9.351,
+     "status": "estimate",
+     "to_end": 25.131,
+     "to_threshold": null,
+     "low": 1.65,
+     "mid": 5.0,
+     "high": 23.83
+    },
+    {
+     "day": 9.386,
+     "status": "estimate",
+     "to_end": 25.096,
+     "to_threshold": null,
+     "low": 1.62,
+     "mid": 4.9,
+     "high": 23.36
+    },
+    {
+     "day": 9.42,
+     "status": "estimate",
+     "to_end": 25.061,
+     "to_threshold": null,
+     "low": 1.65,
+     "mid": 5.0,
+     "high": 23.83
+    },
+    {
+     "day": 9.455,
+     "status": "estimate",
+     "to_end": 25.027,
+     "to_threshold": null,
+     "low": 1.55,
+     "mid": 4.7,
+     "high": 22.4
+    },
+    {
+     "day": 9.49,
+     "status": "estimate",
+     "to_end": 24.992,
+     "to_threshold": null,
+     "low": 1.42,
+     "mid": 4.3,
+     "high": 20.5
+    },
+    {
+     "day": 9.525,
+     "status": "estimate",
+     "to_end": 24.957,
+     "to_threshold": null,
+     "low": 1.48,
+     "mid": 4.5,
+     "high": 21.45
+    },
+    {
+     "day": 9.559,
+     "status": "estimate",
+     "to_end": 24.922,
+     "to_threshold": null,
+     "low": 1.52,
+     "mid": 4.6,
+     "high": 21.93
+    },
+    {
+     "day": 9.594,
+     "status": "estimate",
+     "to_end": 24.888,
+     "to_threshold": null,
+     "low": 1.55,
+     "mid": 4.7,
+     "high": 22.4
+    },
+    {
+     "day": 9.629,
+     "status": "estimate",
+     "to_end": 24.853,
+     "to_threshold": null,
+     "low": 1.68,
+     "mid": 5.1,
+     "high": 24.31
+    },
+    {
+     "day": 9.663,
+     "status": "estimate",
+     "to_end": 24.818,
+     "to_threshold": null,
+     "low": 1.72,
+     "mid": 5.2,
+     "high": 24.79
+    },
+    {
+     "day": 9.698,
+     "status": "estimate",
+     "to_end": 24.783,
+     "to_threshold": null,
+     "low": 1.72,
+     "mid": 5.2,
+     "high": 24.79
+    },
+    {
+     "day": 9.733,
+     "status": "estimate",
+     "to_end": 24.749,
+     "to_threshold": null,
+     "low": 1.81,
+     "mid": 5.5,
+     "high": 26.22
+    },
+    {
+     "day": 9.768,
+     "status": "estimate",
+     "to_end": 24.714,
+     "to_threshold": null,
+     "low": 1.78,
+     "mid": 5.4,
+     "high": 25.74
+    },
+    {
+     "day": 9.802,
+     "status": "estimate",
+     "to_end": 24.679,
+     "to_threshold": null,
+     "low": 1.91,
+     "mid": 5.8,
+     "high": 27.65
+    },
+    {
+     "day": 9.837,
+     "status": "estimate",
+     "to_end": 24.645,
+     "to_threshold": null,
+     "low": 2.08,
+     "mid": 6.3,
+     "high": 30.03
+    },
+    {
+     "day": 9.872,
+     "status": "estimate",
+     "to_end": 24.61,
+     "to_threshold": null,
+     "low": 2.24,
+     "mid": 6.8,
+     "high": 32.41
+    },
+    {
+     "day": 9.906,
+     "status": "estimate",
+     "to_end": 24.575,
+     "to_threshold": null,
+     "low": 2.51,
+     "mid": 7.6,
+     "high": 36.23
+    },
+    {
+     "day": 9.941,
+     "status": "estimate",
+     "to_end": 24.54,
+     "to_threshold": null,
+     "low": 2.67,
+     "mid": 8.1,
+     "high": 38.61
+    },
+    {
+     "day": 9.976,
+     "status": "estimate",
+     "to_end": 24.506,
+     "to_threshold": null,
+     "low": 2.8,
+     "mid": 8.5,
+     "high": 40.52
+    },
+    {
+     "day": 10.011,
+     "status": "estimate",
+     "to_end": 24.471,
+     "to_threshold": null,
+     "low": 3.07,
+     "mid": 9.3,
+     "high": 44.33
+    },
+    {
+     "day": 10.045,
+     "status": "estimate",
+     "to_end": 24.436,
+     "to_threshold": null,
+     "low": 3.56,
+     "mid": 10.8,
+     "high": 51.48
+    },
+    {
+     "day": 10.08,
+     "status": "estimate",
+     "to_end": 24.402,
+     "to_threshold": null,
+     "low": 4.65,
+     "mid": 14.1,
+     "high": 67.21
+    },
+    {
+     "day": 10.115,
+     "status": "estimate",
+     "to_end": 24.367,
+     "to_threshold": null,
+     "low": 5.9,
+     "mid": 17.9,
+     "high": 85.32
+    },
+    {
+     "day": 10.15,
+     "status": "estimate",
+     "to_end": 24.332,
+     "to_threshold": null,
+     "low": 6.96,
+     "mid": 21.1,
+     "high": 100.58
+    },
+    {
+     "day": 10.184,
+     "status": "no_trend",
+     "to_end": 24.297,
+     "to_threshold": null
+    },
+    {
+     "day": 10.219,
+     "status": "no_trend",
+     "to_end": 24.263,
+     "to_threshold": null
+    },
+    {
+     "day": 10.254,
+     "status": "no_trend",
+     "to_end": 24.228,
+     "to_threshold": null
+    },
+    {
+     "day": 10.288,
+     "status": "no_trend",
+     "to_end": 24.193,
+     "to_threshold": null
+    },
+    {
+     "day": 10.323,
+     "status": "no_trend",
+     "to_end": 24.158,
+     "to_threshold": null
+    },
+    {
+     "day": 10.358,
+     "status": "no_trend",
+     "to_end": 24.124,
+     "to_threshold": null
+    },
+    {
+     "day": 10.393,
+     "status": "no_trend",
+     "to_end": 24.089,
+     "to_threshold": null
+    },
+    {
+     "day": 10.427,
+     "status": "no_trend",
+     "to_end": 24.054,
+     "to_threshold": null
+    },
+    {
+     "day": 10.462,
+     "status": "no_trend",
+     "to_end": 24.02,
+     "to_threshold": null
+    },
+    {
+     "day": 11.908,
+     "status": "insufficient_data",
+     "to_end": 22.574,
+     "to_threshold": null
+    },
+    {
+     "day": 11.941,
+     "status": "insufficient_data",
+     "to_end": 22.54,
+     "to_threshold": null
+    },
+    {
+     "day": 11.976,
+     "status": "insufficient_data",
+     "to_end": 22.506,
+     "to_threshold": null
+    },
+    {
+     "day": 12.011,
+     "status": "insufficient_data",
+     "to_end": 22.471,
+     "to_threshold": null
+    },
+    {
+     "day": 12.045,
+     "status": "insufficient_data",
+     "to_end": 22.436,
+     "to_threshold": null
+    },
+    {
+     "day": 12.08,
+     "status": "insufficient_data",
+     "to_end": 22.402,
+     "to_threshold": null
+    },
+    {
+     "day": 16.129,
+     "status": "insufficient_data",
+     "to_end": 18.353,
+     "to_threshold": null
+    },
+    {
+     "day": 16.163,
+     "status": "insufficient_data",
+     "to_end": 18.318,
+     "to_threshold": null
+    },
+    {
+     "day": 16.198,
+     "status": "insufficient_data",
+     "to_end": 18.283,
+     "to_threshold": null
+    },
+    {
+     "day": 16.233,
+     "status": "insufficient_data",
+     "to_end": 18.249,
+     "to_threshold": null
+    },
+    {
+     "day": 16.268,
+     "status": "insufficient_data",
+     "to_end": 18.214,
+     "to_threshold": null
+    },
+    {
+     "day": 16.302,
+     "status": "insufficient_data",
+     "to_end": 18.179,
+     "to_threshold": null
+    },
+    {
+     "day": 16.337,
+     "status": "insufficient_data",
+     "to_end": 18.145,
+     "to_threshold": null
+    },
+    {
+     "day": 16.372,
+     "status": "no_trend",
+     "to_end": 18.11,
+     "to_threshold": null
+    },
+    {
+     "day": 16.406,
+     "status": "no_trend",
+     "to_end": 18.075,
+     "to_threshold": null
+    },
+    {
+     "day": 16.441,
+     "status": "no_trend",
+     "to_end": 18.04,
+     "to_threshold": null
+    },
+    {
+     "day": 16.955,
+     "status": "insufficient_data",
+     "to_end": 17.527,
+     "to_threshold": null
+    },
+    {
+     "day": 16.99,
+     "status": "insufficient_data",
+     "to_end": 17.492,
+     "to_threshold": null
+    },
+    {
+     "day": 17.025,
+     "status": "insufficient_data",
+     "to_end": 17.457,
+     "to_threshold": null
+    },
+    {
+     "day": 17.059,
+     "status": "insufficient_data",
+     "to_end": 17.422,
+     "to_threshold": null
+    },
+    {
+     "day": 17.094,
+     "status": "insufficient_data",
+     "to_end": 17.388,
+     "to_threshold": null
+    },
+    {
+     "day": 17.129,
+     "status": "insufficient_data",
+     "to_end": 17.353,
+     "to_threshold": null
+    },
+    {
+     "day": 17.163,
+     "status": "insufficient_data",
+     "to_end": 17.318,
+     "to_threshold": null
+    },
+    {
+     "day": 17.198,
+     "status": "no_trend",
+     "to_end": 17.283,
+     "to_threshold": null
+    },
+    {
+     "day": 17.233,
+     "status": "no_trend",
+     "to_end": 17.249,
+     "to_threshold": null
+    },
+    {
+     "day": 17.268,
+     "status": "no_trend",
+     "to_end": 17.214,
+     "to_threshold": null
+    },
+    {
+     "day": 17.302,
+     "status": "no_trend",
+     "to_end": 17.179,
+     "to_threshold": null
+    },
+    {
+     "day": 17.337,
+     "status": "no_trend",
+     "to_end": 17.145,
+     "to_threshold": null
+    },
+    {
+     "day": 17.372,
+     "status": "no_trend",
+     "to_end": 17.11,
+     "to_threshold": null
+    },
+    {
+     "day": 17.406,
+     "status": "no_trend",
+     "to_end": 17.075,
+     "to_threshold": null
+    },
+    {
+     "day": 17.441,
+     "status": "no_trend",
+     "to_end": 17.04,
+     "to_threshold": null
+    },
+    {
+     "day": 17.476,
+     "status": "no_trend",
+     "to_end": 17.006,
+     "to_threshold": null
+    },
+    {
+     "day": 17.511,
+     "status": "no_trend",
+     "to_end": 16.971,
+     "to_threshold": null
+    },
+    {
+     "day": 17.545,
+     "status": "no_trend",
+     "to_end": 16.936,
+     "to_threshold": null
+    },
+    {
+     "day": 17.58,
+     "status": "no_trend",
+     "to_end": 16.902,
+     "to_threshold": null
+    },
+    {
+     "day": 17.615,
+     "status": "no_trend",
+     "to_end": 16.867,
+     "to_threshold": null
+    },
+    {
+     "day": 17.65,
+     "status": "no_trend",
+     "to_end": 16.832,
+     "to_threshold": null
+    },
+    {
+     "day": 17.684,
+     "status": "no_trend",
+     "to_end": 16.797,
+     "to_threshold": null
+    },
+    {
+     "day": 17.719,
+     "status": "no_trend",
+     "to_end": 16.763,
+     "to_threshold": null
+    },
+    {
+     "day": 17.754,
+     "status": "no_trend",
+     "to_end": 16.728,
+     "to_threshold": null
+    },
+    {
+     "day": 17.788,
+     "status": "no_trend",
+     "to_end": 16.693,
+     "to_threshold": null
+    },
+    {
+     "day": 17.823,
+     "status": "no_trend",
+     "to_end": 16.658,
+     "to_threshold": null
+    },
+    {
+     "day": 17.854,
+     "status": "no_trend",
+     "to_end": 16.628,
+     "to_threshold": null
+    },
+    {
+     "day": 17.889,
+     "status": "no_trend",
+     "to_end": 16.593,
+     "to_threshold": null
+    },
+    {
+     "day": 17.923,
+     "status": "no_trend",
+     "to_end": 16.558,
+     "to_threshold": null
+    },
+    {
+     "day": 17.958,
+     "status": "no_trend",
+     "to_end": 16.524,
+     "to_threshold": null
+    },
+    {
+     "day": 17.993,
+     "status": "no_trend",
+     "to_end": 16.489,
+     "to_threshold": null
+    },
+    {
+     "day": 18.027,
+     "status": "no_trend",
+     "to_end": 16.454,
+     "to_threshold": null
+    },
+    {
+     "day": 18.062,
+     "status": "no_trend",
+     "to_end": 16.419,
+     "to_threshold": null
+    },
+    {
+     "day": 18.097,
+     "status": "no_trend",
+     "to_end": 16.385,
+     "to_threshold": null
+    },
+    {
+     "day": 18.132,
+     "status": "no_trend",
+     "to_end": 16.35,
+     "to_threshold": null
+    },
+    {
+     "day": 18.166,
+     "status": "no_trend",
+     "to_end": 16.315,
+     "to_threshold": null
+    },
+    {
+     "day": 18.201,
+     "status": "no_trend",
+     "to_end": 16.281,
+     "to_threshold": null
+    },
+    {
+     "day": 18.236,
+     "status": "no_trend",
+     "to_end": 16.246,
+     "to_threshold": null
+    },
+    {
+     "day": 18.416,
+     "status": "insufficient_data",
+     "to_end": 16.065,
+     "to_threshold": null
+    },
+    {
+     "day": 18.451,
+     "status": "insufficient_data",
+     "to_end": 16.031,
+     "to_threshold": null
+    },
+    {
+     "day": 18.486,
+     "status": "insufficient_data",
+     "to_end": 15.996,
+     "to_threshold": null
+    },
+    {
+     "day": 18.521,
+     "status": "insufficient_data",
+     "to_end": 15.961,
+     "to_threshold": null
+    },
+    {
+     "day": 18.555,
+     "status": "insufficient_data",
+     "to_end": 15.926,
+     "to_threshold": null
+    },
+    {
+     "day": 18.59,
+     "status": "insufficient_data",
+     "to_end": 15.892,
+     "to_threshold": null
+    },
+    {
+     "day": 18.625,
+     "status": "insufficient_data",
+     "to_end": 15.857,
+     "to_threshold": null
+    },
+    {
+     "day": 18.659,
+     "status": "insufficient_data",
+     "to_end": 15.822,
+     "to_threshold": null
+    },
+    {
+     "day": 18.694,
+     "status": "no_trend",
+     "to_end": 15.787,
+     "to_threshold": null
+    },
+    {
+     "day": 18.729,
+     "status": "no_trend",
+     "to_end": 15.753,
+     "to_threshold": null
+    },
+    {
+     "day": 18.764,
+     "status": "no_trend",
+     "to_end": 15.718,
+     "to_threshold": null
+    },
+    {
+     "day": 18.798,
+     "status": "no_trend",
+     "to_end": 15.683,
+     "to_threshold": null
+    },
+    {
+     "day": 18.833,
+     "status": "no_trend",
+     "to_end": 15.649,
+     "to_threshold": null
+    },
+    {
+     "day": 18.868,
+     "status": "no_trend",
+     "to_end": 15.614,
+     "to_threshold": null
+    },
+    {
+     "day": 18.902,
+     "status": "no_trend",
+     "to_end": 15.579,
+     "to_threshold": null
+    },
+    {
+     "day": 18.937,
+     "status": "no_trend",
+     "to_end": 15.544,
+     "to_threshold": null
+    },
+    {
+     "day": 18.972,
+     "status": "no_trend",
+     "to_end": 15.51,
+     "to_threshold": null
+    },
+    {
+     "day": 19.007,
+     "status": "no_trend",
+     "to_end": 15.475,
+     "to_threshold": null
+    },
+    {
+     "day": 19.041,
+     "status": "no_trend",
+     "to_end": 15.44,
+     "to_threshold": null
+    },
+    {
+     "day": 19.076,
+     "status": "no_trend",
+     "to_end": 15.406,
+     "to_threshold": null
+    },
+    {
+     "day": 19.111,
+     "status": "no_trend",
+     "to_end": 15.371,
+     "to_threshold": null
+    },
+    {
+     "day": 19.146,
+     "status": "no_trend",
+     "to_end": 15.336,
+     "to_threshold": null
+    },
+    {
+     "day": 19.18,
+     "status": "no_trend",
+     "to_end": 15.301,
+     "to_threshold": null
+    },
+    {
+     "day": 22.983,
+     "status": "insufficient_data",
+     "to_end": 11.498,
+     "to_threshold": null
+    },
+    {
+     "day": 23.018,
+     "status": "insufficient_data",
+     "to_end": 11.464,
+     "to_threshold": null
+    },
+    {
+     "day": 23.053,
+     "status": "insufficient_data",
+     "to_end": 11.429,
+     "to_threshold": null
+    },
+    {
+     "day": 23.087,
+     "status": "insufficient_data",
+     "to_end": 11.394,
+     "to_threshold": null
+    },
+    {
+     "day": 23.122,
+     "status": "insufficient_data",
+     "to_end": 11.359,
+     "to_threshold": null
+    },
+    {
+     "day": 23.157,
+     "status": "insufficient_data",
+     "to_end": 11.325,
+     "to_threshold": null
+    },
+    {
+     "day": 23.192,
+     "status": "insufficient_data",
+     "to_end": 11.29,
+     "to_threshold": null
+    },
+    {
+     "day": 23.245,
+     "status": "no_trend",
+     "to_end": 11.237,
+     "to_threshold": null
+    },
+    {
+     "day": 23.279,
+     "status": "no_trend",
+     "to_end": 11.202,
+     "to_threshold": null
+    },
+    {
+     "day": 23.314,
+     "status": "no_trend",
+     "to_end": 11.167,
+     "to_threshold": null
+    },
+    {
+     "day": 23.349,
+     "status": "estimate",
+     "to_end": 11.133,
+     "to_threshold": null,
+     "low": 3.0,
+     "mid": 9.1,
+     "high": 43.38
+    },
+    {
+     "day": 23.384,
+     "status": "estimate",
+     "to_end": 11.098,
+     "to_threshold": null,
+     "low": 3.56,
+     "mid": 10.8,
+     "high": 51.48
+    },
+    {
+     "day": 23.418,
+     "status": "estimate",
+     "to_end": 11.063,
+     "to_threshold": null,
+     "low": 3.3,
+     "mid": 10.0,
+     "high": 47.67
+    },
+    {
+     "day": 23.453,
+     "status": "estimate",
+     "to_end": 11.029,
+     "to_threshold": null,
+     "low": 3.53,
+     "mid": 10.7,
+     "high": 51.0
+    },
+    {
+     "day": 23.488,
+     "status": "estimate",
+     "to_end": 10.994,
+     "to_threshold": null,
+     "low": 3.46,
+     "mid": 10.5,
+     "high": 50.05
+    },
+    {
+     "day": 23.522,
+     "status": "estimate",
+     "to_end": 10.959,
+     "to_threshold": null,
+     "low": 3.36,
+     "mid": 10.2,
+     "high": 48.62
+    },
+    {
+     "day": 23.557,
+     "status": "no_trend",
+     "to_end": 10.924,
+     "to_threshold": null
+    },
+    {
+     "day": 23.592,
+     "status": "estimate",
+     "to_end": 10.89,
+     "to_threshold": null,
+     "low": 5.51,
+     "mid": 16.7,
+     "high": 79.6
+    },
+    {
+     "day": 23.627,
+     "status": "estimate",
+     "to_end": 10.855,
+     "to_threshold": null,
+     "low": 5.67,
+     "mid": 17.2,
+     "high": 81.99
+    },
+    {
+     "day": 23.661,
+     "status": "estimate",
+     "to_end": 10.82,
+     "to_threshold": null,
+     "low": 6.0,
+     "mid": 18.2,
+     "high": 86.75
+    },
+    {
+     "day": 23.696,
+     "status": "no_trend",
+     "to_end": 10.786,
+     "to_threshold": null
+    },
+    {
+     "day": 23.731,
+     "status": "no_trend",
+     "to_end": 10.751,
+     "to_threshold": null
+    },
+    {
+     "day": 23.766,
+     "status": "no_trend",
+     "to_end": 10.716,
+     "to_threshold": null
+    },
+    {
+     "day": 23.8,
+     "status": "no_trend",
+     "to_end": 10.681,
+     "to_threshold": null
+    },
+    {
+     "day": 23.835,
+     "status": "no_trend",
+     "to_end": 10.647,
+     "to_threshold": null
+    },
+    {
+     "day": 23.87,
+     "status": "no_trend",
+     "to_end": 10.612,
+     "to_threshold": null
+    },
+    {
+     "day": 23.904,
+     "status": "no_trend",
+     "to_end": 10.577,
+     "to_threshold": null
+    },
+    {
+     "day": 23.939,
+     "status": "no_trend",
+     "to_end": 10.542,
+     "to_threshold": null
+    },
+    {
+     "day": 23.974,
+     "status": "no_trend",
+     "to_end": 10.508,
+     "to_threshold": null
+    },
+    {
+     "day": 24.009,
+     "status": "no_trend",
+     "to_end": 10.473,
+     "to_threshold": null
+    },
+    {
+     "day": 24.043,
+     "status": "no_trend",
+     "to_end": 10.438,
+     "to_threshold": null
+    },
+    {
+     "day": 24.078,
+     "status": "no_trend",
+     "to_end": 10.404,
+     "to_threshold": null
+    },
+    {
+     "day": 24.113,
+     "status": "no_trend",
+     "to_end": 10.369,
+     "to_threshold": null
+    },
+    {
+     "day": 24.147,
+     "status": "no_trend",
+     "to_end": 10.334,
+     "to_threshold": null
+    },
+    {
+     "day": 24.182,
+     "status": "no_trend",
+     "to_end": 10.299,
+     "to_threshold": null
+    },
+    {
+     "day": 24.217,
+     "status": "no_trend",
+     "to_end": 10.265,
+     "to_threshold": null
+    },
+    {
+     "day": 24.252,
+     "status": "no_trend",
+     "to_end": 10.23,
+     "to_threshold": null
+    },
+    {
+     "day": 24.286,
+     "status": "no_trend",
+     "to_end": 10.195,
+     "to_threshold": null
+    },
+    {
+     "day": 24.321,
+     "status": "no_trend",
+     "to_end": 10.161,
+     "to_threshold": null
+    },
+    {
+     "day": 24.356,
+     "status": "no_trend",
+     "to_end": 10.126,
+     "to_threshold": null
+    },
+    {
+     "day": 24.391,
+     "status": "no_trend",
+     "to_end": 10.091,
+     "to_threshold": null
+    },
+    {
+     "day": 24.425,
+     "status": "no_trend",
+     "to_end": 10.056,
+     "to_threshold": null
+    },
+    {
+     "day": 24.46,
+     "status": "no_trend",
+     "to_end": 10.022,
+     "to_threshold": null
+    },
+    {
+     "day": 24.495,
+     "status": "no_trend",
+     "to_end": 9.987,
+     "to_threshold": null
+    },
+    {
+     "day": 24.529,
+     "status": "no_trend",
+     "to_end": 9.952,
+     "to_threshold": null
+    },
+    {
+     "day": 24.564,
+     "status": "no_trend",
+     "to_end": 9.917,
+     "to_threshold": null
+    },
+    {
+     "day": 24.599,
+     "status": "no_trend",
+     "to_end": 9.883,
+     "to_threshold": null
+    },
+    {
+     "day": 24.634,
+     "status": "no_trend",
+     "to_end": 9.848,
+     "to_threshold": null
+    },
+    {
+     "day": 24.668,
+     "status": "no_trend",
+     "to_end": 9.813,
+     "to_threshold": null
+    },
+    {
+     "day": 24.703,
+     "status": "no_trend",
+     "to_end": 9.779,
+     "to_threshold": null
+    },
+    {
+     "day": 24.738,
+     "status": "no_trend",
+     "to_end": 9.744,
+     "to_threshold": null
+    },
+    {
+     "day": 24.772,
+     "status": "no_trend",
+     "to_end": 9.709,
+     "to_threshold": null
+    },
+    {
+     "day": 24.807,
+     "status": "no_trend",
+     "to_end": 9.674,
+     "to_threshold": null
+    },
+    {
+     "day": 24.842,
+     "status": "no_trend",
+     "to_end": 9.64,
+     "to_threshold": null
+    },
+    {
+     "day": 24.877,
+     "status": "no_trend",
+     "to_end": 9.605,
+     "to_threshold": null
+    },
+    {
+     "day": 24.911,
+     "status": "no_trend",
+     "to_end": 9.57,
+     "to_threshold": null
+    },
+    {
+     "day": 24.946,
+     "status": "no_trend",
+     "to_end": 9.536,
+     "to_threshold": null
+    },
+    {
+     "day": 24.981,
+     "status": "no_trend",
+     "to_end": 9.501,
+     "to_threshold": null
+    },
+    {
+     "day": 25.016,
+     "status": "no_trend",
+     "to_end": 9.466,
+     "to_threshold": null
+    },
+    {
+     "day": 25.05,
+     "status": "no_trend",
+     "to_end": 9.431,
+     "to_threshold": null
+    },
+    {
+     "day": 25.085,
+     "status": "no_trend",
+     "to_end": 9.397,
+     "to_threshold": null
+    },
+    {
+     "day": 25.12,
+     "status": "no_trend",
+     "to_end": 9.362,
+     "to_threshold": null
+    },
+    {
+     "day": 25.154,
+     "status": "no_trend",
+     "to_end": 9.327,
+     "to_threshold": null
+    },
+    {
+     "day": 25.189,
+     "status": "no_trend",
+     "to_end": 9.292,
+     "to_threshold": null
+    },
+    {
+     "day": 25.224,
+     "status": "no_trend",
+     "to_end": 9.258,
+     "to_threshold": null
+    },
+    {
+     "day": 25.259,
+     "status": "no_trend",
+     "to_end": 9.223,
+     "to_threshold": null
+    },
+    {
+     "day": 25.293,
+     "status": "no_trend",
+     "to_end": 9.188,
+     "to_threshold": null
+    },
+    {
+     "day": 25.328,
+     "status": "no_trend",
+     "to_end": 9.154,
+     "to_threshold": null
+    },
+    {
+     "day": 25.928,
+     "status": "insufficient_data",
+     "to_end": 8.554,
+     "to_threshold": null
+    },
+    {
+     "day": 25.963,
+     "status": "insufficient_data",
+     "to_end": 8.519,
+     "to_threshold": null
+    },
+    {
+     "day": 25.997,
+     "status": "insufficient_data",
+     "to_end": 8.484,
+     "to_threshold": null
+    },
+    {
+     "day": 26.032,
+     "status": "insufficient_data",
+     "to_end": 8.45,
+     "to_threshold": null
+    },
+    {
+     "day": 26.067,
+     "status": "insufficient_data",
+     "to_end": 8.415,
+     "to_threshold": null
+    },
+    {
+     "day": 26.101,
+     "status": "insufficient_data",
+     "to_end": 8.38,
+     "to_threshold": null
+    },
+    {
+     "day": 26.136,
+     "status": "insufficient_data",
+     "to_end": 8.345,
+     "to_threshold": null
+    },
+    {
+     "day": 26.171,
+     "status": "insufficient_data",
+     "to_end": 8.311,
+     "to_threshold": null
+    },
+    {
+     "day": 26.206,
+     "status": "no_trend",
+     "to_end": 8.276,
+     "to_threshold": null
+    },
+    {
+     "day": 26.24,
+     "status": "no_trend",
+     "to_end": 8.241,
+     "to_threshold": null
+    },
+    {
+     "day": 26.275,
+     "status": "no_trend",
+     "to_end": 8.207,
+     "to_threshold": null
+    },
+    {
+     "day": 26.31,
+     "status": "estimate",
+     "to_end": 8.172,
+     "to_threshold": null,
+     "low": 2.61,
+     "mid": 7.9,
+     "high": 37.66
+    },
+    {
+     "day": 26.345,
+     "status": "estimate",
+     "to_end": 8.137,
+     "to_threshold": null,
+     "low": 2.51,
+     "mid": 7.6,
+     "high": 36.23
+    },
+    {
+     "day": 26.379,
+     "status": "estimate",
+     "to_end": 8.102,
+     "to_threshold": null,
+     "low": 2.51,
+     "mid": 7.6,
+     "high": 36.23
+    },
+    {
+     "day": 26.414,
+     "status": "estimate",
+     "to_end": 8.068,
+     "to_threshold": null,
+     "low": 2.54,
+     "mid": 7.7,
+     "high": 36.7
+    },
+    {
+     "day": 26.449,
+     "status": "estimate",
+     "to_end": 8.033,
+     "to_threshold": null,
+     "low": 2.84,
+     "mid": 8.6,
+     "high": 40.99
+    },
+    {
+     "day": 26.483,
+     "status": "estimate",
+     "to_end": 7.998,
+     "to_threshold": null,
+     "low": 3.1,
+     "mid": 9.4,
+     "high": 44.81
+    },
+    {
+     "day": 26.518,
+     "status": "estimate",
+     "to_end": 7.963,
+     "to_threshold": null,
+     "low": 3.13,
+     "mid": 9.5,
+     "high": 45.28
+    },
+    {
+     "day": 26.553,
+     "status": "estimate",
+     "to_end": 7.929,
+     "to_threshold": null,
+     "low": 3.43,
+     "mid": 10.4,
+     "high": 49.57
+    },
+    {
+     "day": 26.588,
+     "status": "estimate",
+     "to_end": 7.894,
+     "to_threshold": null,
+     "low": 3.53,
+     "mid": 10.7,
+     "high": 51.0
+    },
+    {
+     "day": 26.622,
+     "status": "estimate",
+     "to_end": 7.859,
+     "to_threshold": null,
+     "low": 4.39,
+     "mid": 13.3,
+     "high": 63.4
+    },
+    {
+     "day": 26.657,
+     "status": "estimate",
+     "to_end": 7.825,
+     "to_threshold": null,
+     "low": 4.45,
+     "mid": 13.5,
+     "high": 64.35
+    },
+    {
+     "day": 26.692,
+     "status": "estimate",
+     "to_end": 7.79,
+     "to_threshold": null,
+     "low": 5.05,
+     "mid": 15.3,
+     "high": 72.93
+    },
+    {
+     "day": 26.726,
+     "status": "estimate",
+     "to_end": 7.755,
+     "to_threshold": null,
+     "low": 6.4,
+     "mid": 19.4,
+     "high": 92.47
+    },
+    {
+     "day": 26.761,
+     "status": "estimate",
+     "to_end": 7.72,
+     "to_threshold": null,
+     "low": 7.03,
+     "mid": 21.3,
+     "high": 101.53
+    },
+    {
+     "day": 26.796,
+     "status": "estimate",
+     "to_end": 7.686,
+     "to_threshold": null,
+     "low": 7.59,
+     "mid": 23.0,
+     "high": 109.63
+    },
+    {
+     "day": 26.831,
+     "status": "estimate",
+     "to_end": 7.651,
+     "to_threshold": null,
+     "low": 8.58,
+     "mid": 26.0,
+     "high": 123.93
+    },
+    {
+     "day": 26.865,
+     "status": "estimate",
+     "to_end": 7.616,
+     "to_threshold": null,
+     "low": 9.23,
+     "mid": 28.0,
+     "high": 133.47
+    },
+    {
+     "day": 26.9,
+     "status": "estimate",
+     "to_end": 7.582,
+     "to_threshold": null,
+     "low": 10.13,
+     "mid": 30.7,
+     "high": 146.34
+    },
+    {
+     "day": 26.935,
+     "status": "estimate",
+     "to_end": 7.547,
+     "to_threshold": null,
+     "low": 10.92,
+     "mid": 33.1,
+     "high": 157.78
+    },
+    {
+     "day": 26.97,
+     "status": "no_trend",
+     "to_end": 7.512,
+     "to_threshold": null
+    },
+    {
+     "day": 27.004,
+     "status": "no_trend",
+     "to_end": 7.477,
+     "to_threshold": null
+    },
+    {
+     "day": 27.039,
+     "status": "no_trend",
+     "to_end": 7.443,
+     "to_threshold": null
+    },
+    {
+     "day": 27.074,
+     "status": "no_trend",
+     "to_end": 7.408,
+     "to_threshold": null
+    },
+    {
+     "day": 27.108,
+     "status": "no_trend",
+     "to_end": 7.373,
+     "to_threshold": null
+    },
+    {
+     "day": 27.143,
+     "status": "no_trend",
+     "to_end": 7.338,
+     "to_threshold": null
+    },
+    {
+     "day": 27.178,
+     "status": "no_trend",
+     "to_end": 7.304,
+     "to_threshold": null
+    },
+    {
+     "day": 27.213,
+     "status": "no_trend",
+     "to_end": 7.269,
+     "to_threshold": null
+    },
+    {
+     "day": 27.247,
+     "status": "no_trend",
+     "to_end": 7.234,
+     "to_threshold": null
+    },
+    {
+     "day": 27.282,
+     "status": "no_trend",
+     "to_end": 7.2,
+     "to_threshold": null
+    },
+    {
+     "day": 27.886,
+     "status": "insufficient_data",
+     "to_end": 6.595,
+     "to_threshold": null
+    },
+    {
+     "day": 27.979,
+     "status": "insufficient_data",
+     "to_end": 6.503,
+     "to_threshold": null
+    },
+    {
+     "day": 28.014,
+     "status": "insufficient_data",
+     "to_end": 6.468,
+     "to_threshold": null
+    },
+    {
+     "day": 28.048,
+     "status": "insufficient_data",
+     "to_end": 6.433,
+     "to_threshold": null
+    },
+    {
+     "day": 28.083,
+     "status": "insufficient_data",
+     "to_end": 6.398,
+     "to_threshold": null
+    },
+    {
+     "day": 28.118,
+     "status": "insufficient_data",
+     "to_end": 6.364,
+     "to_threshold": null
+    },
+    {
+     "day": 28.153,
+     "status": "insufficient_data",
+     "to_end": 6.329,
+     "to_threshold": null
+    },
+    {
+     "day": 28.187,
+     "status": "insufficient_data",
+     "to_end": 6.294,
+     "to_threshold": null
+    },
+    {
+     "day": 28.222,
+     "status": "no_trend",
+     "to_end": 6.26,
+     "to_threshold": null
+    },
+    {
+     "day": 28.257,
+     "status": "no_trend",
+     "to_end": 6.225,
+     "to_threshold": null
+    },
+    {
+     "day": 28.291,
+     "status": "no_trend",
+     "to_end": 6.19,
+     "to_threshold": null
+    },
+    {
+     "day": 28.326,
+     "status": "no_trend",
+     "to_end": 6.155,
+     "to_threshold": null
+    },
+    {
+     "day": 28.361,
+     "status": "no_trend",
+     "to_end": 6.121,
+     "to_threshold": null
+    },
+    {
+     "day": 28.396,
+     "status": "no_trend",
+     "to_end": 6.086,
+     "to_threshold": null
+    },
+    {
+     "day": 28.989,
+     "status": "insufficient_data",
+     "to_end": 5.493,
+     "to_threshold": null
+    },
+    {
+     "day": 29.005,
+     "status": "insufficient_data",
+     "to_end": 5.476,
+     "to_threshold": null
+    },
+    {
+     "day": 29.023,
+     "status": "insufficient_data",
+     "to_end": 5.459,
+     "to_threshold": null
+    },
+    {
+     "day": 29.04,
+     "status": "insufficient_data",
+     "to_end": 5.442,
+     "to_threshold": null
+    },
+    {
+     "day": 29.057,
+     "status": "insufficient_data",
+     "to_end": 5.424,
+     "to_threshold": null
+    },
+    {
+     "day": 29.075,
+     "status": "insufficient_data",
+     "to_end": 5.407,
+     "to_threshold": null
+    },
+    {
+     "day": 29.092,
+     "status": "insufficient_data",
+     "to_end": 5.39,
+     "to_threshold": null
+    },
+    {
+     "day": 29.109,
+     "status": "insufficient_data",
+     "to_end": 5.372,
+     "to_threshold": null
+    },
+    {
+     "day": 29.127,
+     "status": "insufficient_data",
+     "to_end": 5.355,
+     "to_threshold": null
+    },
+    {
+     "day": 29.144,
+     "status": "insufficient_data",
+     "to_end": 5.337,
+     "to_threshold": null
+    },
+    {
+     "day": 29.162,
+     "status": "insufficient_data",
+     "to_end": 5.32,
+     "to_threshold": null
+    },
+    {
+     "day": 29.179,
+     "status": "insufficient_data",
+     "to_end": 5.303,
+     "to_threshold": null
+    },
+    {
+     "day": 29.196,
+     "status": "insufficient_data",
+     "to_end": 5.285,
+     "to_threshold": null
+    },
+    {
+     "day": 29.214,
+     "status": "insufficient_data",
+     "to_end": 5.268,
+     "to_threshold": null
+    },
+    {
+     "day": 29.231,
+     "status": "insufficient_data",
+     "to_end": 5.251,
+     "to_threshold": null
+    },
+    {
+     "day": 29.248,
+     "status": "estimate",
+     "to_end": 5.233,
+     "to_threshold": null,
+     "low": 0.76,
+     "mid": 2.3,
+     "high": 10.96
+    },
+    {
+     "day": 29.266,
+     "status": "estimate",
+     "to_end": 5.216,
+     "to_threshold": null,
+     "low": 0.73,
+     "mid": 2.2,
+     "high": 10.49
+    },
+    {
+     "day": 29.283,
+     "status": "estimate",
+     "to_end": 5.199,
+     "to_threshold": null,
+     "low": 0.66,
+     "mid": 2.0,
+     "high": 9.53
+    },
+    {
+     "day": 29.3,
+     "status": "estimate",
+     "to_end": 5.181,
+     "to_threshold": null,
+     "low": 0.66,
+     "mid": 2.0,
+     "high": 9.53
+    },
+    {
+     "day": 29.318,
+     "status": "estimate",
+     "to_end": 5.164,
+     "to_threshold": null,
+     "low": 0.66,
+     "mid": 2.0,
+     "high": 9.53
+    },
+    {
+     "day": 29.335,
+     "status": "estimate",
+     "to_end": 5.146,
+     "to_threshold": null,
+     "low": 0.66,
+     "mid": 2.0,
+     "high": 9.53
+    },
+    {
+     "day": 29.353,
+     "status": "estimate",
+     "to_end": 5.129,
+     "to_threshold": null,
+     "low": 0.63,
+     "mid": 1.9,
+     "high": 9.06
+    },
+    {
+     "day": 29.498,
+     "status": "insufficient_data",
+     "to_end": 4.983,
+     "to_threshold": null
+    },
+    {
+     "day": 29.533,
+     "status": "insufficient_data",
+     "to_end": 4.949,
+     "to_threshold": null
+    },
+    {
+     "day": 29.568,
+     "status": "insufficient_data",
+     "to_end": 4.914,
+     "to_threshold": null
+    },
+    {
+     "day": 29.603,
+     "status": "insufficient_data",
+     "to_end": 4.879,
+     "to_threshold": null
+    },
+    {
+     "day": 29.637,
+     "status": "insufficient_data",
+     "to_end": 4.844,
+     "to_threshold": null
+    },
+    {
+     "day": 29.672,
+     "status": "insufficient_data",
+     "to_end": 4.81,
+     "to_threshold": null
+    },
+    {
+     "day": 29.707,
+     "status": "insufficient_data",
+     "to_end": 4.775,
+     "to_threshold": null
+    },
+    {
+     "day": 29.741,
+     "status": "no_trend",
+     "to_end": 4.74,
+     "to_threshold": null
+    },
+    {
+     "day": 29.776,
+     "status": "estimate",
+     "to_end": 4.705,
+     "to_threshold": null,
+     "low": 2.01,
+     "mid": 6.1,
+     "high": 29.08
+    },
+    {
+     "day": 29.811,
+     "status": "estimate",
+     "to_end": 4.671,
+     "to_threshold": null,
+     "low": 2.04,
+     "mid": 6.2,
+     "high": 29.55
+    },
+    {
+     "day": 29.933,
+     "status": "insufficient_data",
+     "to_end": 4.549,
+     "to_threshold": null
+    },
+    {
+     "day": 29.967,
+     "status": "insufficient_data",
+     "to_end": 4.515,
+     "to_threshold": null
+    },
+    {
+     "day": 30.002,
+     "status": "insufficient_data",
+     "to_end": 4.48,
+     "to_threshold": null
+    },
+    {
+     "day": 30.036,
+     "status": "insufficient_data",
+     "to_end": 4.445,
+     "to_threshold": null
+    },
+    {
+     "day": 30.133,
+     "status": "insufficient_data",
+     "to_end": 4.348,
+     "to_threshold": null
+    },
+    {
+     "day": 30.209,
+     "status": "insufficient_data",
+     "to_end": 4.273,
+     "to_threshold": null
+    },
+    {
+     "day": 30.243,
+     "status": "insufficient_data",
+     "to_end": 4.238,
+     "to_threshold": null
+    },
+    {
+     "day": 30.278,
+     "status": "insufficient_data",
+     "to_end": 4.203,
+     "to_threshold": null
+    },
+    {
+     "day": 30.313,
+     "status": "insufficient_data",
+     "to_end": 4.169,
+     "to_threshold": null
+    },
+    {
+     "day": 30.348,
+     "status": "insufficient_data",
+     "to_end": 4.134,
+     "to_threshold": null
+    },
+    {
+     "day": 30.382,
+     "status": "insufficient_data",
+     "to_end": 4.099,
+     "to_threshold": null
+    },
+    {
+     "day": 30.417,
+     "status": "insufficient_data",
+     "to_end": 4.065,
+     "to_threshold": null
+    },
+    {
+     "day": 30.452,
+     "status": "estimate",
+     "to_end": 4.03,
+     "to_threshold": null,
+     "low": 0.46,
+     "mid": 1.4,
+     "high": 6.67
+    },
+    {
+     "day": 30.486,
+     "status": "estimate",
+     "to_end": 3.995,
+     "to_threshold": null,
+     "low": 0.43,
+     "mid": 1.3,
+     "high": 6.2
+    },
+    {
+     "day": 30.521,
+     "status": "estimate",
+     "to_end": 3.96,
+     "to_threshold": null,
+     "low": 0.4,
+     "mid": 1.2,
+     "high": 5.72
+    },
+    {
+     "day": 30.556,
+     "status": "estimate",
+     "to_end": 3.926,
+     "to_threshold": null,
+     "low": 0.36,
+     "mid": 1.1,
+     "high": 5.24
+    },
+    {
+     "day": 30.591,
+     "status": "estimate",
+     "to_end": 3.891,
+     "to_threshold": null,
+     "low": 0.36,
+     "mid": 1.1,
+     "high": 5.24
+    },
+    {
+     "day": 30.625,
+     "status": "estimate",
+     "to_end": 3.856,
+     "to_threshold": null,
+     "low": 0.3,
+     "mid": 0.9,
+     "high": 4.29
+    },
+    {
+     "day": 30.66,
+     "status": "estimate",
+     "to_end": 3.822,
+     "to_threshold": null,
+     "low": 0.3,
+     "mid": 0.9,
+     "high": 4.29
+    },
+    {
+     "day": 30.695,
+     "status": "estimate",
+     "to_end": 3.787,
+     "to_threshold": null,
+     "low": 0.3,
+     "mid": 0.9,
+     "high": 4.29
+    },
+    {
+     "day": 30.73,
+     "status": "estimate",
+     "to_end": 3.752,
+     "to_threshold": null,
+     "low": 0.33,
+     "mid": 1.0,
+     "high": 4.77
+    },
+    {
+     "day": 30.764,
+     "status": "estimate",
+     "to_end": 3.717,
+     "to_threshold": null,
+     "low": 0.33,
+     "mid": 1.0,
+     "high": 4.77
+    },
+    {
+     "day": 30.799,
+     "status": "estimate",
+     "to_end": 3.683,
+     "to_threshold": null,
+     "low": 0.36,
+     "mid": 1.1,
+     "high": 5.24
+    },
+    {
+     "day": 30.834,
+     "status": "estimate",
+     "to_end": 3.648,
+     "to_threshold": null,
+     "low": 0.43,
+     "mid": 1.3,
+     "high": 6.2
+    },
+    {
+     "day": 30.868,
+     "status": "estimate",
+     "to_end": 3.613,
+     "to_threshold": null,
+     "low": 0.46,
+     "mid": 1.4,
+     "high": 6.67
+    },
+    {
+     "day": 30.903,
+     "status": "estimate",
+     "to_end": 3.578,
+     "to_threshold": null,
+     "low": 0.53,
+     "mid": 1.6,
+     "high": 7.63
+    },
+    {
+     "day": 30.938,
+     "status": "estimate",
+     "to_end": 3.544,
+     "to_threshold": null,
+     "low": 0.56,
+     "mid": 1.7,
+     "high": 8.1
+    },
+    {
+     "day": 30.973,
+     "status": "estimate",
+     "to_end": 3.509,
+     "to_threshold": null,
+     "low": 0.63,
+     "mid": 1.9,
+     "high": 9.06
+    },
+    {
+     "day": 31.007,
+     "status": "estimate",
+     "to_end": 3.474,
+     "to_threshold": null,
+     "low": 0.69,
+     "mid": 2.1,
+     "high": 10.01
+    },
+    {
+     "day": 31.042,
+     "status": "estimate",
+     "to_end": 3.44,
+     "to_threshold": null,
+     "low": 0.76,
+     "mid": 2.3,
+     "high": 10.96
+    },
+    {
+     "day": 31.077,
+     "status": "estimate",
+     "to_end": 3.405,
+     "to_threshold": null,
+     "low": 0.86,
+     "mid": 2.6,
+     "high": 12.39
+    },
+    {
+     "day": 31.111,
+     "status": "estimate",
+     "to_end": 3.37,
+     "to_threshold": null,
+     "low": 0.99,
+     "mid": 3.0,
+     "high": 14.3
+    },
+    {
+     "day": 31.146,
+     "status": "estimate",
+     "to_end": 3.335,
+     "to_threshold": null,
+     "low": 1.12,
+     "mid": 3.4,
+     "high": 16.21
+    },
+    {
+     "day": 31.181,
+     "status": "estimate",
+     "to_end": 3.301,
+     "to_threshold": null,
+     "low": 1.32,
+     "mid": 4.0,
+     "high": 19.07
+    },
+    {
+     "day": 31.216,
+     "status": "estimate",
+     "to_end": 3.266,
+     "to_threshold": null,
+     "low": 1.75,
+     "mid": 5.3,
+     "high": 25.26
+    },
+    {
+     "day": 31.25,
+     "status": "estimate",
+     "to_end": 3.231,
+     "to_threshold": null,
+     "low": 2.87,
+     "mid": 8.7,
+     "high": 41.47
+    },
+    {
+     "day": 31.285,
+     "status": "no_trend",
+     "to_end": 3.197,
+     "to_threshold": null
+    },
+    {
+     "day": 31.32,
+     "status": "no_trend",
+     "to_end": 3.162,
+     "to_threshold": null
+    },
+    {
+     "day": 31.466,
+     "status": "insufficient_data",
+     "to_end": 3.016,
+     "to_threshold": null
+    },
+    {
+     "day": 31.5,
+     "status": "insufficient_data",
+     "to_end": 2.981,
+     "to_threshold": null
+    },
+    {
+     "day": 31.535,
+     "status": "insufficient_data",
+     "to_end": 2.947,
+     "to_threshold": null
+    },
+    {
+     "day": 31.57,
+     "status": "insufficient_data",
+     "to_end": 2.912,
+     "to_threshold": null
+    },
+    {
+     "day": 31.605,
+     "status": "insufficient_data",
+     "to_end": 2.877,
+     "to_threshold": null
+    },
+    {
+     "day": 31.639,
+     "status": "insufficient_data",
+     "to_end": 2.842,
+     "to_threshold": null
+    },
+    {
+     "day": 31.674,
+     "status": "insufficient_data",
+     "to_end": 2.808,
+     "to_threshold": null
+    },
+    {
+     "day": 31.709,
+     "status": "insufficient_data",
+     "to_end": 2.773,
+     "to_threshold": null
+    },
+    {
+     "day": 31.743,
+     "status": "no_trend",
+     "to_end": 2.738,
+     "to_threshold": null
+    },
+    {
+     "day": 31.778,
+     "status": "no_trend",
+     "to_end": 2.703,
+     "to_threshold": null
+    },
+    {
+     "day": 31.813,
+     "status": "no_trend",
+     "to_end": 2.669,
+     "to_threshold": null
+    },
+    {
+     "day": 31.848,
+     "status": "no_trend",
+     "to_end": 2.634,
+     "to_threshold": null
+    },
+    {
+     "day": 31.882,
+     "status": "no_trend",
+     "to_end": 2.599,
+     "to_threshold": null
+    },
+    {
+     "day": 31.917,
+     "status": "no_trend",
+     "to_end": 2.565,
+     "to_threshold": null
+    },
+    {
+     "day": 31.952,
+     "status": "no_trend",
+     "to_end": 2.53,
+     "to_threshold": null
+    },
+    {
+     "day": 31.986,
+     "status": "no_trend",
+     "to_end": 2.495,
+     "to_threshold": null
+    },
+    {
+     "day": 32.021,
+     "status": "no_trend",
+     "to_end": 2.46,
+     "to_threshold": null
+    },
+    {
+     "day": 32.056,
+     "status": "no_trend",
+     "to_end": 2.426,
+     "to_threshold": null
+    },
+    {
+     "day": 32.091,
+     "status": "no_trend",
+     "to_end": 2.391,
+     "to_threshold": null
+    },
+    {
+     "day": 32.125,
+     "status": "no_trend",
+     "to_end": 2.356,
+     "to_threshold": null
+    },
+    {
+     "day": 32.16,
+     "status": "no_trend",
+     "to_end": 2.322,
+     "to_threshold": null
+    },
+    {
+     "day": 32.195,
+     "status": "no_trend",
+     "to_end": 2.287,
+     "to_threshold": null
+    },
+    {
+     "day": 32.23,
+     "status": "no_trend",
+     "to_end": 2.252,
+     "to_threshold": null
+    },
+    {
+     "day": 32.351,
+     "status": "insufficient_data",
+     "to_end": 2.131,
+     "to_threshold": null
+    },
+    {
+     "day": 32.385,
+     "status": "insufficient_data",
+     "to_end": 2.096,
+     "to_threshold": null
+    },
+    {
+     "day": 32.42,
+     "status": "insufficient_data",
+     "to_end": 2.061,
+     "to_threshold": null
+    },
+    {
+     "day": 32.455,
+     "status": "insufficient_data",
+     "to_end": 2.027,
+     "to_threshold": null
+    },
+    {
+     "day": 32.49,
+     "status": "insufficient_data",
+     "to_end": 1.992,
+     "to_threshold": null
+    },
+    {
+     "day": 32.524,
+     "status": "insufficient_data",
+     "to_end": 1.957,
+     "to_threshold": null
+    },
+    {
+     "day": 32.559,
+     "status": "insufficient_data",
+     "to_end": 1.923,
+     "to_threshold": null
+    },
+    {
+     "day": 32.594,
+     "status": "no_trend",
+     "to_end": 1.888,
+     "to_threshold": null
+    },
+    {
+     "day": 32.628,
+     "status": "no_trend",
+     "to_end": 1.853,
+     "to_threshold": null
+    },
+    {
+     "day": 32.663,
+     "status": "no_trend",
+     "to_end": 1.818,
+     "to_threshold": null
+    },
+    {
+     "day": 32.698,
+     "status": "no_trend",
+     "to_end": 1.784,
+     "to_threshold": null
+    },
+    {
+     "day": 32.733,
+     "status": "no_trend",
+     "to_end": 1.749,
+     "to_threshold": null
+    },
+    {
+     "day": 32.767,
+     "status": "no_trend",
+     "to_end": 1.714,
+     "to_threshold": null
+    },
+    {
+     "day": 32.837,
+     "status": "insufficient_data",
+     "to_end": 1.645,
+     "to_threshold": null
+    },
+    {
+     "day": 32.872,
+     "status": "insufficient_data",
+     "to_end": 1.61,
+     "to_threshold": null
+    },
+    {
+     "day": 32.927,
+     "status": "insufficient_data",
+     "to_end": 1.555,
+     "to_threshold": null
+    },
+    {
+     "day": 33.036,
+     "status": "insufficient_data",
+     "to_end": 1.446,
+     "to_threshold": null
+    },
+    {
+     "day": 33.07,
+     "status": "insufficient_data",
+     "to_end": 1.411,
+     "to_threshold": null
+    },
+    {
+     "day": 33.105,
+     "status": "insufficient_data",
+     "to_end": 1.377,
+     "to_threshold": null
+    },
+    {
+     "day": 33.14,
+     "status": "insufficient_data",
+     "to_end": 1.342,
+     "to_threshold": null
+    },
+    {
+     "day": 33.174,
+     "status": "insufficient_data",
+     "to_end": 1.307,
+     "to_threshold": null
+    },
+    {
+     "day": 33.209,
+     "status": "insufficient_data",
+     "to_end": 1.273,
+     "to_threshold": null
+    },
+    {
+     "day": 33.244,
+     "status": "insufficient_data",
+     "to_end": 1.238,
+     "to_threshold": null
+    },
+    {
+     "day": 33.279,
+     "status": "insufficient_data",
+     "to_end": 1.203,
+     "to_threshold": null
+    },
+    {
+     "day": 33.313,
+     "status": "no_trend",
+     "to_end": 1.168,
+     "to_threshold": null
+    },
+    {
+     "day": 33.348,
+     "status": "no_trend",
+     "to_end": 1.134,
+     "to_threshold": null
+    },
+    {
+     "day": 33.383,
+     "status": "no_trend",
+     "to_end": 1.099,
+     "to_threshold": null
+    },
+    {
+     "day": 33.417,
+     "status": "no_trend",
+     "to_end": 1.064,
+     "to_threshold": null
+    },
+    {
+     "day": 33.452,
+     "status": "no_trend",
+     "to_end": 1.029,
+     "to_threshold": null
+    },
+    {
+     "day": 33.487,
+     "status": "estimate",
+     "to_end": 0.995,
+     "to_threshold": null,
+     "low": 3.53,
+     "mid": 10.7,
+     "high": 51.0
+    },
+    {
+     "day": 33.966,
+     "status": "insufficient_data",
+     "to_end": 0.516,
+     "to_threshold": null
+    },
+    {
+     "day": 34.001,
+     "status": "insufficient_data",
+     "to_end": 0.481,
+     "to_threshold": null
+    },
+    {
+     "day": 34.036,
+     "status": "insufficient_data",
+     "to_end": 0.446,
+     "to_threshold": null
+    },
+    {
+     "day": 34.07,
+     "status": "insufficient_data",
+     "to_end": 0.411,
+     "to_threshold": null
+    },
+    {
+     "day": 34.105,
+     "status": "insufficient_data",
+     "to_end": 0.377,
+     "to_threshold": null
+    },
+    {
+     "day": 34.14,
+     "status": "insufficient_data",
+     "to_end": 0.342,
+     "to_threshold": null
+    },
+    {
+     "day": 34.463,
+     "status": "insufficient_data",
+     "to_end": 0.018,
+     "to_threshold": null
+    }
+   ]
+  },
+  "2nd_test/b1": {
+   "threshold": 27.03,
+   "own_end_level": 499.16,
+   "window_days": 3.0,
+   "first_alarm_day": 3.701388888888889,
+   "reached_threshold_day": 4.881944444444445,
+   "end_day": 6.826,
+   "lead_time_days": 3.13,
+   "metrics": {
+    "vs_threshold": {
+     "checks": 226,
+     "states": {
+      "estimate": 111,
+      "no_trend": 0,
+      "insufficient_data": 0,
+      "at_threshold": 115
+     },
+     "estimates_scored": 85,
+     "mae_days": 10.324,
+     "rmse_days": 15.65,
+     "median_abs_error_days": 5.203,
+     "bias_days": 10.324,
+     "interval_coverage": 0.0,
+     "nominal_coverage": 0.8
+    },
+    "vs_end_of_run": {
+     "checks": 226,
+     "states": {
+      "estimate": 111,
+      "no_trend": 0,
+      "insufficient_data": 0,
+      "at_threshold": 115
+     },
+     "estimates_scored": 111,
+     "mae_days": 6.785,
+     "rmse_days": 12.654,
+     "median_abs_error_days": 1.486,
+     "bias_days": 6.106,
+     "interval_coverage": 0.568,
+     "nominal_coverage": 0.8
+    }
+   },
+   "rows": [
+    {
+     "day": 3.701,
+     "status": "estimate",
+     "to_end": 3.125,
+     "to_threshold": 1.181,
+     "low": 11.0,
+     "mid": 50.5,
+     "high": 105.62
+    },
+    {
+     "day": 3.715,
+     "status": "estimate",
+     "to_end": 3.111,
+     "to_threshold": 1.167,
+     "low": 10.54,
+     "mid": 48.4,
+     "high": 101.23
+    },
+    {
+     "day": 3.729,
+     "status": "estimate",
+     "to_end": 3.097,
+     "to_threshold": 1.153,
+     "low": 10.17,
+     "mid": 46.7,
+     "high": 97.67
+    },
+    {
+     "day": 3.743,
+     "status": "estimate",
+     "to_end": 3.083,
+     "to_threshold": 1.139,
+     "low": 9.32,
+     "mid": 42.8,
+     "high": 89.52
+    },
+    {
+     "day": 3.757,
+     "status": "estimate",
+     "to_end": 3.069,
+     "to_threshold": 1.125,
+     "low": 8.87,
+     "mid": 40.7,
+     "high": 85.12
+    },
+    {
+     "day": 3.771,
+     "status": "estimate",
+     "to_end": 3.056,
+     "to_threshold": 1.111,
+     "low": 8.41,
+     "mid": 38.6,
+     "high": 80.73
+    },
+    {
+     "day": 3.785,
+     "status": "estimate",
+     "to_end": 3.042,
+     "to_threshold": 1.097,
+     "low": 7.71,
+     "mid": 35.4,
+     "high": 74.04
+    },
+    {
+     "day": 3.799,
+     "status": "estimate",
+     "to_end": 3.028,
+     "to_threshold": 1.083,
+     "low": 7.08,
+     "mid": 32.5,
+     "high": 67.97
+    },
+    {
+     "day": 3.812,
+     "status": "estimate",
+     "to_end": 3.014,
+     "to_threshold": 1.069,
+     "low": 6.58,
+     "mid": 30.2,
+     "high": 63.16
+    },
+    {
+     "day": 3.826,
+     "status": "estimate",
+     "to_end": 3.0,
+     "to_threshold": 1.056,
+     "low": 5.9,
+     "mid": 27.1,
+     "high": 56.68
+    },
+    {
+     "day": 3.84,
+     "status": "estimate",
+     "to_end": 2.986,
+     "to_threshold": 1.042,
+     "low": 5.66,
+     "mid": 26.0,
+     "high": 54.38
+    },
+    {
+     "day": 3.854,
+     "status": "estimate",
+     "to_end": 2.972,
+     "to_threshold": 1.028,
+     "low": 5.34,
+     "mid": 24.5,
+     "high": 51.24
+    },
+    {
+     "day": 3.868,
+     "status": "estimate",
+     "to_end": 2.958,
+     "to_threshold": 1.014,
+     "low": 4.84,
+     "mid": 22.2,
+     "high": 46.43
+    },
+    {
+     "day": 3.882,
+     "status": "estimate",
+     "to_end": 2.944,
+     "to_threshold": 1.0,
+     "low": 4.38,
+     "mid": 20.1,
+     "high": 42.04
+    },
+    {
+     "day": 3.896,
+     "status": "estimate",
+     "to_end": 2.931,
+     "to_threshold": 0.986,
+     "low": 4.23,
+     "mid": 19.4,
+     "high": 40.58
+    },
+    {
+     "day": 3.91,
+     "status": "estimate",
+     "to_end": 2.917,
+     "to_threshold": 0.972,
+     "low": 3.94,
+     "mid": 18.1,
+     "high": 37.86
+    },
+    {
+     "day": 3.924,
+     "status": "estimate",
+     "to_end": 2.903,
+     "to_threshold": 0.958,
+     "low": 3.75,
+     "mid": 17.2,
+     "high": 35.97
+    },
+    {
+     "day": 3.938,
+     "status": "estimate",
+     "to_end": 2.889,
+     "to_threshold": 0.944,
+     "low": 3.57,
+     "mid": 16.4,
+     "high": 34.3
+    },
+    {
+     "day": 3.951,
+     "status": "estimate",
+     "to_end": 2.875,
+     "to_threshold": 0.931,
+     "low": 3.44,
+     "mid": 15.8,
+     "high": 33.05
+    },
+    {
+     "day": 3.965,
+     "status": "estimate",
+     "to_end": 2.861,
+     "to_threshold": 0.917,
+     "low": 3.25,
+     "mid": 14.9,
+     "high": 31.16
+    },
+    {
+     "day": 3.979,
+     "status": "estimate",
+     "to_end": 2.847,
+     "to_threshold": 0.903,
+     "low": 3.09,
+     "mid": 14.2,
+     "high": 29.7
+    },
+    {
+     "day": 3.993,
+     "status": "estimate",
+     "to_end": 2.833,
+     "to_threshold": 0.889,
+     "low": 2.94,
+     "mid": 13.5,
+     "high": 28.24
+    },
+    {
+     "day": 4.007,
+     "status": "estimate",
+     "to_end": 2.819,
+     "to_threshold": 0.875,
+     "low": 2.81,
+     "mid": 12.9,
+     "high": 26.98
+    },
+    {
+     "day": 4.021,
+     "status": "estimate",
+     "to_end": 2.806,
+     "to_threshold": 0.861,
+     "low": 2.7,
+     "mid": 12.4,
+     "high": 25.93
+    },
+    {
+     "day": 4.035,
+     "status": "estimate",
+     "to_end": 2.792,
+     "to_threshold": 0.847,
+     "low": 2.57,
+     "mid": 11.8,
+     "high": 24.68
+    },
+    {
+     "day": 4.049,
+     "status": "estimate",
+     "to_end": 2.778,
+     "to_threshold": 0.833,
+     "low": 2.42,
+     "mid": 11.1,
+     "high": 23.22
+    },
+    {
+     "day": 4.062,
+     "status": "estimate",
+     "to_end": 2.764,
+     "to_threshold": 0.819,
+     "low": 2.35,
+     "mid": 10.8,
+     "high": 22.59
+    },
+    {
+     "day": 4.076,
+     "status": "estimate",
+     "to_end": 2.75,
+     "to_threshold": 0.806,
+     "low": 2.24,
+     "mid": 10.3,
+     "high": 21.54
+    },
+    {
+     "day": 4.09,
+     "status": "estimate",
+     "to_end": 2.736,
+     "to_threshold": 0.792,
+     "low": 2.16,
+     "mid": 9.9,
+     "high": 20.71
+    },
+    {
+     "day": 4.104,
+     "status": "estimate",
+     "to_end": 2.722,
+     "to_threshold": 0.778,
+     "low": 2.03,
+     "mid": 9.3,
+     "high": 19.45
+    },
+    {
+     "day": 4.118,
+     "status": "estimate",
+     "to_end": 2.708,
+     "to_threshold": 0.764,
+     "low": 1.96,
+     "mid": 9.0,
+     "high": 18.82
+    },
+    {
+     "day": 4.132,
+     "status": "estimate",
+     "to_end": 2.694,
+     "to_threshold": 0.75,
+     "low": 1.9,
+     "mid": 8.7,
+     "high": 18.2
+    },
+    {
+     "day": 4.146,
+     "status": "estimate",
+     "to_end": 2.681,
+     "to_threshold": 0.736,
+     "low": 1.83,
+     "mid": 8.4,
+     "high": 17.57
+    },
+    {
+     "day": 4.16,
+     "status": "estimate",
+     "to_end": 2.667,
+     "to_threshold": 0.722,
+     "low": 1.81,
+     "mid": 8.3,
+     "high": 17.36
+    },
+    {
+     "day": 4.174,
+     "status": "estimate",
+     "to_end": 2.653,
+     "to_threshold": 0.708,
+     "low": 1.74,
+     "mid": 8.0,
+     "high": 16.73
+    },
+    {
+     "day": 4.188,
+     "status": "estimate",
+     "to_end": 2.639,
+     "to_threshold": 0.694,
+     "low": 1.68,
+     "mid": 7.7,
+     "high": 16.1
+    },
+    {
+     "day": 4.201,
+     "status": "estimate",
+     "to_end": 2.625,
+     "to_threshold": 0.681,
+     "low": 1.61,
+     "mid": 7.4,
+     "high": 15.48
+    },
+    {
+     "day": 4.215,
+     "status": "estimate",
+     "to_end": 2.611,
+     "to_threshold": 0.667,
+     "low": 1.55,
+     "mid": 7.1,
+     "high": 14.85
+    },
+    {
+     "day": 4.229,
+     "status": "estimate",
+     "to_end": 2.597,
+     "to_threshold": 0.653,
+     "low": 1.48,
+     "mid": 6.8,
+     "high": 14.22
+    },
+    {
+     "day": 4.243,
+     "status": "estimate",
+     "to_end": 2.583,
+     "to_threshold": 0.639,
+     "low": 1.42,
+     "mid": 6.5,
+     "high": 13.59
+    },
+    {
+     "day": 4.257,
+     "status": "estimate",
+     "to_end": 2.569,
+     "to_threshold": 0.625,
+     "low": 1.35,
+     "mid": 6.2,
+     "high": 12.97
+    },
+    {
+     "day": 4.271,
+     "status": "estimate",
+     "to_end": 2.556,
+     "to_threshold": 0.611,
+     "low": 1.31,
+     "mid": 6.0,
+     "high": 12.55
+    },
+    {
+     "day": 4.285,
+     "status": "estimate",
+     "to_end": 2.542,
+     "to_threshold": 0.597,
+     "low": 1.26,
+     "mid": 5.8,
+     "high": 12.13
+    },
+    {
+     "day": 4.299,
+     "status": "estimate",
+     "to_end": 2.528,
+     "to_threshold": 0.583,
+     "low": 1.22,
+     "mid": 5.6,
+     "high": 11.71
+    },
+    {
+     "day": 4.312,
+     "status": "estimate",
+     "to_end": 2.514,
+     "to_threshold": 0.569,
+     "low": 1.18,
+     "mid": 5.4,
+     "high": 11.29
+    },
+    {
+     "day": 4.326,
+     "status": "estimate",
+     "to_end": 2.5,
+     "to_threshold": 0.556,
+     "low": 1.11,
+     "mid": 5.1,
+     "high": 10.67
+    },
+    {
+     "day": 4.34,
+     "status": "estimate",
+     "to_end": 2.486,
+     "to_threshold": 0.542,
+     "low": 1.09,
+     "mid": 5.0,
+     "high": 10.46
+    },
+    {
+     "day": 4.354,
+     "status": "estimate",
+     "to_end": 2.472,
+     "to_threshold": 0.528,
+     "low": 1.05,
+     "mid": 4.8,
+     "high": 10.04
+    },
+    {
+     "day": 4.368,
+     "status": "estimate",
+     "to_end": 2.458,
+     "to_threshold": 0.514,
+     "low": 1.02,
+     "mid": 4.7,
+     "high": 9.83
+    },
+    {
+     "day": 4.382,
+     "status": "estimate",
+     "to_end": 2.444,
+     "to_threshold": 0.5,
+     "low": 0.96,
+     "mid": 4.4,
+     "high": 9.2
+    },
+    {
+     "day": 4.396,
+     "status": "estimate",
+     "to_end": 2.431,
+     "to_threshold": 0.486,
+     "low": 0.96,
+     "mid": 4.4,
+     "high": 9.2
+    },
+    {
+     "day": 4.41,
+     "status": "estimate",
+     "to_end": 2.417,
+     "to_threshold": 0.472,
+     "low": 0.91,
+     "mid": 4.2,
+     "high": 8.78
+    },
+    {
+     "day": 4.424,
+     "status": "estimate",
+     "to_end": 2.403,
+     "to_threshold": 0.458,
+     "low": 0.89,
+     "mid": 4.1,
+     "high": 8.58
+    },
+    {
+     "day": 4.438,
+     "status": "estimate",
+     "to_end": 2.389,
+     "to_threshold": 0.444,
+     "low": 0.87,
+     "mid": 4.0,
+     "high": 8.37
+    },
+    {
+     "day": 4.451,
+     "status": "estimate",
+     "to_end": 2.375,
+     "to_threshold": 0.431,
+     "low": 0.83,
+     "mid": 3.8,
+     "high": 7.95
+    },
+    {
+     "day": 4.465,
+     "status": "estimate",
+     "to_end": 2.361,
+     "to_threshold": 0.417,
+     "low": 0.83,
+     "mid": 3.8,
+     "high": 7.95
+    },
+    {
+     "day": 4.479,
+     "status": "estimate",
+     "to_end": 2.347,
+     "to_threshold": 0.403,
+     "low": 0.81,
+     "mid": 3.7,
+     "high": 7.74
+    },
+    {
+     "day": 4.493,
+     "status": "estimate",
+     "to_end": 2.333,
+     "to_threshold": 0.389,
+     "low": 0.78,
+     "mid": 3.6,
+     "high": 7.53
+    },
+    {
+     "day": 4.507,
+     "status": "estimate",
+     "to_end": 2.319,
+     "to_threshold": 0.375,
+     "low": 0.74,
+     "mid": 3.4,
+     "high": 7.11
+    },
+    {
+     "day": 4.521,
+     "status": "estimate",
+     "to_end": 2.306,
+     "to_threshold": 0.361,
+     "low": 0.72,
+     "mid": 3.3,
+     "high": 6.9
+    },
+    {
+     "day": 4.535,
+     "status": "estimate",
+     "to_end": 2.292,
+     "to_threshold": 0.347,
+     "low": 0.7,
+     "mid": 3.2,
+     "high": 6.69
+    },
+    {
+     "day": 4.549,
+     "status": "estimate",
+     "to_end": 2.278,
+     "to_threshold": 0.333,
+     "low": 0.68,
+     "mid": 3.1,
+     "high": 6.48
+    },
+    {
+     "day": 4.562,
+     "status": "estimate",
+     "to_end": 2.264,
+     "to_threshold": 0.319,
+     "low": 0.65,
+     "mid": 3.0,
+     "high": 6.27
+    },
+    {
+     "day": 4.576,
+     "status": "estimate",
+     "to_end": 2.25,
+     "to_threshold": 0.306,
+     "low": 0.61,
+     "mid": 2.8,
+     "high": 5.86
+    },
+    {
+     "day": 4.59,
+     "status": "estimate",
+     "to_end": 2.236,
+     "to_threshold": 0.292,
+     "low": 0.61,
+     "mid": 2.8,
+     "high": 5.86
+    },
+    {
+     "day": 4.604,
+     "status": "estimate",
+     "to_end": 2.222,
+     "to_threshold": 0.278,
+     "low": 0.59,
+     "mid": 2.7,
+     "high": 5.65
+    },
+    {
+     "day": 4.618,
+     "status": "estimate",
+     "to_end": 2.208,
+     "to_threshold": 0.264,
+     "low": 0.57,
+     "mid": 2.6,
+     "high": 5.44
+    },
+    {
+     "day": 4.632,
+     "status": "estimate",
+     "to_end": 2.194,
+     "to_threshold": 0.25,
+     "low": 0.54,
+     "mid": 2.5,
+     "high": 5.23
+    },
+    {
+     "day": 4.646,
+     "status": "estimate",
+     "to_end": 2.181,
+     "to_threshold": 0.236,
+     "low": 0.52,
+     "mid": 2.4,
+     "high": 5.02
+    },
+    {
+     "day": 4.66,
+     "status": "estimate",
+     "to_end": 2.167,
+     "to_threshold": 0.222,
+     "low": 0.52,
+     "mid": 2.4,
+     "high": 5.02
+    },
+    {
+     "day": 4.674,
+     "status": "estimate",
+     "to_end": 2.153,
+     "to_threshold": 0.208,
+     "low": 0.5,
+     "mid": 2.3,
+     "high": 4.81
+    },
+    {
+     "day": 4.688,
+     "status": "estimate",
+     "to_end": 2.139,
+     "to_threshold": 0.194,
+     "low": 0.48,
+     "mid": 2.2,
+     "high": 4.6
+    },
+    {
+     "day": 4.701,
+     "status": "estimate",
+     "to_end": 2.125,
+     "to_threshold": 0.181,
+     "low": 0.48,
+     "mid": 2.2,
+     "high": 4.6
+    },
+    {
+     "day": 4.715,
+     "status": "estimate",
+     "to_end": 2.111,
+     "to_threshold": 0.167,
+     "low": 0.46,
+     "mid": 2.1,
+     "high": 4.39
+    },
+    {
+     "day": 4.729,
+     "status": "estimate",
+     "to_end": 2.097,
+     "to_threshold": 0.153,
+     "low": 0.44,
+     "mid": 2.0,
+     "high": 4.18
+    },
+    {
+     "day": 4.743,
+     "status": "estimate",
+     "to_end": 2.083,
+     "to_threshold": 0.139,
+     "low": 0.44,
+     "mid": 2.0,
+     "high": 4.18
+    },
+    {
+     "day": 4.757,
+     "status": "estimate",
+     "to_end": 2.069,
+     "to_threshold": 0.125,
+     "low": 0.41,
+     "mid": 1.9,
+     "high": 3.97
+    },
+    {
+     "day": 4.771,
+     "status": "estimate",
+     "to_end": 2.056,
+     "to_threshold": 0.111,
+     "low": 0.39,
+     "mid": 1.8,
+     "high": 3.76
+    },
+    {
+     "day": 4.785,
+     "status": "estimate",
+     "to_end": 2.042,
+     "to_threshold": 0.097,
+     "low": 0.39,
+     "mid": 1.8,
+     "high": 3.76
+    },
+    {
+     "day": 4.799,
+     "status": "estimate",
+     "to_end": 2.028,
+     "to_threshold": 0.083,
+     "low": 0.37,
+     "mid": 1.7,
+     "high": 3.56
+    },
+    {
+     "day": 4.812,
+     "status": "estimate",
+     "to_end": 2.014,
+     "to_threshold": 0.069,
+     "low": 0.37,
+     "mid": 1.7,
+     "high": 3.56
+    },
+    {
+     "day": 4.826,
+     "status": "estimate",
+     "to_end": 2.0,
+     "to_threshold": 0.056,
+     "low": 0.35,
+     "mid": 1.6,
+     "high": 3.35
+    },
+    {
+     "day": 4.84,
+     "status": "estimate",
+     "to_end": 1.986,
+     "to_threshold": 0.042,
+     "low": 0.35,
+     "mid": 1.6,
+     "high": 3.35
+    },
+    {
+     "day": 4.854,
+     "status": "estimate",
+     "to_end": 1.972,
+     "to_threshold": 0.028,
+     "low": 0.33,
+     "mid": 1.5,
+     "high": 3.14
+    },
+    {
+     "day": 4.868,
+     "status": "estimate",
+     "to_end": 1.958,
+     "to_threshold": 0.014,
+     "low": 0.33,
+     "mid": 1.5,
+     "high": 3.14
+    },
+    {
+     "day": 4.882,
+     "status": "at_threshold",
+     "to_end": 1.944,
+     "to_threshold": 0.0
+    },
+    {
+     "day": 4.896,
+     "status": "at_threshold",
+     "to_end": 1.931,
+     "to_threshold": null
+    },
+    {
+     "day": 4.91,
+     "status": "at_threshold",
+     "to_end": 1.917,
+     "to_threshold": null
+    },
+    {
+     "day": 4.924,
+     "status": "at_threshold",
+     "to_end": 1.903,
+     "to_threshold": null
+    },
+    {
+     "day": 4.938,
+     "status": "at_threshold",
+     "to_end": 1.889,
+     "to_threshold": null
+    },
+    {
+     "day": 4.951,
+     "status": "at_threshold",
+     "to_end": 1.875,
+     "to_threshold": null
+    },
+    {
+     "day": 4.965,
+     "status": "at_threshold",
+     "to_end": 1.861,
+     "to_threshold": null
+    },
+    {
+     "day": 4.979,
+     "status": "at_threshold",
+     "to_end": 1.847,
+     "to_threshold": null
+    },
+    {
+     "day": 4.993,
+     "status": "at_threshold",
+     "to_end": 1.833,
+     "to_threshold": null
+    },
+    {
+     "day": 5.007,
+     "status": "at_threshold",
+     "to_end": 1.819,
+     "to_threshold": null
+    },
+    {
+     "day": 5.021,
+     "status": "at_threshold",
+     "to_end": 1.806,
+     "to_threshold": null
+    },
+    {
+     "day": 5.035,
+     "status": "at_threshold",
+     "to_end": 1.792,
+     "to_threshold": null
+    },
+    {
+     "day": 5.049,
+     "status": "at_threshold",
+     "to_end": 1.778,
+     "to_threshold": null
+    },
+    {
+     "day": 5.062,
+     "status": "at_threshold",
+     "to_end": 1.764,
+     "to_threshold": null
+    },
+    {
+     "day": 5.076,
+     "status": "at_threshold",
+     "to_end": 1.75,
+     "to_threshold": null
+    },
+    {
+     "day": 5.09,
+     "status": "at_threshold",
+     "to_end": 1.736,
+     "to_threshold": null
+    },
+    {
+     "day": 5.104,
+     "status": "at_threshold",
+     "to_end": 1.722,
+     "to_threshold": null
+    },
+    {
+     "day": 5.118,
+     "status": "at_threshold",
+     "to_end": 1.708,
+     "to_threshold": null
+    },
+    {
+     "day": 5.132,
+     "status": "at_threshold",
+     "to_end": 1.694,
+     "to_threshold": null
+    },
+    {
+     "day": 5.146,
+     "status": "at_threshold",
+     "to_end": 1.681,
+     "to_threshold": null
+    },
+    {
+     "day": 5.16,
+     "status": "at_threshold",
+     "to_end": 1.667,
+     "to_threshold": null
+    },
+    {
+     "day": 5.174,
+     "status": "at_threshold",
+     "to_end": 1.653,
+     "to_threshold": null
+    },
+    {
+     "day": 5.188,
+     "status": "at_threshold",
+     "to_end": 1.639,
+     "to_threshold": null
+    },
+    {
+     "day": 5.201,
+     "status": "at_threshold",
+     "to_end": 1.625,
+     "to_threshold": null
+    },
+    {
+     "day": 5.215,
+     "status": "at_threshold",
+     "to_end": 1.611,
+     "to_threshold": null
+    },
+    {
+     "day": 5.229,
+     "status": "at_threshold",
+     "to_end": 1.597,
+     "to_threshold": null
+    },
+    {
+     "day": 5.243,
+     "status": "at_threshold",
+     "to_end": 1.583,
+     "to_threshold": null
+    },
+    {
+     "day": 5.257,
+     "status": "at_threshold",
+     "to_end": 1.569,
+     "to_threshold": null
+    },
+    {
+     "day": 5.271,
+     "status": "at_threshold",
+     "to_end": 1.556,
+     "to_threshold": null
+    },
+    {
+     "day": 5.285,
+     "status": "at_threshold",
+     "to_end": 1.542,
+     "to_threshold": null
+    },
+    {
+     "day": 5.299,
+     "status": "at_threshold",
+     "to_end": 1.528,
+     "to_threshold": null
+    },
+    {
+     "day": 5.312,
+     "status": "at_threshold",
+     "to_end": 1.514,
+     "to_threshold": null
+    },
+    {
+     "day": 5.326,
+     "status": "estimate",
+     "to_end": 1.5,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.34,
+     "status": "estimate",
+     "to_end": 1.486,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.354,
+     "status": "estimate",
+     "to_end": 1.472,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.368,
+     "status": "estimate",
+     "to_end": 1.458,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.382,
+     "status": "estimate",
+     "to_end": 1.444,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.396,
+     "status": "estimate",
+     "to_end": 1.431,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.41,
+     "status": "estimate",
+     "to_end": 1.417,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.424,
+     "status": "estimate",
+     "to_end": 1.403,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.438,
+     "status": "estimate",
+     "to_end": 1.389,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.451,
+     "status": "estimate",
+     "to_end": 1.375,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.465,
+     "status": "estimate",
+     "to_end": 1.361,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.479,
+     "status": "estimate",
+     "to_end": 1.347,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.493,
+     "status": "estimate",
+     "to_end": 1.333,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.507,
+     "status": "estimate",
+     "to_end": 1.319,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.521,
+     "status": "estimate",
+     "to_end": 1.306,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.535,
+     "status": "estimate",
+     "to_end": 1.292,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.549,
+     "status": "estimate",
+     "to_end": 1.278,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.562,
+     "status": "estimate",
+     "to_end": 1.264,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.576,
+     "status": "estimate",
+     "to_end": 1.25,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.59,
+     "status": "estimate",
+     "to_end": 1.236,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.604,
+     "status": "estimate",
+     "to_end": 1.222,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.618,
+     "status": "estimate",
+     "to_end": 1.208,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.632,
+     "status": "estimate",
+     "to_end": 1.194,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.646,
+     "status": "at_threshold",
+     "to_end": 1.181,
+     "to_threshold": null
+    },
+    {
+     "day": 5.66,
+     "status": "estimate",
+     "to_end": 1.167,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.674,
+     "status": "estimate",
+     "to_end": 1.153,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.688,
+     "status": "estimate",
+     "to_end": 1.139,
+     "to_threshold": null,
+     "low": 0.0,
+     "mid": 0.0,
+     "high": 0.0
+    },
+    {
+     "day": 5.701,
+     "status": "at_threshold",
+     "to_end": 1.125,
+     "to_threshold": null
+    },
+    {
+     "day": 5.715,
+     "status": "at_threshold",
+     "to_end": 1.111,
+     "to_threshold": null
+    },
+    {
+     "day": 5.729,
+     "status": "at_threshold",
+     "to_end": 1.097,
+     "to_threshold": null
+    },
+    {
+     "day": 5.743,
+     "status": "at_threshold",
+     "to_end": 1.083,
+     "to_threshold": null
+    },
+    {
+     "day": 5.757,
+     "status": "at_threshold",
+     "to_end": 1.069,
+     "to_threshold": null
+    },
+    {
+     "day": 5.771,
+     "status": "at_threshold",
+     "to_end": 1.056,
+     "to_threshold": null
+    },
+    {
+     "day": 5.785,
+     "status": "at_threshold",
+     "to_end": 1.042,
+     "to_threshold": null
+    },
+    {
+     "day": 5.799,
+     "status": "at_threshold",
+     "to_end": 1.028,
+     "to_threshold": null
+    },
+    {
+     "day": 5.812,
+     "status": "at_threshold",
+     "to_end": 1.014,
+     "to_threshold": null
+    },
+    {
+     "day": 5.826,
+     "status": "at_threshold",
+     "to_end": 1.0,
+     "to_threshold": null
+    },
+    {
+     "day": 5.84,
+     "status": "at_threshold",
+     "to_end": 0.986,
+     "to_threshold": null
+    },
+    {
+     "day": 5.854,
+     "status": "at_threshold",
+     "to_end": 0.972,
+     "to_threshold": null
+    },
+    {
+     "day": 5.868,
+     "status": "at_threshold",
+     "to_end": 0.958,
+     "to_threshold": null
+    },
+    {
+     "day": 5.882,
+     "status": "at_threshold",
+     "to_end": 0.944,
+     "to_threshold": null
+    },
+    {
+     "day": 5.896,
+     "status": "at_threshold",
+     "to_end": 0.931,
+     "to_threshold": null
+    },
+    {
+     "day": 5.91,
+     "status": "at_threshold",
+     "to_end": 0.917,
+     "to_threshold": null
+    },
+    {
+     "day": 5.924,
+     "status": "at_threshold",
+     "to_end": 0.903,
+     "to_threshold": null
+    },
+    {
+     "day": 5.938,
+     "status": "at_threshold",
+     "to_end": 0.889,
+     "to_threshold": null
+    },
+    {
+     "day": 5.951,
+     "status": "at_threshold",
+     "to_end": 0.875,
+     "to_threshold": null
+    },
+    {
+     "day": 5.965,
+     "status": "at_threshold",
+     "to_end": 0.861,
+     "to_threshold": null
+    },
+    {
+     "day": 5.979,
+     "status": "at_threshold",
+     "to_end": 0.847,
+     "to_threshold": null
+    },
+    {
+     "day": 5.993,
+     "status": "at_threshold",
+     "to_end": 0.833,
+     "to_threshold": null
+    },
+    {
+     "day": 6.007,
+     "status": "at_threshold",
+     "to_end": 0.819,
+     "to_threshold": null
+    },
+    {
+     "day": 6.021,
+     "status": "at_threshold",
+     "to_end": 0.806,
+     "to_threshold": null
+    },
+    {
+     "day": 6.035,
+     "status": "at_threshold",
+     "to_end": 0.792,
+     "to_threshold": null
+    },
+    {
+     "day": 6.049,
+     "status": "at_threshold",
+     "to_end": 0.778,
+     "to_threshold": null
+    },
+    {
+     "day": 6.062,
+     "status": "at_threshold",
+     "to_end": 0.764,
+     "to_threshold": null
+    },
+    {
+     "day": 6.076,
+     "status": "at_threshold",
+     "to_end": 0.75,
+     "to_threshold": null
+    },
+    {
+     "day": 6.09,
+     "status": "at_threshold",
+     "to_end": 0.736,
+     "to_threshold": null
+    },
+    {
+     "day": 6.104,
+     "status": "at_threshold",
+     "to_end": 0.722,
+     "to_threshold": null
+    },
+    {
+     "day": 6.118,
+     "status": "at_threshold",
+     "to_end": 0.708,
+     "to_threshold": null
+    },
+    {
+     "day": 6.132,
+     "status": "at_threshold",
+     "to_end": 0.694,
+     "to_threshold": null
+    },
+    {
+     "day": 6.146,
+     "status": "at_threshold",
+     "to_end": 0.681,
+     "to_threshold": null
+    },
+    {
+     "day": 6.16,
+     "status": "at_threshold",
+     "to_end": 0.667,
+     "to_threshold": null
+    },
+    {
+     "day": 6.174,
+     "status": "at_threshold",
+     "to_end": 0.653,
+     "to_threshold": null
+    },
+    {
+     "day": 6.188,
+     "status": "at_threshold",
+     "to_end": 0.639,
+     "to_threshold": null
+    },
+    {
+     "day": 6.201,
+     "status": "at_threshold",
+     "to_end": 0.625,
+     "to_threshold": null
+    },
+    {
+     "day": 6.215,
+     "status": "at_threshold",
+     "to_end": 0.611,
+     "to_threshold": null
+    },
+    {
+     "day": 6.229,
+     "status": "at_threshold",
+     "to_end": 0.597,
+     "to_threshold": null
+    },
+    {
+     "day": 6.243,
+     "status": "at_threshold",
+     "to_end": 0.583,
+     "to_threshold": null
+    },
+    {
+     "day": 6.257,
+     "status": "at_threshold",
+     "to_end": 0.569,
+     "to_threshold": null
+    },
+    {
+     "day": 6.271,
+     "status": "at_threshold",
+     "to_end": 0.556,
+     "to_threshold": null
+    },
+    {
+     "day": 6.285,
+     "status": "at_threshold",
+     "to_end": 0.542,
+     "to_threshold": null
+    },
+    {
+     "day": 6.299,
+     "status": "at_threshold",
+     "to_end": 0.528,
+     "to_threshold": null
+    },
+    {
+     "day": 6.312,
+     "status": "at_threshold",
+     "to_end": 0.514,
+     "to_threshold": null
+    },
+    {
+     "day": 6.326,
+     "status": "at_threshold",
+     "to_end": 0.5,
+     "to_threshold": null
+    },
+    {
+     "day": 6.34,
+     "status": "at_threshold",
+     "to_end": 0.486,
+     "to_threshold": null
+    },
+    {
+     "day": 6.354,
+     "status": "at_threshold",
+     "to_end": 0.472,
+     "to_threshold": null
+    },
+    {
+     "day": 6.368,
+     "status": "at_threshold",
+     "to_end": 0.458,
+     "to_threshold": null
+    },
+    {
+     "day": 6.382,
+     "status": "at_threshold",
+     "to_end": 0.444,
+     "to_threshold": null
+    },
+    {
+     "day": 6.396,
+     "status": "at_threshold",
+     "to_end": 0.431,
+     "to_threshold": null
+    },
+    {
+     "day": 6.41,
+     "status": "at_threshold",
+     "to_end": 0.417,
+     "to_threshold": null
+    },
+    {
+     "day": 6.424,
+     "status": "at_threshold",
+     "to_end": 0.403,
+     "to_threshold": null
+    },
+    {
+     "day": 6.438,
+     "status": "at_threshold",
+     "to_end": 0.389,
+     "to_threshold": null
+    },
+    {
+     "day": 6.451,
+     "status": "at_threshold",
+     "to_end": 0.375,
+     "to_threshold": null
+    },
+    {
+     "day": 6.465,
+     "status": "at_threshold",
+     "to_end": 0.361,
+     "to_threshold": null
+    },
+    {
+     "day": 6.479,
+     "status": "at_threshold",
+     "to_end": 0.347,
+     "to_threshold": null
+    },
+    {
+     "day": 6.493,
+     "status": "at_threshold",
+     "to_end": 0.333,
+     "to_threshold": null
+    },
+    {
+     "day": 6.507,
+     "status": "at_threshold",
+     "to_end": 0.319,
+     "to_threshold": null
+    },
+    {
+     "day": 6.521,
+     "status": "at_threshold",
+     "to_end": 0.306,
+     "to_threshold": null
+    },
+    {
+     "day": 6.535,
+     "status": "at_threshold",
+     "to_end": 0.292,
+     "to_threshold": null
+    },
+    {
+     "day": 6.549,
+     "status": "at_threshold",
+     "to_end": 0.278,
+     "to_threshold": null
+    },
+    {
+     "day": 6.562,
+     "status": "at_threshold",
+     "to_end": 0.264,
+     "to_threshold": null
+    },
+    {
+     "day": 6.576,
+     "status": "at_threshold",
+     "to_end": 0.25,
+     "to_threshold": null
+    },
+    {
+     "day": 6.59,
+     "status": "at_threshold",
+     "to_end": 0.236,
+     "to_threshold": null
+    },
+    {
+     "day": 6.604,
+     "status": "at_threshold",
+     "to_end": 0.222,
+     "to_threshold": null
+    },
+    {
+     "day": 6.618,
+     "status": "at_threshold",
+     "to_end": 0.208,
+     "to_threshold": null
+    },
+    {
+     "day": 6.632,
+     "status": "at_threshold",
+     "to_end": 0.194,
+     "to_threshold": null
+    },
+    {
+     "day": 6.646,
+     "status": "at_threshold",
+     "to_end": 0.181,
+     "to_threshold": null
+    },
+    {
+     "day": 6.66,
+     "status": "at_threshold",
+     "to_end": 0.167,
+     "to_threshold": null
+    },
+    {
+     "day": 6.674,
+     "status": "at_threshold",
+     "to_end": 0.153,
+     "to_threshold": null
+    },
+    {
+     "day": 6.688,
+     "status": "at_threshold",
+     "to_end": 0.139,
+     "to_threshold": null
+    },
+    {
+     "day": 6.701,
+     "status": "at_threshold",
+     "to_end": 0.125,
+     "to_threshold": null
+    },
+    {
+     "day": 6.715,
+     "status": "at_threshold",
+     "to_end": 0.111,
+     "to_threshold": null
+    },
+    {
+     "day": 6.729,
+     "status": "at_threshold",
+     "to_end": 0.097,
+     "to_threshold": null
+    },
+    {
+     "day": 6.743,
+     "status": "at_threshold",
+     "to_end": 0.083,
+     "to_threshold": null
+    },
+    {
+     "day": 6.757,
+     "status": "at_threshold",
+     "to_end": 0.069,
+     "to_threshold": null
+    },
+    {
+     "day": 6.771,
+     "status": "at_threshold",
+     "to_end": 0.056,
+     "to_threshold": null
+    },
+    {
+     "day": 6.785,
+     "status": "at_threshold",
+     "to_end": 0.042,
+     "to_threshold": null
+    },
+    {
+     "day": 6.799,
+     "status": "at_threshold",
+     "to_end": 0.028,
+     "to_threshold": null
+    },
+    {
+     "day": 6.812,
+     "status": "at_threshold",
+     "to_end": 0.014,
+     "to_threshold": null
+    },
+    {
+     "day": 6.826,
+     "status": "at_threshold",
+     "to_end": 0.0,
+     "to_threshold": null
+    }
+   ]
+  },
+  "3rd_test/b3": {
+   "threshold": 27.03,
+   "own_end_level": 160.96,
+   "window_days": 2.0,
+   "first_alarm_day": 9.447916666666666,
+   "reached_threshold_day": 43.59385416666667,
+   "end_day": 44.719,
+   "lead_time_days": 35.27,
+   "metrics": {
+    "vs_threshold": {
+     "checks": 331,
+     "states": {
+      "estimate": 140,
+      "no_trend": 161,
+      "insufficient_data": 19,
+      "at_threshold": 11
+     },
+     "estimates_scored": 140,
+     "mae_days": 12.538,
+     "rmse_days": 15.567,
+     "median_abs_error_days": 11.038,
+     "bias_days": 4.838,
+     "interval_coverage": 0.886,
+     "nominal_coverage": 0.8
+    },
+    "vs_end_of_run": {
+     "checks": 331,
+     "states": {
+      "estimate": 140,
+      "no_trend": 161,
+      "insufficient_data": 19,
+      "at_threshold": 11
+     },
+     "estimates_scored": 140,
+     "mae_days": 12.44,
+     "rmse_days": 15.254,
+     "median_abs_error_days": 11.071,
+     "bias_days": 3.713,
+     "interval_coverage": 0.886,
+     "nominal_coverage": 0.8
+    }
+   },
+   "rows": [
+    {
+     "day": 9.448,
+     "status": "estimate",
+     "to_end": 35.271,
+     "to_threshold": 34.146,
+     "low": 5.77,
+     "mid": 31.6,
+     "high": 100.9
+    },
+    {
+     "day": 9.552,
+     "status": "estimate",
+     "to_end": 35.167,
+     "to_threshold": 34.042,
+     "low": 3.98,
+     "mid": 21.8,
+     "high": 69.61
+    },
+    {
+     "day": 9.656,
+     "status": "estimate",
+     "to_end": 35.063,
+     "to_threshold": 33.938,
+     "low": 3.05,
+     "mid": 16.7,
+     "high": 53.32
+    },
+    {
+     "day": 9.76,
+     "status": "estimate",
+     "to_end": 34.958,
+     "to_threshold": 33.833,
+     "low": 2.94,
+     "mid": 16.1,
+     "high": 51.41
+    },
+    {
+     "day": 9.865,
+     "status": "estimate",
+     "to_end": 34.854,
+     "to_threshold": 33.729,
+     "low": 2.85,
+     "mid": 15.6,
+     "high": 49.81
+    },
+    {
+     "day": 9.969,
+     "status": "estimate",
+     "to_end": 34.75,
+     "to_threshold": 33.625,
+     "low": 2.48,
+     "mid": 13.6,
+     "high": 43.42
+    },
+    {
+     "day": 10.073,
+     "status": "estimate",
+     "to_end": 34.646,
+     "to_threshold": 33.521,
+     "low": 2.36,
+     "mid": 12.9,
+     "high": 41.19
+    },
+    {
+     "day": 10.177,
+     "status": "estimate",
+     "to_end": 34.542,
+     "to_threshold": 33.417,
+     "low": 2.14,
+     "mid": 11.7,
+     "high": 37.36
+    },
+    {
+     "day": 10.281,
+     "status": "estimate",
+     "to_end": 34.438,
+     "to_threshold": 33.313,
+     "low": 2.27,
+     "mid": 12.4,
+     "high": 39.59
+    },
+    {
+     "day": 10.385,
+     "status": "estimate",
+     "to_end": 34.333,
+     "to_threshold": 33.208,
+     "low": 2.1,
+     "mid": 11.5,
+     "high": 36.72
+    },
+    {
+     "day": 10.49,
+     "status": "estimate",
+     "to_end": 34.229,
+     "to_threshold": 33.104,
+     "low": 2.21,
+     "mid": 12.1,
+     "high": 38.63
+    },
+    {
+     "day": 10.594,
+     "status": "estimate",
+     "to_end": 34.125,
+     "to_threshold": 33.0,
+     "low": 2.28,
+     "mid": 12.5,
+     "high": 39.91
+    },
+    {
+     "day": 10.698,
+     "status": "estimate",
+     "to_end": 34.021,
+     "to_threshold": 32.896,
+     "low": 2.48,
+     "mid": 13.6,
+     "high": 43.42
+    },
+    {
+     "day": 10.802,
+     "status": "estimate",
+     "to_end": 33.917,
+     "to_threshold": 32.792,
+     "low": 2.58,
+     "mid": 14.1,
+     "high": 45.02
+    },
+    {
+     "day": 10.906,
+     "status": "estimate",
+     "to_end": 33.813,
+     "to_threshold": 32.688,
+     "low": 2.85,
+     "mid": 15.6,
+     "high": 49.81
+    },
+    {
+     "day": 11.186,
+     "status": "insufficient_data",
+     "to_end": 33.533,
+     "to_threshold": 32.408
+    },
+    {
+     "day": 11.29,
+     "status": "insufficient_data",
+     "to_end": 33.429,
+     "to_threshold": 32.304
+    },
+    {
+     "day": 11.394,
+     "status": "insufficient_data",
+     "to_end": 33.325,
+     "to_threshold": 32.2
+    },
+    {
+     "day": 11.498,
+     "status": "insufficient_data",
+     "to_end": 33.221,
+     "to_threshold": 32.096
+    },
+    {
+     "day": 11.602,
+     "status": "insufficient_data",
+     "to_end": 33.116,
+     "to_threshold": 31.991
+    },
+    {
+     "day": 11.707,
+     "status": "no_trend",
+     "to_end": 33.012,
+     "to_threshold": 31.887
+    },
+    {
+     "day": 11.811,
+     "status": "no_trend",
+     "to_end": 32.908,
+     "to_threshold": 31.783
+    },
+    {
+     "day": 11.915,
+     "status": "no_trend",
+     "to_end": 32.804,
+     "to_threshold": 31.679
+    },
+    {
+     "day": 12.019,
+     "status": "no_trend",
+     "to_end": 32.7,
+     "to_threshold": 31.575
+    },
+    {
+     "day": 12.123,
+     "status": "no_trend",
+     "to_end": 32.596,
+     "to_threshold": 31.471
+    },
+    {
+     "day": 12.227,
+     "status": "no_trend",
+     "to_end": 32.491,
+     "to_threshold": 31.366
+    },
+    {
+     "day": 12.332,
+     "status": "no_trend",
+     "to_end": 32.387,
+     "to_threshold": 31.262
+    },
+    {
+     "day": 12.436,
+     "status": "no_trend",
+     "to_end": 32.283,
+     "to_threshold": 31.158
+    },
+    {
+     "day": 12.54,
+     "status": "no_trend",
+     "to_end": 32.179,
+     "to_threshold": 31.054
+    },
+    {
+     "day": 12.644,
+     "status": "no_trend",
+     "to_end": 32.075,
+     "to_threshold": 30.95
+    },
+    {
+     "day": 12.748,
+     "status": "no_trend",
+     "to_end": 31.971,
+     "to_threshold": 30.846
+    },
+    {
+     "day": 12.852,
+     "status": "no_trend",
+     "to_end": 31.866,
+     "to_threshold": 30.741
+    },
+    {
+     "day": 12.957,
+     "status": "estimate",
+     "to_end": 31.762,
+     "to_threshold": 30.637,
+     "low": 4.9,
+     "mid": 26.8,
+     "high": 85.57
+    },
+    {
+     "day": 13.061,
+     "status": "estimate",
+     "to_end": 31.658,
+     "to_threshold": 30.533,
+     "low": 4.15,
+     "mid": 22.7,
+     "high": 72.48
+    },
+    {
+     "day": 13.165,
+     "status": "estimate",
+     "to_end": 31.554,
+     "to_threshold": 30.429,
+     "low": 3.4,
+     "mid": 18.6,
+     "high": 59.39
+    },
+    {
+     "day": 13.269,
+     "status": "estimate",
+     "to_end": 31.45,
+     "to_threshold": 30.325,
+     "low": 2.43,
+     "mid": 13.3,
+     "high": 42.47
+    },
+    {
+     "day": 13.373,
+     "status": "estimate",
+     "to_end": 31.346,
+     "to_threshold": 30.221,
+     "low": 2.16,
+     "mid": 11.8,
+     "high": 37.68
+    },
+    {
+     "day": 13.477,
+     "status": "estimate",
+     "to_end": 31.241,
+     "to_threshold": 30.116,
+     "low": 2.34,
+     "mid": 12.8,
+     "high": 40.87
+    },
+    {
+     "day": 13.582,
+     "status": "estimate",
+     "to_end": 31.137,
+     "to_threshold": 30.012,
+     "low": 2.92,
+     "mid": 16.0,
+     "high": 51.09
+    },
+    {
+     "day": 13.686,
+     "status": "estimate",
+     "to_end": 31.033,
+     "to_threshold": 29.908,
+     "low": 4.4,
+     "mid": 24.1,
+     "high": 76.95
+    },
+    {
+     "day": 13.79,
+     "status": "no_trend",
+     "to_end": 30.929,
+     "to_threshold": 29.804
+    },
+    {
+     "day": 13.894,
+     "status": "no_trend",
+     "to_end": 30.825,
+     "to_threshold": 29.7
+    },
+    {
+     "day": 13.998,
+     "status": "no_trend",
+     "to_end": 30.721,
+     "to_threshold": 29.596
+    },
+    {
+     "day": 14.102,
+     "status": "no_trend",
+     "to_end": 30.616,
+     "to_threshold": 29.491
+    },
+    {
+     "day": 14.207,
+     "status": "no_trend",
+     "to_end": 30.512,
+     "to_threshold": 29.387
+    },
+    {
+     "day": 14.311,
+     "status": "no_trend",
+     "to_end": 30.408,
+     "to_threshold": 29.283
+    },
+    {
+     "day": 14.415,
+     "status": "no_trend",
+     "to_end": 30.304,
+     "to_threshold": 29.179
+    },
+    {
+     "day": 14.519,
+     "status": "no_trend",
+     "to_end": 30.2,
+     "to_threshold": 29.075
+    },
+    {
+     "day": 14.623,
+     "status": "no_trend",
+     "to_end": 30.096,
+     "to_threshold": 28.971
+    },
+    {
+     "day": 14.727,
+     "status": "no_trend",
+     "to_end": 29.991,
+     "to_threshold": 28.866
+    },
+    {
+     "day": 15.135,
+     "status": "insufficient_data",
+     "to_end": 29.584,
+     "to_threshold": 28.459
+    },
+    {
+     "day": 15.239,
+     "status": "insufficient_data",
+     "to_end": 29.48,
+     "to_threshold": 28.355
+    },
+    {
+     "day": 15.343,
+     "status": "insufficient_data",
+     "to_end": 29.376,
+     "to_threshold": 28.251
+    },
+    {
+     "day": 15.447,
+     "status": "insufficient_data",
+     "to_end": 29.272,
+     "to_threshold": 28.147
+    },
+    {
+     "day": 15.552,
+     "status": "no_trend",
+     "to_end": 29.167,
+     "to_threshold": 28.042
+    },
+    {
+     "day": 15.656,
+     "status": "no_trend",
+     "to_end": 29.063,
+     "to_threshold": 27.938
+    },
+    {
+     "day": 15.76,
+     "status": "no_trend",
+     "to_end": 28.959,
+     "to_threshold": 27.834
+    },
+    {
+     "day": 15.864,
+     "status": "no_trend",
+     "to_end": 28.855,
+     "to_threshold": 27.73
+    },
+    {
+     "day": 15.968,
+     "status": "no_trend",
+     "to_end": 28.751,
+     "to_threshold": 27.626
+    },
+    {
+     "day": 16.072,
+     "status": "no_trend",
+     "to_end": 28.647,
+     "to_threshold": 27.522
+    },
+    {
+     "day": 16.177,
+     "status": "no_trend",
+     "to_end": 28.542,
+     "to_threshold": 27.417
+    },
+    {
+     "day": 16.281,
+     "status": "no_trend",
+     "to_end": 28.438,
+     "to_threshold": 27.313
+    },
+    {
+     "day": 16.385,
+     "status": "no_trend",
+     "to_end": 28.334,
+     "to_threshold": 27.209
+    },
+    {
+     "day": 16.489,
+     "status": "no_trend",
+     "to_end": 28.23,
+     "to_threshold": 27.105
+    },
+    {
+     "day": 16.593,
+     "status": "no_trend",
+     "to_end": 28.126,
+     "to_threshold": 27.001
+    },
+    {
+     "day": 16.697,
+     "status": "no_trend",
+     "to_end": 28.022,
+     "to_threshold": 26.897
+    },
+    {
+     "day": 16.802,
+     "status": "no_trend",
+     "to_end": 27.917,
+     "to_threshold": 26.792
+    },
+    {
+     "day": 16.906,
+     "status": "no_trend",
+     "to_end": 27.813,
+     "to_threshold": 26.688
+    },
+    {
+     "day": 17.01,
+     "status": "no_trend",
+     "to_end": 27.709,
+     "to_threshold": 26.584
+    },
+    {
+     "day": 17.114,
+     "status": "no_trend",
+     "to_end": 27.605,
+     "to_threshold": 26.48
+    },
+    {
+     "day": 17.218,
+     "status": "no_trend",
+     "to_end": 27.501,
+     "to_threshold": 26.376
+    },
+    {
+     "day": 17.322,
+     "status": "no_trend",
+     "to_end": 27.397,
+     "to_threshold": 26.272
+    },
+    {
+     "day": 17.427,
+     "status": "no_trend",
+     "to_end": 27.292,
+     "to_threshold": 26.167
+    },
+    {
+     "day": 17.531,
+     "status": "no_trend",
+     "to_end": 27.188,
+     "to_threshold": 26.063
+    },
+    {
+     "day": 17.635,
+     "status": "no_trend",
+     "to_end": 27.084,
+     "to_threshold": 25.959
+    },
+    {
+     "day": 17.739,
+     "status": "no_trend",
+     "to_end": 26.98,
+     "to_threshold": 25.855
+    },
+    {
+     "day": 17.843,
+     "status": "no_trend",
+     "to_end": 26.876,
+     "to_threshold": 25.751
+    },
+    {
+     "day": 17.947,
+     "status": "no_trend",
+     "to_end": 26.772,
+     "to_threshold": 25.647
+    },
+    {
+     "day": 18.052,
+     "status": "no_trend",
+     "to_end": 26.667,
+     "to_threshold": 25.542
+    },
+    {
+     "day": 18.156,
+     "status": "no_trend",
+     "to_end": 26.563,
+     "to_threshold": 25.438
+    },
+    {
+     "day": 18.26,
+     "status": "no_trend",
+     "to_end": 26.459,
+     "to_threshold": 25.334
+    },
+    {
+     "day": 18.364,
+     "status": "no_trend",
+     "to_end": 26.355,
+     "to_threshold": 25.23
+    },
+    {
+     "day": 18.468,
+     "status": "no_trend",
+     "to_end": 26.251,
+     "to_threshold": 25.126
+    },
+    {
+     "day": 18.572,
+     "status": "no_trend",
+     "to_end": 26.147,
+     "to_threshold": 25.022
+    },
+    {
+     "day": 18.677,
+     "status": "no_trend",
+     "to_end": 26.042,
+     "to_threshold": 24.917
+    },
+    {
+     "day": 18.781,
+     "status": "no_trend",
+     "to_end": 25.938,
+     "to_threshold": 24.813
+    },
+    {
+     "day": 18.885,
+     "status": "no_trend",
+     "to_end": 25.834,
+     "to_threshold": 24.709
+    },
+    {
+     "day": 18.989,
+     "status": "no_trend",
+     "to_end": 25.73,
+     "to_threshold": 24.605
+    },
+    {
+     "day": 19.093,
+     "status": "estimate",
+     "to_end": 25.626,
+     "to_threshold": 24.501,
+     "low": 5.83,
+     "mid": 31.9,
+     "high": 101.85
+    },
+    {
+     "day": 19.197,
+     "status": "estimate",
+     "to_end": 25.522,
+     "to_threshold": 24.397,
+     "low": 4.64,
+     "mid": 25.4,
+     "high": 81.1
+    },
+    {
+     "day": 19.302,
+     "status": "estimate",
+     "to_end": 25.417,
+     "to_threshold": 24.292,
+     "low": 4.18,
+     "mid": 22.9,
+     "high": 73.12
+    },
+    {
+     "day": 19.406,
+     "status": "estimate",
+     "to_end": 25.313,
+     "to_threshold": 24.188,
+     "low": 3.91,
+     "mid": 21.4,
+     "high": 68.33
+    },
+    {
+     "day": 19.51,
+     "status": "estimate",
+     "to_end": 25.209,
+     "to_threshold": 24.084,
+     "low": 3.75,
+     "mid": 20.5,
+     "high": 65.46
+    },
+    {
+     "day": 19.614,
+     "status": "estimate",
+     "to_end": 25.105,
+     "to_threshold": 23.98,
+     "low": 4.22,
+     "mid": 23.1,
+     "high": 73.76
+    },
+    {
+     "day": 19.718,
+     "status": "estimate",
+     "to_end": 25.001,
+     "to_threshold": 23.876,
+     "low": 5.3,
+     "mid": 29.0,
+     "high": 92.6
+    },
+    {
+     "day": 19.822,
+     "status": "estimate",
+     "to_end": 24.897,
+     "to_threshold": 23.772,
+     "low": 6.36,
+     "mid": 34.8,
+     "high": 111.11
+    },
+    {
+     "day": 19.927,
+     "status": "estimate",
+     "to_end": 24.792,
+     "to_threshold": 23.667,
+     "low": 7.2,
+     "mid": 39.4,
+     "high": 125.8
+    },
+    {
+     "day": 20.031,
+     "status": "estimate",
+     "to_end": 24.688,
+     "to_threshold": 23.563,
+     "low": 7.0,
+     "mid": 38.3,
+     "high": 122.29
+    },
+    {
+     "day": 20.135,
+     "status": "estimate",
+     "to_end": 24.584,
+     "to_threshold": 23.459,
+     "low": 7.16,
+     "mid": 39.2,
+     "high": 125.16
+    },
+    {
+     "day": 20.239,
+     "status": "estimate",
+     "to_end": 24.48,
+     "to_threshold": 23.355,
+     "low": 6.89,
+     "mid": 37.7,
+     "high": 120.37
+    },
+    {
+     "day": 20.343,
+     "status": "estimate",
+     "to_end": 24.376,
+     "to_threshold": 23.251,
+     "low": 7.11,
+     "mid": 38.9,
+     "high": 124.21
+    },
+    {
+     "day": 20.447,
+     "status": "estimate",
+     "to_end": 24.272,
+     "to_threshold": 23.147,
+     "low": 6.74,
+     "mid": 36.9,
+     "high": 117.82
+    },
+    {
+     "day": 20.552,
+     "status": "no_trend",
+     "to_end": 24.167,
+     "to_threshold": 23.042
+    },
+    {
+     "day": 20.656,
+     "status": "no_trend",
+     "to_end": 24.063,
+     "to_threshold": 22.938
+    },
+    {
+     "day": 20.76,
+     "status": "no_trend",
+     "to_end": 23.959,
+     "to_threshold": 22.834
+    },
+    {
+     "day": 20.864,
+     "status": "no_trend",
+     "to_end": 23.855,
+     "to_threshold": 22.73
+    },
+    {
+     "day": 20.968,
+     "status": "no_trend",
+     "to_end": 23.751,
+     "to_threshold": 22.626
+    },
+    {
+     "day": 21.072,
+     "status": "no_trend",
+     "to_end": 23.647,
+     "to_threshold": 22.522
+    },
+    {
+     "day": 21.177,
+     "status": "no_trend",
+     "to_end": 23.542,
+     "to_threshold": 22.417
+    },
+    {
+     "day": 21.281,
+     "status": "no_trend",
+     "to_end": 23.438,
+     "to_threshold": 22.313
+    },
+    {
+     "day": 21.385,
+     "status": "estimate",
+     "to_end": 23.334,
+     "to_threshold": 22.209,
+     "low": 6.25,
+     "mid": 34.2,
+     "high": 109.2
+    },
+    {
+     "day": 21.489,
+     "status": "estimate",
+     "to_end": 23.23,
+     "to_threshold": 22.105,
+     "low": 5.01,
+     "mid": 27.4,
+     "high": 87.49
+    },
+    {
+     "day": 21.593,
+     "status": "estimate",
+     "to_end": 23.126,
+     "to_threshold": 22.001,
+     "low": 4.62,
+     "mid": 25.3,
+     "high": 80.78
+    },
+    {
+     "day": 21.697,
+     "status": "estimate",
+     "to_end": 23.022,
+     "to_threshold": 21.897,
+     "low": 4.2,
+     "mid": 23.0,
+     "high": 73.44
+    },
+    {
+     "day": 21.802,
+     "status": "estimate",
+     "to_end": 22.917,
+     "to_threshold": 21.792,
+     "low": 3.89,
+     "mid": 21.3,
+     "high": 68.01
+    },
+    {
+     "day": 21.906,
+     "status": "estimate",
+     "to_end": 22.813,
+     "to_threshold": 21.688,
+     "low": 3.36,
+     "mid": 18.4,
+     "high": 58.75
+    },
+    {
+     "day": 22.01,
+     "status": "estimate",
+     "to_end": 22.709,
+     "to_threshold": 21.584,
+     "low": 2.85,
+     "mid": 15.6,
+     "high": 49.81
+    },
+    {
+     "day": 22.114,
+     "status": "estimate",
+     "to_end": 22.605,
+     "to_threshold": 21.48,
+     "low": 2.72,
+     "mid": 14.9,
+     "high": 47.57
+    },
+    {
+     "day": 22.218,
+     "status": "estimate",
+     "to_end": 22.501,
+     "to_threshold": 21.376,
+     "low": 2.32,
+     "mid": 12.7,
+     "high": 40.55
+    },
+    {
+     "day": 22.322,
+     "status": "estimate",
+     "to_end": 22.397,
+     "to_threshold": 21.272,
+     "low": 1.95,
+     "mid": 10.7,
+     "high": 34.16
+    },
+    {
+     "day": 22.427,
+     "status": "estimate",
+     "to_end": 22.292,
+     "to_threshold": 21.167,
+     "low": 1.88,
+     "mid": 10.3,
+     "high": 32.89
+    },
+    {
+     "day": 22.531,
+     "status": "estimate",
+     "to_end": 22.188,
+     "to_threshold": 21.063,
+     "low": 1.97,
+     "mid": 10.8,
+     "high": 34.48
+    },
+    {
+     "day": 22.635,
+     "status": "estimate",
+     "to_end": 22.084,
+     "to_threshold": 20.959,
+     "low": 2.47,
+     "mid": 13.5,
+     "high": 43.1
+    },
+    {
+     "day": 22.739,
+     "status": "estimate",
+     "to_end": 21.98,
+     "to_threshold": 20.855,
+     "low": 3.43,
+     "mid": 18.8,
+     "high": 60.03
+    },
+    {
+     "day": 22.843,
+     "status": "estimate",
+     "to_end": 21.876,
+     "to_threshold": 20.751,
+     "low": 3.96,
+     "mid": 21.7,
+     "high": 69.29
+    },
+    {
+     "day": 22.947,
+     "status": "estimate",
+     "to_end": 21.772,
+     "to_threshold": 20.647,
+     "low": 4.35,
+     "mid": 23.8,
+     "high": 75.99
+    },
+    {
+     "day": 23.052,
+     "status": "estimate",
+     "to_end": 21.667,
+     "to_threshold": 20.542,
+     "low": 6.92,
+     "mid": 37.9,
+     "high": 121.01
+    },
+    {
+     "day": 23.156,
+     "status": "no_trend",
+     "to_end": 21.563,
+     "to_threshold": 20.438
+    },
+    {
+     "day": 23.26,
+     "status": "estimate",
+     "to_end": 21.459,
+     "to_threshold": 20.334,
+     "low": 7.84,
+     "mid": 42.9,
+     "high": 136.98
+    },
+    {
+     "day": 23.364,
+     "status": "estimate",
+     "to_end": 21.355,
+     "to_threshold": 20.23,
+     "low": 7.47,
+     "mid": 40.9,
+     "high": 130.59
+    },
+    {
+     "day": 23.468,
+     "status": "estimate",
+     "to_end": 21.251,
+     "to_threshold": 20.126,
+     "low": 5.86,
+     "mid": 32.1,
+     "high": 102.49
+    },
+    {
+     "day": 23.572,
+     "status": "estimate",
+     "to_end": 21.147,
+     "to_threshold": 20.022,
+     "low": 5.24,
+     "mid": 28.7,
+     "high": 91.64
+    },
+    {
+     "day": 23.677,
+     "status": "estimate",
+     "to_end": 21.042,
+     "to_threshold": 19.917,
+     "low": 4.82,
+     "mid": 26.4,
+     "high": 84.29
+    },
+    {
+     "day": 23.781,
+     "status": "estimate",
+     "to_end": 20.938,
+     "to_threshold": 19.813,
+     "low": 4.68,
+     "mid": 25.6,
+     "high": 81.74
+    },
+    {
+     "day": 23.885,
+     "status": "estimate",
+     "to_end": 20.834,
+     "to_threshold": 19.709,
+     "low": 3.4,
+     "mid": 18.6,
+     "high": 59.39
+    },
+    {
+     "day": 23.989,
+     "status": "estimate",
+     "to_end": 20.73,
+     "to_threshold": 19.605,
+     "low": 2.94,
+     "mid": 16.1,
+     "high": 51.41
+    },
+    {
+     "day": 24.093,
+     "status": "estimate",
+     "to_end": 20.626,
+     "to_threshold": 19.501,
+     "low": 2.89,
+     "mid": 15.8,
+     "high": 50.45
+    },
+    {
+     "day": 24.197,
+     "status": "estimate",
+     "to_end": 20.522,
+     "to_threshold": 19.397,
+     "low": 2.7,
+     "mid": 14.8,
+     "high": 47.26
+    },
+    {
+     "day": 24.302,
+     "status": "estimate",
+     "to_end": 20.417,
+     "to_threshold": 19.292,
+     "low": 2.21,
+     "mid": 12.1,
+     "high": 38.63
+    },
+    {
+     "day": 24.406,
+     "status": "estimate",
+     "to_end": 20.313,
+     "to_threshold": 19.188,
+     "low": 1.88,
+     "mid": 10.3,
+     "high": 32.89
+    },
+    {
+     "day": 24.51,
+     "status": "estimate",
+     "to_end": 20.209,
+     "to_threshold": 19.084,
+     "low": 1.66,
+     "mid": 9.1,
+     "high": 29.06
+    },
+    {
+     "day": 24.614,
+     "status": "estimate",
+     "to_end": 20.105,
+     "to_threshold": 18.98,
+     "low": 1.5,
+     "mid": 8.2,
+     "high": 26.18
+    },
+    {
+     "day": 24.718,
+     "status": "estimate",
+     "to_end": 20.001,
+     "to_threshold": 18.876,
+     "low": 1.66,
+     "mid": 9.1,
+     "high": 29.06
+    },
+    {
+     "day": 24.822,
+     "status": "estimate",
+     "to_end": 19.897,
+     "to_threshold": 18.772,
+     "low": 1.77,
+     "mid": 9.7,
+     "high": 30.97
+    },
+    {
+     "day": 24.927,
+     "status": "estimate",
+     "to_end": 19.792,
+     "to_threshold": 18.667,
+     "low": 1.77,
+     "mid": 9.7,
+     "high": 30.97
+    },
+    {
+     "day": 25.031,
+     "status": "estimate",
+     "to_end": 19.688,
+     "to_threshold": 18.563,
+     "low": 2.08,
+     "mid": 11.4,
+     "high": 36.4
+    },
+    {
+     "day": 25.135,
+     "status": "estimate",
+     "to_end": 19.584,
+     "to_threshold": 18.459,
+     "low": 2.83,
+     "mid": 15.5,
+     "high": 49.49
+    },
+    {
+     "day": 25.239,
+     "status": "estimate",
+     "to_end": 19.48,
+     "to_threshold": 18.355,
+     "low": 3.47,
+     "mid": 19.0,
+     "high": 60.67
+    },
+    {
+     "day": 25.343,
+     "status": "estimate",
+     "to_end": 19.376,
+     "to_threshold": 18.251,
+     "low": 4.95,
+     "mid": 27.1,
+     "high": 86.53
+    },
+    {
+     "day": 25.447,
+     "status": "no_trend",
+     "to_end": 19.272,
+     "to_threshold": 18.147
+    },
+    {
+     "day": 25.552,
+     "status": "no_trend",
+     "to_end": 19.167,
+     "to_threshold": 18.042
+    },
+    {
+     "day": 25.656,
+     "status": "no_trend",
+     "to_end": 19.063,
+     "to_threshold": 17.938
+    },
+    {
+     "day": 25.76,
+     "status": "no_trend",
+     "to_end": 18.959,
+     "to_threshold": 17.834
+    },
+    {
+     "day": 25.864,
+     "status": "no_trend",
+     "to_end": 18.855,
+     "to_threshold": 17.73
+    },
+    {
+     "day": 25.968,
+     "status": "no_trend",
+     "to_end": 18.751,
+     "to_threshold": 17.626
+    },
+    {
+     "day": 26.072,
+     "status": "no_trend",
+     "to_end": 18.647,
+     "to_threshold": 17.522
+    },
+    {
+     "day": 26.177,
+     "status": "no_trend",
+     "to_end": 18.542,
+     "to_threshold": 17.417
+    },
+    {
+     "day": 26.281,
+     "status": "no_trend",
+     "to_end": 18.438,
+     "to_threshold": 17.313
+    },
+    {
+     "day": 26.385,
+     "status": "no_trend",
+     "to_end": 18.334,
+     "to_threshold": 17.209
+    },
+    {
+     "day": 26.489,
+     "status": "no_trend",
+     "to_end": 18.23,
+     "to_threshold": 17.105
+    },
+    {
+     "day": 26.593,
+     "status": "no_trend",
+     "to_end": 18.126,
+     "to_threshold": 17.001
+    },
+    {
+     "day": 26.697,
+     "status": "no_trend",
+     "to_end": 18.022,
+     "to_threshold": 16.897
+    },
+    {
+     "day": 26.802,
+     "status": "no_trend",
+     "to_end": 17.917,
+     "to_threshold": 16.792
+    },
+    {
+     "day": 26.906,
+     "status": "no_trend",
+     "to_end": 17.813,
+     "to_threshold": 16.688
+    },
+    {
+     "day": 27.01,
+     "status": "no_trend",
+     "to_end": 17.709,
+     "to_threshold": 16.584
+    },
+    {
+     "day": 27.114,
+     "status": "no_trend",
+     "to_end": 17.605,
+     "to_threshold": 16.48
+    },
+    {
+     "day": 27.218,
+     "status": "estimate",
+     "to_end": 17.501,
+     "to_threshold": 16.376,
+     "low": 3.73,
+     "mid": 20.4,
+     "high": 65.14
+    },
+    {
+     "day": 27.322,
+     "status": "estimate",
+     "to_end": 17.397,
+     "to_threshold": 16.272,
+     "low": 2.9,
+     "mid": 15.9,
+     "high": 50.77
+    },
+    {
+     "day": 27.427,
+     "status": "estimate",
+     "to_end": 17.292,
+     "to_threshold": 16.167,
+     "low": 2.32,
+     "mid": 12.7,
+     "high": 40.55
+    },
+    {
+     "day": 27.531,
+     "status": "estimate",
+     "to_end": 17.188,
+     "to_threshold": 16.063,
+     "low": 2.32,
+     "mid": 12.7,
+     "high": 40.55
+    },
+    {
+     "day": 27.635,
+     "status": "estimate",
+     "to_end": 17.084,
+     "to_threshold": 15.959,
+     "low": 3.2,
+     "mid": 17.5,
+     "high": 55.88
+    },
+    {
+     "day": 27.739,
+     "status": "estimate",
+     "to_end": 16.98,
+     "to_threshold": 15.855,
+     "low": 5.88,
+     "mid": 32.2,
+     "high": 102.81
+    },
+    {
+     "day": 27.843,
+     "status": "no_trend",
+     "to_end": 16.876,
+     "to_threshold": 15.751
+    },
+    {
+     "day": 27.947,
+     "status": "no_trend",
+     "to_end": 16.772,
+     "to_threshold": 15.647
+    },
+    {
+     "day": 28.052,
+     "status": "no_trend",
+     "to_end": 16.667,
+     "to_threshold": 15.542
+    },
+    {
+     "day": 28.156,
+     "status": "no_trend",
+     "to_end": 16.563,
+     "to_threshold": 15.438
+    },
+    {
+     "day": 28.26,
+     "status": "no_trend",
+     "to_end": 16.459,
+     "to_threshold": 15.334
+    },
+    {
+     "day": 28.364,
+     "status": "no_trend",
+     "to_end": 16.355,
+     "to_threshold": 15.23
+    },
+    {
+     "day": 28.468,
+     "status": "no_trend",
+     "to_end": 16.251,
+     "to_threshold": 15.126
+    },
+    {
+     "day": 28.572,
+     "status": "no_trend",
+     "to_end": 16.147,
+     "to_threshold": 15.022
+    },
+    {
+     "day": 28.677,
+     "status": "no_trend",
+     "to_end": 16.042,
+     "to_threshold": 14.917
+    },
+    {
+     "day": 28.781,
+     "status": "no_trend",
+     "to_end": 15.938,
+     "to_threshold": 14.813
+    },
+    {
+     "day": 28.885,
+     "status": "no_trend",
+     "to_end": 15.834,
+     "to_threshold": 14.709
+    },
+    {
+     "day": 28.989,
+     "status": "no_trend",
+     "to_end": 15.73,
+     "to_threshold": 14.605
+    },
+    {
+     "day": 29.093,
+     "status": "no_trend",
+     "to_end": 15.626,
+     "to_threshold": 14.501
+    },
+    {
+     "day": 29.197,
+     "status": "no_trend",
+     "to_end": 15.522,
+     "to_threshold": 14.397
+    },
+    {
+     "day": 29.302,
+     "status": "no_trend",
+     "to_end": 15.417,
+     "to_threshold": 14.292
+    },
+    {
+     "day": 29.406,
+     "status": "no_trend",
+     "to_end": 15.313,
+     "to_threshold": 14.188
+    },
+    {
+     "day": 29.51,
+     "status": "no_trend",
+     "to_end": 15.209,
+     "to_threshold": 14.084
+    },
+    {
+     "day": 29.614,
+     "status": "no_trend",
+     "to_end": 15.105,
+     "to_threshold": 13.98
+    },
+    {
+     "day": 29.718,
+     "status": "no_trend",
+     "to_end": 15.001,
+     "to_threshold": 13.876
+    },
+    {
+     "day": 29.822,
+     "status": "no_trend",
+     "to_end": 14.897,
+     "to_threshold": 13.772
+    },
+    {
+     "day": 29.927,
+     "status": "no_trend",
+     "to_end": 14.792,
+     "to_threshold": 13.667
+    },
+    {
+     "day": 30.031,
+     "status": "no_trend",
+     "to_end": 14.688,
+     "to_threshold": 13.563
+    },
+    {
+     "day": 30.135,
+     "status": "no_trend",
+     "to_end": 14.584,
+     "to_threshold": 13.459
+    },
+    {
+     "day": 30.239,
+     "status": "no_trend",
+     "to_end": 14.48,
+     "to_threshold": 13.355
+    },
+    {
+     "day": 30.343,
+     "status": "no_trend",
+     "to_end": 14.376,
+     "to_threshold": 13.251
+    },
+    {
+     "day": 30.447,
+     "status": "estimate",
+     "to_end": 14.272,
+     "to_threshold": 13.147,
+     "low": 4.37,
+     "mid": 23.9,
+     "high": 76.31
+    },
+    {
+     "day": 30.552,
+     "status": "estimate",
+     "to_end": 14.167,
+     "to_threshold": 13.042,
+     "low": 2.9,
+     "mid": 15.9,
+     "high": 50.77
+    },
+    {
+     "day": 30.656,
+     "status": "estimate",
+     "to_end": 14.063,
+     "to_threshold": 12.938,
+     "low": 2.47,
+     "mid": 13.5,
+     "high": 43.1
+    },
+    {
+     "day": 30.802,
+     "status": "insufficient_data",
+     "to_end": 13.917,
+     "to_threshold": 12.792
+    },
+    {
+     "day": 30.906,
+     "status": "insufficient_data",
+     "to_end": 13.813,
+     "to_threshold": 12.688
+    },
+    {
+     "day": 31.01,
+     "status": "insufficient_data",
+     "to_end": 13.709,
+     "to_threshold": 12.584
+    },
+    {
+     "day": 31.114,
+     "status": "insufficient_data",
+     "to_end": 13.605,
+     "to_threshold": 12.48
+    },
+    {
+     "day": 31.218,
+     "status": "insufficient_data",
+     "to_end": 13.501,
+     "to_threshold": 12.376
+    },
+    {
+     "day": 31.322,
+     "status": "no_trend",
+     "to_end": 13.397,
+     "to_threshold": 12.272
+    },
+    {
+     "day": 31.427,
+     "status": "no_trend",
+     "to_end": 13.292,
+     "to_threshold": 12.167
+    },
+    {
+     "day": 31.531,
+     "status": "no_trend",
+     "to_end": 13.188,
+     "to_threshold": 12.063
+    },
+    {
+     "day": 31.635,
+     "status": "no_trend",
+     "to_end": 13.084,
+     "to_threshold": 11.959
+    },
+    {
+     "day": 31.739,
+     "status": "no_trend",
+     "to_end": 12.98,
+     "to_threshold": 11.855
+    },
+    {
+     "day": 31.843,
+     "status": "no_trend",
+     "to_end": 12.876,
+     "to_threshold": 11.751
+    },
+    {
+     "day": 31.947,
+     "status": "estimate",
+     "to_end": 12.772,
+     "to_threshold": 11.647,
+     "low": 4.0,
+     "mid": 21.9,
+     "high": 69.93
+    },
+    {
+     "day": 32.052,
+     "status": "no_trend",
+     "to_end": 12.667,
+     "to_threshold": 11.542
+    },
+    {
+     "day": 32.156,
+     "status": "no_trend",
+     "to_end": 12.563,
+     "to_threshold": 11.438
+    },
+    {
+     "day": 32.26,
+     "status": "no_trend",
+     "to_end": 12.459,
+     "to_threshold": 11.334
+    },
+    {
+     "day": 32.364,
+     "status": "no_trend",
+     "to_end": 12.355,
+     "to_threshold": 11.23
+    },
+    {
+     "day": 32.468,
+     "status": "no_trend",
+     "to_end": 12.251,
+     "to_threshold": 11.126
+    },
+    {
+     "day": 32.572,
+     "status": "no_trend",
+     "to_end": 12.147,
+     "to_threshold": 11.022
+    },
+    {
+     "day": 32.677,
+     "status": "no_trend",
+     "to_end": 12.042,
+     "to_threshold": 10.917
+    },
+    {
+     "day": 32.781,
+     "status": "no_trend",
+     "to_end": 11.938,
+     "to_threshold": 10.813
+    },
+    {
+     "day": 32.885,
+     "status": "no_trend",
+     "to_end": 11.834,
+     "to_threshold": 10.709
+    },
+    {
+     "day": 32.989,
+     "status": "no_trend",
+     "to_end": 11.73,
+     "to_threshold": 10.605
+    },
+    {
+     "day": 33.093,
+     "status": "no_trend",
+     "to_end": 11.626,
+     "to_threshold": 10.501
+    },
+    {
+     "day": 33.197,
+     "status": "no_trend",
+     "to_end": 11.522,
+     "to_threshold": 10.397
+    },
+    {
+     "day": 33.302,
+     "status": "no_trend",
+     "to_end": 11.417,
+     "to_threshold": 10.292
+    },
+    {
+     "day": 33.406,
+     "status": "no_trend",
+     "to_end": 11.313,
+     "to_threshold": 10.188
+    },
+    {
+     "day": 33.51,
+     "status": "no_trend",
+     "to_end": 11.209,
+     "to_threshold": 10.084
+    },
+    {
+     "day": 33.614,
+     "status": "no_trend",
+     "to_end": 11.105,
+     "to_threshold": 9.98
+    },
+    {
+     "day": 33.718,
+     "status": "no_trend",
+     "to_end": 11.001,
+     "to_threshold": 9.876
+    },
+    {
+     "day": 33.822,
+     "status": "no_trend",
+     "to_end": 10.897,
+     "to_threshold": 9.772
+    },
+    {
+     "day": 33.927,
+     "status": "no_trend",
+     "to_end": 10.792,
+     "to_threshold": 9.667
+    },
+    {
+     "day": 34.031,
+     "status": "no_trend",
+     "to_end": 10.688,
+     "to_threshold": 9.563
+    },
+    {
+     "day": 34.135,
+     "status": "no_trend",
+     "to_end": 10.584,
+     "to_threshold": 9.459
+    },
+    {
+     "day": 34.239,
+     "status": "estimate",
+     "to_end": 10.48,
+     "to_threshold": 9.355,
+     "low": 5.39,
+     "mid": 29.5,
+     "high": 94.19
+    },
+    {
+     "day": 34.343,
+     "status": "estimate",
+     "to_end": 10.376,
+     "to_threshold": 9.251,
+     "low": 3.71,
+     "mid": 20.3,
+     "high": 64.82
+    },
+    {
+     "day": 34.447,
+     "status": "estimate",
+     "to_end": 10.272,
+     "to_threshold": 9.147,
+     "low": 3.34,
+     "mid": 18.3,
+     "high": 58.43
+    },
+    {
+     "day": 34.552,
+     "status": "estimate",
+     "to_end": 10.167,
+     "to_threshold": 9.042,
+     "low": 3.87,
+     "mid": 21.2,
+     "high": 67.69
+    },
+    {
+     "day": 34.656,
+     "status": "estimate",
+     "to_end": 10.063,
+     "to_threshold": 8.938,
+     "low": 4.38,
+     "mid": 24.0,
+     "high": 76.63
+    },
+    {
+     "day": 34.76,
+     "status": "estimate",
+     "to_end": 9.959,
+     "to_threshold": 8.834,
+     "low": 4.97,
+     "mid": 27.2,
+     "high": 86.85
+    },
+    {
+     "day": 34.864,
+     "status": "estimate",
+     "to_end": 9.855,
+     "to_threshold": 8.73,
+     "low": 4.93,
+     "mid": 27.0,
+     "high": 86.21
+    },
+    {
+     "day": 34.968,
+     "status": "estimate",
+     "to_end": 9.751,
+     "to_threshold": 8.626,
+     "low": 5.94,
+     "mid": 32.5,
+     "high": 103.77
+    },
+    {
+     "day": 35.072,
+     "status": "no_trend",
+     "to_end": 9.647,
+     "to_threshold": 8.522
+    },
+    {
+     "day": 35.177,
+     "status": "estimate",
+     "to_end": 9.542,
+     "to_threshold": 8.417,
+     "low": 5.7,
+     "mid": 31.2,
+     "high": 99.62
+    },
+    {
+     "day": 35.281,
+     "status": "estimate",
+     "to_end": 9.438,
+     "to_threshold": 8.313,
+     "low": 6.25,
+     "mid": 34.2,
+     "high": 109.2
+    },
+    {
+     "day": 35.385,
+     "status": "estimate",
+     "to_end": 9.334,
+     "to_threshold": 8.209,
+     "low": 5.46,
+     "mid": 29.9,
+     "high": 95.47
+    },
+    {
+     "day": 35.489,
+     "status": "estimate",
+     "to_end": 9.23,
+     "to_threshold": 8.105,
+     "low": 4.17,
+     "mid": 22.8,
+     "high": 72.8
+    },
+    {
+     "day": 35.593,
+     "status": "estimate",
+     "to_end": 9.126,
+     "to_threshold": 8.001,
+     "low": 5.01,
+     "mid": 27.4,
+     "high": 87.49
+    },
+    {
+     "day": 35.697,
+     "status": "estimate",
+     "to_end": 9.022,
+     "to_threshold": 7.897,
+     "low": 5.66,
+     "mid": 31.0,
+     "high": 98.98
+    },
+    {
+     "day": 35.802,
+     "status": "estimate",
+     "to_end": 8.917,
+     "to_threshold": 7.792,
+     "low": 4.37,
+     "mid": 23.9,
+     "high": 76.31
+    },
+    {
+     "day": 35.906,
+     "status": "estimate",
+     "to_end": 8.813,
+     "to_threshold": 7.688,
+     "low": 3.43,
+     "mid": 18.8,
+     "high": 60.03
+    },
+    {
+     "day": 36.01,
+     "status": "estimate",
+     "to_end": 8.709,
+     "to_threshold": 7.584,
+     "low": 2.76,
+     "mid": 15.1,
+     "high": 48.21
+    },
+    {
+     "day": 36.114,
+     "status": "estimate",
+     "to_end": 8.605,
+     "to_threshold": 7.48,
+     "low": 2.37,
+     "mid": 13.0,
+     "high": 41.51
+    },
+    {
+     "day": 36.218,
+     "status": "estimate",
+     "to_end": 8.501,
+     "to_threshold": 7.376,
+     "low": 2.78,
+     "mid": 15.2,
+     "high": 48.53
+    },
+    {
+     "day": 36.322,
+     "status": "estimate",
+     "to_end": 8.397,
+     "to_threshold": 7.272,
+     "low": 3.11,
+     "mid": 17.0,
+     "high": 54.28
+    },
+    {
+     "day": 36.427,
+     "status": "estimate",
+     "to_end": 8.292,
+     "to_threshold": 7.167,
+     "low": 3.2,
+     "mid": 17.5,
+     "high": 55.88
+    },
+    {
+     "day": 36.531,
+     "status": "estimate",
+     "to_end": 8.188,
+     "to_threshold": 7.063,
+     "low": 4.59,
+     "mid": 25.1,
+     "high": 80.14
+    },
+    {
+     "day": 36.635,
+     "status": "estimate",
+     "to_end": 8.084,
+     "to_threshold": 6.959,
+     "low": 6.21,
+     "mid": 34.0,
+     "high": 108.56
+    },
+    {
+     "day": 36.739,
+     "status": "estimate",
+     "to_end": 7.98,
+     "to_threshold": 6.855,
+     "low": 7.25,
+     "mid": 39.7,
+     "high": 126.76
+    },
+    {
+     "day": 36.843,
+     "status": "estimate",
+     "to_end": 7.876,
+     "to_threshold": 6.751,
+     "low": 7.18,
+     "mid": 39.3,
+     "high": 125.48
+    },
+    {
+     "day": 36.947,
+     "status": "no_trend",
+     "to_end": 7.772,
+     "to_threshold": 6.647
+    },
+    {
+     "day": 37.052,
+     "status": "no_trend",
+     "to_end": 7.667,
+     "to_threshold": 6.542
+    },
+    {
+     "day": 37.156,
+     "status": "no_trend",
+     "to_end": 7.563,
+     "to_threshold": 6.438
+    },
+    {
+     "day": 37.26,
+     "status": "no_trend",
+     "to_end": 7.459,
+     "to_threshold": 6.334
+    },
+    {
+     "day": 37.364,
+     "status": "no_trend",
+     "to_end": 7.355,
+     "to_threshold": 6.23
+    },
+    {
+     "day": 37.468,
+     "status": "no_trend",
+     "to_end": 7.251,
+     "to_threshold": 6.126
+    },
+    {
+     "day": 37.572,
+     "status": "estimate",
+     "to_end": 7.147,
+     "to_threshold": 6.022,
+     "low": 8.18,
+     "mid": 44.8,
+     "high": 143.04
+    },
+    {
+     "day": 37.677,
+     "status": "estimate",
+     "to_end": 7.042,
+     "to_threshold": 5.917,
+     "low": 6.89,
+     "mid": 37.7,
+     "high": 120.37
+    },
+    {
+     "day": 37.781,
+     "status": "estimate",
+     "to_end": 6.938,
+     "to_threshold": 5.813,
+     "low": 5.66,
+     "mid": 31.0,
+     "high": 98.98
+    },
+    {
+     "day": 37.885,
+     "status": "estimate",
+     "to_end": 6.834,
+     "to_threshold": 5.709,
+     "low": 4.69,
+     "mid": 25.7,
+     "high": 82.06
+    },
+    {
+     "day": 37.989,
+     "status": "estimate",
+     "to_end": 6.73,
+     "to_threshold": 5.605,
+     "low": 4.13,
+     "mid": 22.6,
+     "high": 72.16
+    },
+    {
+     "day": 38.093,
+     "status": "estimate",
+     "to_end": 6.626,
+     "to_threshold": 5.501,
+     "low": 3.42,
+     "mid": 18.7,
+     "high": 59.71
+    },
+    {
+     "day": 38.197,
+     "status": "estimate",
+     "to_end": 6.522,
+     "to_threshold": 5.397,
+     "low": 3.76,
+     "mid": 20.6,
+     "high": 65.77
+    },
+    {
+     "day": 38.302,
+     "status": "estimate",
+     "to_end": 6.417,
+     "to_threshold": 5.292,
+     "low": 4.27,
+     "mid": 23.4,
+     "high": 74.71
+    },
+    {
+     "day": 38.406,
+     "status": "estimate",
+     "to_end": 6.313,
+     "to_threshold": 5.188,
+     "low": 5.1,
+     "mid": 27.9,
+     "high": 89.08
+    },
+    {
+     "day": 38.51,
+     "status": "estimate",
+     "to_end": 6.209,
+     "to_threshold": 5.084,
+     "low": 6.41,
+     "mid": 35.1,
+     "high": 112.07
+    },
+    {
+     "day": 38.614,
+     "status": "estimate",
+     "to_end": 6.105,
+     "to_threshold": 4.98,
+     "low": 6.08,
+     "mid": 33.3,
+     "high": 106.32
+    },
+    {
+     "day": 38.718,
+     "status": "estimate",
+     "to_end": 6.001,
+     "to_threshold": 4.876,
+     "low": 4.97,
+     "mid": 27.2,
+     "high": 86.85
+    },
+    {
+     "day": 38.822,
+     "status": "estimate",
+     "to_end": 5.897,
+     "to_threshold": 4.772,
+     "low": 4.15,
+     "mid": 22.7,
+     "high": 72.48
+    },
+    {
+     "day": 38.927,
+     "status": "estimate",
+     "to_end": 5.792,
+     "to_threshold": 4.667,
+     "low": 3.34,
+     "mid": 18.3,
+     "high": 58.43
+    },
+    {
+     "day": 39.031,
+     "status": "estimate",
+     "to_end": 5.688,
+     "to_threshold": 4.563,
+     "low": 4.55,
+     "mid": 24.9,
+     "high": 79.5
+    },
+    {
+     "day": 39.135,
+     "status": "estimate",
+     "to_end": 5.584,
+     "to_threshold": 4.459,
+     "low": 7.42,
+     "mid": 40.6,
+     "high": 129.63
+    },
+    {
+     "day": 39.239,
+     "status": "no_trend",
+     "to_end": 5.48,
+     "to_threshold": 4.355
+    },
+    {
+     "day": 39.343,
+     "status": "no_trend",
+     "to_end": 5.376,
+     "to_threshold": 4.251
+    },
+    {
+     "day": 39.447,
+     "status": "no_trend",
+     "to_end": 5.272,
+     "to_threshold": 4.147
+    },
+    {
+     "day": 39.552,
+     "status": "no_trend",
+     "to_end": 5.167,
+     "to_threshold": 4.042
+    },
+    {
+     "day": 39.656,
+     "status": "no_trend",
+     "to_end": 5.063,
+     "to_threshold": 3.938
+    },
+    {
+     "day": 39.76,
+     "status": "no_trend",
+     "to_end": 4.959,
+     "to_threshold": 3.834
+    },
+    {
+     "day": 39.864,
+     "status": "no_trend",
+     "to_end": 4.855,
+     "to_threshold": 3.73
+    },
+    {
+     "day": 39.968,
+     "status": "no_trend",
+     "to_end": 4.751,
+     "to_threshold": 3.626
+    },
+    {
+     "day": 40.072,
+     "status": "no_trend",
+     "to_end": 4.647,
+     "to_threshold": 3.522
+    },
+    {
+     "day": 40.177,
+     "status": "no_trend",
+     "to_end": 4.542,
+     "to_threshold": 3.417
+    },
+    {
+     "day": 40.281,
+     "status": "no_trend",
+     "to_end": 4.438,
+     "to_threshold": 3.313
+    },
+    {
+     "day": 40.385,
+     "status": "no_trend",
+     "to_end": 4.334,
+     "to_threshold": 3.209
+    },
+    {
+     "day": 40.489,
+     "status": "no_trend",
+     "to_end": 4.23,
+     "to_threshold": 3.105
+    },
+    {
+     "day": 40.593,
+     "status": "no_trend",
+     "to_end": 4.126,
+     "to_threshold": 3.001
+    },
+    {
+     "day": 40.697,
+     "status": "no_trend",
+     "to_end": 4.022,
+     "to_threshold": 2.897
+    },
+    {
+     "day": 40.802,
+     "status": "no_trend",
+     "to_end": 3.917,
+     "to_threshold": 2.792
+    },
+    {
+     "day": 40.906,
+     "status": "no_trend",
+     "to_end": 3.813,
+     "to_threshold": 2.688
+    },
+    {
+     "day": 41.01,
+     "status": "no_trend",
+     "to_end": 3.709,
+     "to_threshold": 2.584
+    },
+    {
+     "day": 41.114,
+     "status": "estimate",
+     "to_end": 3.605,
+     "to_threshold": 2.48,
+     "low": 6.54,
+     "mid": 35.8,
+     "high": 114.31
+    },
+    {
+     "day": 41.218,
+     "status": "estimate",
+     "to_end": 3.501,
+     "to_threshold": 2.376,
+     "low": 5.43,
+     "mid": 29.7,
+     "high": 94.83
+    },
+    {
+     "day": 41.322,
+     "status": "estimate",
+     "to_end": 3.397,
+     "to_threshold": 2.272,
+     "low": 5.48,
+     "mid": 30.0,
+     "high": 95.79
+    },
+    {
+     "day": 41.427,
+     "status": "estimate",
+     "to_end": 3.292,
+     "to_threshold": 2.167,
+     "low": 6.43,
+     "mid": 35.2,
+     "high": 112.39
+    },
+    {
+     "day": 41.531,
+     "status": "no_trend",
+     "to_end": 3.188,
+     "to_threshold": 2.063
+    },
+    {
+     "day": 41.635,
+     "status": "no_trend",
+     "to_end": 3.084,
+     "to_threshold": 1.959
+    },
+    {
+     "day": 42.038,
+     "status": "insufficient_data",
+     "to_end": 2.681,
+     "to_threshold": 1.556
+    },
+    {
+     "day": 42.136,
+     "status": "insufficient_data",
+     "to_end": 2.583,
+     "to_threshold": 1.458
+    },
+    {
+     "day": 42.24,
+     "status": "insufficient_data",
+     "to_end": 2.479,
+     "to_threshold": 1.354
+    },
+    {
+     "day": 42.344,
+     "status": "insufficient_data",
+     "to_end": 2.375,
+     "to_threshold": 1.25
+    },
+    {
+     "day": 42.448,
+     "status": "insufficient_data",
+     "to_end": 2.271,
+     "to_threshold": 1.146
+    },
+    {
+     "day": 42.552,
+     "status": "estimate",
+     "to_end": 2.167,
+     "to_threshold": 1.042,
+     "low": 0.02,
+     "mid": 0.1,
+     "high": 0.32
+    },
+    {
+     "day": 42.656,
+     "status": "estimate",
+     "to_end": 2.062,
+     "to_threshold": 0.938,
+     "low": 0.02,
+     "mid": 0.1,
+     "high": 0.32
+    },
+    {
+     "day": 42.761,
+     "status": "estimate",
+     "to_end": 1.958,
+     "to_threshold": 0.833,
+     "low": 0.02,
+     "mid": 0.1,
+     "high": 0.32
+    },
+    {
+     "day": 42.865,
+     "status": "estimate",
+     "to_end": 1.854,
+     "to_threshold": 0.729,
+     "low": 0.04,
+     "mid": 0.2,
+     "high": 0.64
+    },
+    {
+     "day": 42.969,
+     "status": "estimate",
+     "to_end": 1.75,
+     "to_threshold": 0.625,
+     "low": 0.05,
+     "mid": 0.3,
+     "high": 0.96
+    },
+    {
+     "day": 43.073,
+     "status": "estimate",
+     "to_end": 1.646,
+     "to_threshold": 0.521,
+     "low": 0.05,
+     "mid": 0.3,
+     "high": 0.96
+    },
+    {
+     "day": 43.177,
+     "status": "estimate",
+     "to_end": 1.542,
+     "to_threshold": 0.417,
+     "low": 0.05,
+     "mid": 0.3,
+     "high": 0.96
+    },
+    {
+     "day": 43.281,
+     "status": "estimate",
+     "to_end": 1.438,
+     "to_threshold": 0.312,
+     "low": 0.05,
+     "mid": 0.3,
+     "high": 0.96
+    },
+    {
+     "day": 43.386,
+     "status": "estimate",
+     "to_end": 1.333,
+     "to_threshold": 0.208,
+     "low": 0.05,
+     "mid": 0.3,
+     "high": 0.96
+    },
+    {
+     "day": 43.49,
+     "status": "estimate",
+     "to_end": 1.229,
+     "to_threshold": 0.104,
+     "low": 0.07,
+     "mid": 0.4,
+     "high": 1.28
+    },
+    {
+     "day": 43.594,
+     "status": "at_threshold",
+     "to_end": 1.125,
+     "to_threshold": 0.0
+    },
+    {
+     "day": 43.698,
+     "status": "at_threshold",
+     "to_end": 1.021,
+     "to_threshold": null
+    },
+    {
+     "day": 43.802,
+     "status": "at_threshold",
+     "to_end": 0.917,
+     "to_threshold": null
+    },
+    {
+     "day": 43.906,
+     "status": "at_threshold",
+     "to_end": 0.812,
+     "to_threshold": null
+    },
+    {
+     "day": 44.011,
+     "status": "at_threshold",
+     "to_end": 0.708,
+     "to_threshold": null
+    },
+    {
+     "day": 44.115,
+     "status": "at_threshold",
+     "to_end": 0.604,
+     "to_threshold": null
+    },
+    {
+     "day": 44.219,
+     "status": "at_threshold",
+     "to_end": 0.5,
+     "to_threshold": null
+    },
+    {
+     "day": 44.323,
+     "status": "at_threshold",
+     "to_end": 0.396,
+     "to_threshold": null
+    },
+    {
+     "day": 44.427,
+     "status": "at_threshold",
+     "to_end": 0.292,
+     "to_threshold": null
+    },
+    {
+     "day": 44.531,
+     "status": "at_threshold",
+     "to_end": 0.188,
+     "to_threshold": null
+    },
+    {
+     "day": 44.636,
+     "status": "at_threshold",
+     "to_end": 0.083,
+     "to_threshold": null
+    }
+   ]
+  }
+ },
+ "healthy_bearings": {
+  "2nd_test/b2": {
+   "alarm_share_after_baseline": 0.331,
+   "first_alarm_day": 4.875,
+   "note": "did not fail; shares a shaft with 2nd_test/b1, which did"
+  },
+  "2nd_test/b3": {
+   "alarm_share_after_baseline": 0.827,
+   "first_alarm_day": 1.2013888888888888,
+   "note": "did not fail; shares a shaft with 2nd_test/b1, which did"
+  },
+  "2nd_test/b4": {
+   "alarm_share_after_baseline": 0.454,
+   "first_alarm_day": 4.194444444444445,
+   "note": "did not fail; shares a shaft with 2nd_test/b1, which did"
+  }
+ },
+ "seconds": 7.6
+}

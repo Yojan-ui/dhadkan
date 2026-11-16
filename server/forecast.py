@@ -55,13 +55,16 @@ def _fit(t: np.ndarray, y: np.ndarray) -> tuple[float, float, float]:
     return a, b, (b / se if se > 0 else np.inf)
 
 
-def estimate(days: list[float], risk: list[float], level: float, seed: int = 0) -> dict[str, Any]:
+def estimate(
+    days: list[float], risk: list[float], level: float, seed: int = 0, window: float | None = None
+) -> dict[str, Any]:
     """days: reading times in days; risk: score / alarm level per reading. Times in the result are days from the last reading."""
-    out: dict[str, Any] = {"level": round(level, 3), "window_days": WINDOW_DAYS}
+    window = WINDOW_DAYS if window is None else window
+    out: dict[str, Any] = {"level": round(level, 3), "window_days": window}
     if level <= 1.0:
         return {**out, "status": "not_separable"}
     t, y = np.asarray(days, float), np.asarray(risk, float)
-    keep = t >= t[-1] - WINDOW_DAYS if len(t) else t.astype(bool)
+    keep = t >= t[-1] - window if len(t) else t.astype(bool)
     t, y = t[keep], y[keep]
     if len(t) < MIN_READINGS:
         return {**out, "status": "too_few", "readings": len(t)}
