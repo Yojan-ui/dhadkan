@@ -36,7 +36,7 @@ from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
-from edge import data, embed, faulttype, features, ims
+from edge import data, embed, features
 from edge.config import HOP, MODELS, N_MELS, RUNS, SR
 from edge.outbox import Outbox
 from edge.runtime import EdgeModel
@@ -838,9 +838,7 @@ class Live:
                 if self.demo["alerted"] or row["status"] == "alarm":
                     # name the fault from the last hour of vibration; after the alarm, every reading
                     # (the classifier's answer changes as the damage grows; the UI shows the latest)
-                    guess = await asyncio.to_thread(
-                        faulttype.predict, src.snapshots_up_to(k), ims.FS, ims.SHAFT_HZ, ims.ZA2115
-                    )
+                    guess = src.classify(k)  # computed from the real vibration by edge/ims.py
                     self.alerts.classified[mid] = guess["class"]
                     first_alarm = not self.demo["alerted"]
                     if first_alarm or guess["class"] != (self.demo.get("classified") or {}).get("class"):

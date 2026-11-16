@@ -226,10 +226,46 @@ def cwru() -> None:
     log(f"cwru: {len(index)} files ({sum(r['fault'] != 'normal' for r in index)} faults)")
 
 
+DEMO_TEST_PER_LABEL = (
+    30  # per unit the dashboard replays: this many normal and this many anomalous test clips
+)
+
+
+def demo(per_label: int = DEMO_TEST_PER_LABEL) -> None:
+    """Only the DCASE clips the dashboard's machines replay (data/sim/cluster.json), so a fresh clone can
+    run `make demo` in minutes. Per unit: the first `per_label` normal and anomalous official test clips,
+    and training clips 91-100 of that ID, the held-out "normal reference" (edge/data.py takes the last
+    10 training clips present as validation). Demo mode's NASA IMS bearing needs no download: it ships as
+    edge/models/ims_demo_pack.npz. The gearbox subset comes from data/download.py.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    from .download import _zip
+    from .download import fetch as fetch_member
+
+    cluster = json.loads((Path(__file__).parent / "sim" / "cluster.json").read_text())
+    units = sorted({m["source"] for m in cluster["machines"] if m["type"] in DCASE_TYPES})
+    for mtype in sorted({u.split("/")[0] for u in units}):
+        url = DCASE_RECORD.format(name=f"dev_data_{mtype}.zip")
+        names = sorted(n for n in _zip(url).namelist() if n.endswith(".wav"))
+        want = []
+        for unit in (u for u in units if u.startswith(mtype + "/")):
+            i = unit.split("_")[-1]
+            for lab in ("normal", "anomaly"):
+                want += [n for n in names if re.match(rf"{mtype}/test/{lab}_id_{i}_", n)][:per_label]
+            want += [n for n in names if re.match(rf"{mtype}/train/normal_id_{i}_", n)][
+                DCASE_TRAIN_PER_ID - 10 : DCASE_TRAIN_PER_ID
+            ]
+        log(f"demo {mtype}: {len(want)} clips for {[u for u in units if u.startswith(mtype)]}")
+        with ThreadPoolExecutor(4) as ex:
+            done = list(ex.map(lambda m, u=url: fetch_member(u, m, RAW / "dcase2020"), want))
+        log(f"demo {mtype}: {done.count('ok')} downloaded, {done.count('skip')} already there")
+
+
 def main() -> None:
     which = sys.argv[1:] or ["dcase2020", "ims", "cwru"]
     for name in which:
-        {"dcase2020": dcase2020, "ims": ims, "cwru": cwru}[name]()
+        {"dcase2020": dcase2020, "ims": ims, "cwru": cwru, "demo": demo}[name]()
 
 
 if __name__ == "__main__":

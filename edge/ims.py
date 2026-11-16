@@ -1,7 +1,8 @@
 """NASA IMS bearing run-to-failure data: a health score over days, days-to-failure checked against real
 failures, and the CWRU-trained fault classifier tried on bearings it has never seen.
 
-    python -m edge.ims     -> docs/runs/ims_<UTC>.json and edge/models/ims_replay.json (for Demo mode)
+    python -m edge.ims          -> docs/runs/ims_<UTC>.json, edge/models/ims_replay.json and the demo pack
+    python -m edge.ims --pack   -> only rebuild edge/models/ims_demo_pack.npz (Demo mode without data/raw)
 
 IMS (Lee, Qiu, Yu, Lin, Rexnord / University of Cincinnati, via NASA PCoE): four Rexnord ZA-2115
 bearings on one shaft at 2000 rpm, 1 s vibration snapshots at 20 kHz every 10 min (5 min early in
@@ -151,6 +152,43 @@ def calibrate(rows: list[dict[str, Any]], band: tuple[float, float] | None) -> l
     return rows
 
 
+PACK = MODELS / "ims_demo_pack.npz"
+PACK_READINGS = 120  # Demo mode shows about this many readings; server/imsdemo.py may take every k-th
+
+
+def demo_pack(clf: Any = None) -> Path:
+    """What Demo mode needs, so a fresh clone can run it without the 1 GB IMS download.
+
+    For each replay reading (after the learning window, as server/imsdemo.py plays it): the real 1 s
+    snapshot (float16), its health score (from ims_replay.json), its timestamp, and the CWRU-trained
+    classifier's output on the last 6 snapshots up to it (the last hour). All computed from data/raw/ims.
+    """
+    import hashlib
+
+    meta = json.loads((MODELS / "ims_replay.json").read_text())
+    t, x = load(meta["test"], meta["bearing"])
+    score = np.asarray(meta["score"], dtype=np.float32)
+    start = int(len(t) * BASELINE_FRAC)
+    stride = max(1, -(-(len(t) - start) // PACK_READINGS))
+    idx = np.arange(start, len(t), stride)
+    clf = clf or faulttype.load()
+    probs = []
+    for i in idx:
+        g = faulttype.predict(
+            x[max(0, i - 5) : i + 1].reshape(-1).astype(np.float64), FS, SHAFT_HZ, ZA2115, clf
+        )
+        probs.append([g["p"][c] for c in faulttype.CLASSES])
+    model_sha = hashlib.sha256((MODELS / "faulttype.joblib").read_bytes()).hexdigest()
+    np.savez_compressed(
+        PACK, t_days=t[idx].astype(np.float64), snap=x[idx].astype(np.float16), score=score[idx],
+        classifier_p=np.asarray(probs, dtype=np.float32), classes=np.asarray(faulttype.CLASSES),
+        snapshot_index=idx, learning_window_end_day=np.float64(t[start]),
+        provenance=np.asarray(json.dumps({"source": meta["source_run"], "test": meta["test"], "bearing": meta["bearing"],
+                                          "faulttype_sha256": model_sha, "classifier_input": "last 6 snapshots (1 h)"})),
+    )  # fmt: skip
+    return PACK
+
+
 def main() -> None:
     meta = json.loads((RAW / "ims" / "meta.json").read_text())
     series: dict[tuple[str, str], dict[str, Any]] = {}
@@ -231,6 +269,7 @@ def main() -> None:
                   "ratios_log10": b["calibration_log10_ratios"], "first_alarm_day": b["first_alarm_day"],
                   "true_fault": FAILED[DEMO], "source_run": out.name, "first_snapshot": meta["tests"][DEMO[0]]["first"]}  # fmt: skip
         Path(MODELS / "ims_replay.json").write_text(json.dumps(replay))
+        demo_pack(clf)
     print(out)
     for k, v in record["bearings"].items():
         print(
@@ -252,4 +291,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    print(demo_pack()) if "--pack" in sys.argv else main()

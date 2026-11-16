@@ -13,15 +13,15 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from edge.config import MODELS, RAW
+from edge.config import MODELS
 
 OWNER_A, SUPERVISOR_A = "+91 90000 11111", "+91 90000 22222"
 # a coarser replay than the UI's (~110 readings); the alarm still comes from the real curve
 TEST_READINGS = 40
 
 needs_ims = pytest.mark.skipif(
-    not (MODELS / "ims_replay.json").exists() or not (RAW / "ims" / "2nd_test_b1.npy").exists(),
-    reason="needs NASA IMS data (make data) and edge/models/ims_replay.json",
+    not (MODELS / "ims_replay.json").exists() or not (MODELS / "ims_demo_pack.npz").exists(),
+    reason="needs edge/models/ims_replay.json and ims_demo_pack.npz (python -m edge.ims)",
 )
 
 

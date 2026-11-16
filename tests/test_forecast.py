@@ -1,5 +1,7 @@
 """Days to fault level, rupees at risk, and the route that uses them."""
 
+import json
+
 import numpy as np
 import pytest
 
@@ -112,3 +114,19 @@ def test_ims_calibration_helpers():
     assert ims.log_ratios(rows) == [pytest.approx(np.log10(2))]
     out = ims.calibrate([dict(rows[0])], (-0.3, 0.35))[0]
     assert out["cal_low"] == pytest.approx(2 * 10**-0.3, abs=1e-3) and out["cal_inside"] is True
+
+
+def test_demo_pack_matches_the_real_ims_replay():
+    """The committed pack is the real IMS data Demo mode plays, checked against data/raw when present."""
+    from edge import ims
+    from edge.config import RAW
+
+    pack = np.load(ims.PACK)
+    meta = json.loads((ims.MODELS / "ims_replay.json").read_text())
+    idx = pack["snapshot_index"]
+    assert idx[0] >= int(len(meta["t_days"]) * ims.BASELINE_FRAC)  # replay starts after the learning window
+    assert np.allclose(pack["score"], np.asarray(meta["score"])[idx])
+    assert np.allclose(pack["classifier_p"].sum(axis=1), 1.0, atol=1e-3)
+    if (RAW / "ims" / f"{meta['test']}_{meta['bearing']}.npy").exists():
+        t, x = ims.load(meta["test"], meta["bearing"])
+        assert np.allclose(pack["t_days"], t[idx]) and np.array_equal(pack["snap"], x[idx].astype(np.float16))

@@ -3,7 +3,7 @@ PY      ?= .venv/bin/python
 PORT    ?= 8600
 WEB_SRC := $(shell find web/src web/index.html web/public -type f 2>/dev/null) web/package.json web/vite.config.ts
 
-.PHONY: setup data train results demo serve dev test lint fmt clean
+.PHONY: setup data demo-data train results demo serve dev test lint fmt clean
 
 setup:                       ## venv, Python and web dependencies
 	python3.12 -m venv .venv
@@ -12,6 +12,10 @@ setup:                       ## venv, Python and web dependencies
 
 data:                        ## DCASE 2020 Task 2 (test split + training subset), NASA IMS, CWRU, MIMII DUE gearbox
 	$(PY) -m data.real
+	$(PY) -m data.download
+
+demo-data:                   ## only the clips the dashboard replays; Demo mode's IMS bearing ships in edge/models
+	$(PY) -m data.real demo
 	$(PY) -m data.download
 
 train:                       ## anomaly models, fault-type classifier, IMS run-to-failure, docs/RESULTS.md

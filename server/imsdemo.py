@@ -1,9 +1,14 @@
 """Demo mode's data: the NASA IMS run-to-failure replayed as one machine's readings.
 
-A machine whose source is `ims/<test>/<bearing>` reads 1 s vibration snapshots from data/raw/ims
-instead of DCASE clips. Its score is the IMS health score from edge/ims.py (1.0 = alarm level), its
-sound is the vibration snapshot resampled to 16 kHz and looped to 10 s, and its timestamps are the
-real IMS ones. Nothing is synthesised.
+A machine whose source is `ims/<test>/<bearing>` plays real IMS vibration instead of DCASE clips. Its
+score is the IMS health score from edge/ims.py (1.0 = alarm level), its sound is the 1 s vibration
+snapshot resampled to 16 kHz and looped to 10 s, and its timestamps are the real IMS ones. Nothing is
+synthesised.
+
+Everything is read from edge/models/ims_demo_pack.npz (committed, ~3 MB), which `python -m edge.ims`
+builds from data/raw/ims: one real snapshot per replay reading, its health score, and the CWRU-trained
+classifier's output on the last hour of vibration up to it. So Demo mode runs from a fresh clone
+without the 1 GB IMS download.
 
 The replay starts after the learning window (edge/ims.py's first BASELINE_FRAC of snapshots): that is
 where the health score learned this bearing's normal, so it is not monitored. The bearing's run-in
@@ -20,33 +25,33 @@ from scipy import signal
 from edge import ims
 from edge.config import MODELS, SR
 
-READINGS = 120  # the replay is shown as about this many readings
+READINGS = 120  # the replay is shown as about this many readings (every k-th reading of the pack)
 
 
 class ImsSource:
     def __init__(self) -> None:
         self.meta: dict[str, Any] = json.loads((MODELS / "ims_replay.json").read_text())
-        self.t, self.x = ims.load(self.meta["test"], self.meta["bearing"])
-        self.score = np.asarray(self.meta["score"])
-        self.start = int(len(self.t) * ims.BASELINE_FRAC)  # first monitored snapshot
-        self.stride = max(1, math.ceil((len(self.t) - self.start) / READINGS))
+        pack = np.load(ims.PACK)
+        k = max(1, math.ceil(len(pack["t_days"]) / READINGS))
+        self.t = pack["t_days"][::k]
+        self.x = pack["snap"][::k]
+        self.score = pack["score"][::k].astype(np.float64)
+        self.probs = pack["classifier_p"][::k]
+        self.classes = [str(c) for c in pack["classes"]]
+        self.provenance = json.loads(str(pack["provenance"]))
+        self.start_day = float(pack["learning_window_end_day"])
         self.unit = f"ims/{self.meta['test']}/{self.meta['bearing']}"
 
     @property
     def readings(self) -> int:
-        return math.ceil((len(self.t) - self.start) / self.stride)
-
-    @property
-    def start_day(self) -> float:
-        """Days from the first IMS snapshot to the first monitored one (the learning window)."""
-        return float(self.t[self.start])
+        return len(self.t)
 
     @property
     def tick_hours(self) -> float:
-        return float(np.median(np.diff(self.t))) * 24 * self.stride
+        return float(np.median(np.diff(self.t))) * 24
 
     def index(self, tick: int) -> int:
-        return min(len(self.t) - 1, self.start + max(0, tick) * self.stride)
+        return min(len(self.t) - 1, max(0, tick))
 
     def audio(self, tick: int) -> np.ndarray:
         snap = self.x[self.index(tick)].astype(np.float64)
@@ -70,6 +75,10 @@ class ImsSource:
         day = float(self.t[self.index(tick)])
         return f"NASA IMS {self.meta['test']} {self.meta['bearing']}, day {day:.2f}"
 
-    def snapshots_up_to(self, tick: int, n: int = 6) -> np.ndarray:
-        i = self.index(tick)
-        return self.x[max(0, i - n + 1) : i + 1].reshape(-1).astype(np.float64)
+    def classify(self, tick: int) -> dict[str, Any]:
+        """The CWRU-trained classifier on the last hour of real vibration up to this reading (from the pack)."""
+        p = self.probs[self.index(tick)]
+        return {
+            "class": self.classes[int(np.argmax(p))],
+            "p": {c: round(float(v), 3) for c, v in zip(self.classes, p, strict=True)},
+        }
