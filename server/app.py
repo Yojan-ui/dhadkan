@@ -1392,8 +1392,15 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
         audio = None
         if form.get("NumMedia", "0") != "0" and form.get("MediaContentType0", "").startswith("audio/"):
             audio = await asyncio.to_thread(wa_send.download, form.get("MediaUrl0", ""))
-        await asyncio.to_thread(live.flow.inbound, phone, form.get("Body") or None, audio)
-        return Response("<Response/>", media_type="application/xml")
+        with wa_send.reply_to(phone) as out:
+            queued = wa_send.take_pending(phone)
+            if queued:  # the reply to a template: deliver the full alert(s) first; options are answered next
+                out.extend(queued)
+                live.flow.log(live.flow.machine_for(phone), "in", "owner", phone, form.get("Body") or "(reply)",
+                              kind="reply")  # fmt: skip
+            else:
+                await asyncio.to_thread(live.flow.inbound, phone, form.get("Body") or None, audio)
+        return Response(wa_send.twiml(out), media_type="application/xml")
 
     @app.get("/api/messages/{mid}")
     def machine_messages(mid: str) -> list[dict[str, Any]]:

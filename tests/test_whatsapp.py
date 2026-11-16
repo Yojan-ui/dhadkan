@@ -76,13 +76,13 @@ def test_twilio_whatsapp_form_and_public_media_only(tmp_path):
         return httpx.Response(201, json={"sid": "SM1"})
 
     t = wa.TwilioWhatsApp(
-        "AC1", "tok", "whatsapp:+14155238886", client=httpx.Client(transport=httpx.MockTransport(handler))
+        "AC1", "tok", "whatsapp:+17372508034", client=httpx.Client(transport=httpx.MockTransport(handler))
     )
     t.send(TO, "body", [wa.Media(tmp_path / "x.ogg", "audio/ogg", public_url="https://h/x.ogg"),
                         wa.Media(tmp_path / "y.png", "image/png")])  # fmt: skip
     form = httpx.QueryParams(seen[0].content.decode())
     assert seen[0].url.path == "/2010-04-01/Accounts/AC1/Messages.json"
-    assert form["To"] == "whatsapp:+919876543210" and form["From"] == "whatsapp:+14155238886"
+    assert form["To"] == "whatsapp:+919876543210" and form["From"] == "whatsapp:+17372508034"
     assert form.get_list("MediaUrl") == ["https://h/x.ogg"]  # Twilio can only fetch public media
 
 
@@ -285,3 +285,44 @@ def test_voice_notes_are_parsed_from_both_providers():
             "MediaUrl0": "https://api.twilio.com/m/1", "MediaContentType0": "audio/ogg"}  # fmt: skip
     t = wa.parse_twilio(form)[0]
     assert t["text"] is None and t["audio"] == {"url": "https://api.twilio.com/m/1", "mime": "audio/ogg"}
+
+
+# ---- template first (Twilio "ContentSid Required") + full alert as the TwiML reply
+class _Refuse(Exception):
+    code = 21654
+
+
+def _fake_twilio(sent):
+    from types import SimpleNamespace
+
+    def create(**kw):
+        if "body" in kw:
+            raise _Refuse("ContentSid Required")
+        sent.append(kw)
+        return SimpleNamespace(sid=f"SM{len(sent)}", status="queued")
+
+    return SimpleNamespace(messages=SimpleNamespace(create=create))
+
+
+def test_free_text_refused_sends_template_once_and_queues_full_text(monkeypatch):
+    from server import whatsapp as w
+
+    for k, v in {"TWILIO_SID": "AC1", "TWILIO_TOKEN": "t", "TWILIO_WA_FROM": "whatsapp:+17372508034",
+                 "TWILIO_CONTENT_SID": "HX1", "TWILIO_CONTENT_VARS": '{"1": "{short}"}'}.items():  # fmt: skip
+        monkeypatch.setenv(k, v)
+    monkeypatch.delenv("DHADKAN_DRY_RUN", raising=False)
+    sent: list = []
+    monkeypatch.setattr(w, "_client", lambda *a: _fake_twilio(sent))
+    w._pending.clear()
+    r1 = w.send("+91 98765 43210", "[Owner] Loom 4 (Shed A): bearing kharab. 1 Mechanic bulao / 2 Baad mein")
+    r2 = w.send("+91 98765 43210", "[Supervisor] Loom 4 load kam rakhein.")
+    assert r1["status"] == "template_sent" and r2["status"] == "queued_for_reply" and len(sent) == 1
+    assert (
+        sent[0]["content_sid"] == "HX1" and "Loom 4 (Shed A): bearing kharab" in sent[0]["content_variables"]
+    )
+    full = w.take_pending("whatsapp:+919876543210")
+    assert len(full) == 2 and full[0].endswith("2 Baad mein") and w.take_pending("+919876543210") == []
+    with w.reply_to("whatsapp:+919876543210") as out:
+        assert w.send("+919876543210", "Mechanic aa raha hai")["status"] == "twiml_reply"
+    assert out == ["Mechanic aa raha hai"]
+    assert w.twiml(["a<b"]) == "<Response><Message>a&lt;b</Message></Response>"

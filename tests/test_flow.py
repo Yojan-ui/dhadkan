@@ -180,3 +180,14 @@ def test_agent_refuses_invented_numbers_and_templates_fill_the_gap():
     assert out["owner"] == good and ("owner", good, "agent") in sent  # the ₹999 text was refused, never sent
     assert not any(t == bad for _, t, _ in sent)
     assert ("supervisor", "[supervisor] template", "template") in sent  # Claude skipped it: the template went
+
+
+@needs_ims
+def test_reply_to_a_template_gets_the_queued_full_alert_as_twiml(world, monkeypatch):
+    from server import whatsapp
+
+    whatsapp._pending.clear()
+    whatsapp._pending["whatsapp:+919876500007"] = ["[Owner] Loom 4 full alert 1 Mechanic bulao"]
+    r = post(world[1], {"From": "whatsapp:+919876500007", "Body": "ok"})
+    assert r.status_code == 200 and "<Message>[Owner] Loom 4 full alert 1 Mechanic bulao</Message>" in r.text
+    assert whatsapp.take_pending("whatsapp:+919876500007") == []

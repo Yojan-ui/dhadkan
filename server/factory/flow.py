@@ -340,6 +340,10 @@ class Flow:
                 return t
         return None
 
+    def machine_for(self, phone: str) -> str:
+        t = self.latest_open(phone)
+        return t["machine"] if t else self._default_machine()
+
     def inbound(self, phone: str, text: str | None, audio: bytes | None = None) -> dict[str, Any]:
         if audio is not None:
             want: tuple[str, ...] | None = ("recording",)

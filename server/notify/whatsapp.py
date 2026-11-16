@@ -197,7 +197,7 @@ def from_env() -> tuple[Any, Any]:
                        env.get("WA_API_VERSION", "v21.0") or "v21.0", env.get("WA_TEMPLATE"))  # fmt: skip
     elif env.get("TWILIO_ACCOUNT_SID") and env.get("TWILIO_AUTH_TOKEN"):
         wa = TwilioWhatsApp(env.get("TWILIO_ACCOUNT_SID") or "", env.get("TWILIO_AUTH_TOKEN") or "",
-                            env.get("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886") or "")  # fmt: skip
+                            env.get("TWILIO_WHATSAPP_FROM", "whatsapp:+17372508034") or "")  # fmt: skip
     sms: Any = DryRun()
     if env.get("TWILIO_ACCOUNT_SID") and env.get("TWILIO_AUTH_TOKEN") and env.get("TWILIO_SMS_FROM"):
         sms = TwilioSMS(env.get("TWILIO_ACCOUNT_SID") or "", env.get("TWILIO_AUTH_TOKEN") or "",
