@@ -54,12 +54,12 @@ test:
 
 lint:                        ## zero warnings everywhere
 	$(PY) -m ruff check .
-	$(PY) -m black --check -q edge server data tests tools
+	$(PY) -m black --check -q edge server data tests tools scripts
 	cd web && npx eslint . --max-warnings 0 && npx prettier --check . --log-level warn && npx tsc -b
 
 fmt:
 	$(PY) -m ruff check . --fix -q
-	$(PY) -m black -q edge server data tests tools
+	$(PY) -m black -q edge server data tests tools scripts
 	cd web && npx prettier --write . --log-level warn
 
 clean:

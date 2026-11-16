@@ -766,6 +766,7 @@ class Live:
             self.outbox.db.execute("DELETE FROM outbox")
             self.outbox.db.commit()
             self.alerts.notifier.clear()  # WhatsApp alerts from an earlier replay must not show in this one
+            self.alerts.expert.clear()
             self.link_up = True
             self.events = []
             self.event("reset")
@@ -1203,6 +1204,27 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
             raise HTTPException(404, "no open alert for that number")
         return got
 
+    async def _incoming(msgs: list[dict[str, Any]], provider: Any) -> list[dict[str, Any]]:
+        """Text replies go to the reply path; voice notes are downloaded and transcribed locally."""
+        out = []
+        for m in msgs:
+            if m.get("audio") and hasattr(provider, "download"):
+                try:
+                    audio = await asyncio.to_thread(provider.download, m["audio"])
+                    got = await asyncio.to_thread(
+                        live.alerts.on_voice, m["from"], audio, m["audio"].get("mime", "")
+                    )
+                except Exception as e:  # a failed download or transcription must not drop the webhook
+                    live.event("owner_voice_failed", error=type(e).__name__)
+                    got = None
+            elif m.get("text") is not None:
+                got = live.alerts.on_reply(m["from"], m["text"])
+            else:
+                got = None
+            if got:
+                out.append(got)
+        return out
+
     @app.get("/webhooks/whatsapp")
     def wa_verify(request: Request) -> Response:
         q = request.query_params
@@ -1222,8 +1244,7 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
             secret, raw, request.headers.get("X-Hub-Signature-256")
         ):
             raise HTTPException(403, "bad signature")
-        handled = [live.alerts.on_reply(m["from"], m["text"]) for m in whatsapp.parse_meta(json.loads(raw))]
-        return {"handled": [h for h in handled if h]}
+        return {"handled": await _incoming(whatsapp.parse_meta(json.loads(raw)), live.alerts.notifier.wa)}
 
     @app.post("/webhooks/twilio")
     async def twilio_incoming(request: Request) -> Response:
@@ -1234,8 +1255,7 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
             token, url, form, request.headers.get("X-Twilio-Signature")
         ):
             raise HTTPException(403, "bad signature")
-        for m in whatsapp.parse_twilio(form):
-            live.alerts.on_reply(m["from"], m["text"])
+        await _incoming(whatsapp.parse_twilio(form), live.alerts.notifier.wa)
         return Response("<Response/>", media_type="application/xml")
 
     @app.get("/api/voice_note.wav")

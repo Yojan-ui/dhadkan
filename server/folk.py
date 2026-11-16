@@ -19,7 +19,7 @@ from .config import LEXICON
 # (text, lexicon) -> {sound, fault, ...}: the Claude fallback, or a stub in tests
 LLM = Callable[[str, dict[str, Any]], dict[str, Any]]
 
-LLM_MODEL = "claude-opus-5-5"
+LLM_MODEL = "claude-fable-5-2"  # spec: Claude Fable 5.2, effort low for labelling
 
 
 def load_lexicon(path: Path = LEXICON) -> dict[str, Any]:

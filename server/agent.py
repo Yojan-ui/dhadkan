@@ -21,7 +21,7 @@ from . import alerts, costs, forecast, registry, route
 from .config import PARTS
 from .sim import Cluster
 
-MODEL = "claude-opus-5-5"
+MODEL = "claude-fable-5-2"  # spec: Claude Fable 5.2; effort low for drafting
 RISK_HORIZON_DAYS = 2.0  # rupees at risk = chance of reaching the fault level within 2 days x breakdown cost
 WATCH = 0.95  # risk at which a machine is shown as "watch" (display only)
 DAYS = alerts.DAY["en"]
@@ -365,7 +365,7 @@ def run_claude(cluster: Cluster, client: Any = None, max_turns: int = 12) -> tup
             messages=messages,
             betas=["server-side-fallback-2026-07-01"],
             fallbacks="default",
-            output_config={"effort": "medium"},
+            output_config={"effort": "low"},
         )
         if resp.stop_reason == "refusal":
             return run_id, "Agent declined this run; use --rules."

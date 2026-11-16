@@ -91,7 +91,8 @@ class MetaCloud:
 
     def __init__(self, token: str, phone_id: str, version: str = "v21.0", template: str | None = None,
                  client: httpx.Client | None = None) -> None:  # fmt: skip
-        self.base = f"https://graph.facebook.com/{version}/{phone_id}"
+        self.root = f"https://graph.facebook.com/{version}"
+        self.base = f"{self.root}/{phone_id}"
         self.template = template
         self.http = client or httpx.Client(timeout=20, headers={"Authorization": f"Bearer {token}"})
 
@@ -99,6 +100,14 @@ class MetaCloud:
         files = {"file": (m.path.name, m.path.read_bytes(), m.mime)}
         data = {"messaging_product": "whatsapp", "type": m.mime}
         return str(_post(self.http, f"{self.base}/media", data=data, files=files)["id"])
+
+    def download(self, audio: dict[str, Any]) -> bytes:
+        """A voice note the owner sent: media id -> URL (Graph API) -> bytes, both with the token."""
+        r = self.http.get(f"{self.root}/{audio['id']}")
+        r.raise_for_status()
+        got = self.http.get(r.json()["url"])
+        got.raise_for_status()
+        return got.content
 
     def send(self, to: str, text: str, media: list[Media], lang: str = "en") -> dict[str, Any]:
         payload = (
@@ -118,6 +127,12 @@ class _Twilio:
         self.url = f"https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json"
         self.sender = sender
         self.http = client or httpx.Client(timeout=20, auth=(sid, token))
+
+    def download(self, audio: dict[str, Any]) -> bytes:
+        """A voice note from Twilio: MediaUrl0 is fetched with the account's basic auth."""
+        r = self.http.get(audio["url"], follow_redirects=True)
+        r.raise_for_status()
+        return r.content
 
     def _send(self, to: str, body: str, media_urls: list[str]) -> str:
         data: dict[str, str | list[str]] = {"From": self.sender, "To": to, "Body": body}
@@ -214,9 +229,18 @@ def parse_meta(payload: dict[str, Any]) -> list[dict[str, str]]:
                 )
                 if text is not None:
                     out.append({"from": m.get("from", ""), "text": text, "id": m.get("id", "")})
+                elif kind in ("audio", "voice") and m.get(kind, {}).get("id"):  # a voice note
+                    out.append({"from": m.get("from", ""), "text": None, "id": m.get("id", ""),
+                                "audio": {"id": m[kind]["id"], "mime": m[kind].get("mime_type", "audio/ogg")}})  # fmt: skip
     return out
 
 
-def parse_twilio(form: dict[str, str]) -> list[dict[str, str]]:
+def parse_twilio(form: dict[str, str]) -> list[dict[str, Any]]:
     who = form.get("From", "").replace("whatsapp:", "")
-    return [{"from": who, "text": form.get("Body", ""), "id": form.get("MessageSid", "")}] if who else []
+    if not who:
+        return []
+    row: dict[str, Any] = {"from": who, "text": form.get("Body", ""), "id": form.get("MessageSid", "")}
+    if form.get("NumMedia", "0") != "0" and form.get("MediaContentType0", "").startswith("audio/"):
+        row["audio"] = {"url": form.get("MediaUrl0", ""), "mime": form["MediaContentType0"]}
+        row["text"] = None
+    return [row]

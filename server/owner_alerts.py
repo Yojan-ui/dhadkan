@@ -5,10 +5,11 @@ in .env); the made-up numbers in data/sim/cluster.json are never messaged. Witho
 alert is logged as `no_contact`; without provider keys it is logged as `dry_run`.
 """
 
+import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from . import diagnosis, forecast
+from . import diagnosis, forecast, understand
 from .config import DATA, NODE_DB
 from .notify import env, media, whatsapp
 from .notify.service import Notifier
@@ -49,6 +50,7 @@ class OwnerAlerts:
         # judge only hears about the demo machine (never about other machines' false alarms).
         self.contact_override: dict[str, str] = {}
         self.lang_override: dict[str, str] = {}
+        self.expert: dict[str, dict[str, Any]] = {}  # machine -> Claude's second look (or the rules fallback)
 
     @property
     def provider(self) -> str:
@@ -86,6 +88,11 @@ class OwnerAlerts:
             at_fault += 1
         owner_word = rank.get("known_fault")
         fault = diagnosis.fault_for(owner_word=owner_word, classifier=self.classified.get(mid))
+        expert = None
+        if fault is None and rank.get("status") in ("alarm", "early_match"):  # only when needed
+            expert = self.second_look(mid, lang or self.owner_lang(mid), [h["risk"] for h in hist])
+            if expert.get("source") == "claude" and not expert["mechanic_check_needed"]:
+                fault = expert["fault"]
         row = {"id": mid, "type": m["type"], "status": rank.get("status", "ok"), "known_fault": owner_word,
                "forecast": est, "days_at_fault": at_fault * th / 24}  # fmt: skip
         lang = lang or c.factories[m["factory"]]["language"]
@@ -94,8 +101,38 @@ class OwnerAlerts:
         )
         if out is not None:
             out["days_rising"] = rank.get("days_rising", 0)
-            out["named_by"] = "classifier" if mid in self.classified else ("owner" if owner_word else None)
+            out["named_by"] = (
+                "classifier" if mid in self.classified else "owner" if owner_word
+                else "claude" if expert and expert.get("source") == "claude" and fault else None
+            )  # fmt: skip
+            if expert is not None:  # evidence, confidence, hand check; or "expert check pending" (rules)
+                out["expert"] = {k: v for k, v in expert.items() if k != "cost"}
         return out
+
+    def second_look(self, mid: str, lang: str, trend: list[float]) -> dict[str, Any]:
+        """Claude Fable 5.2 on the spectrograms + trend + profile, once per alert episode (server/understand.py)."""
+        if mid in self.expert:
+            return self.expert[mid]
+        try:
+            ex = self.live.explain(mid)
+            with self.live.lock:
+                before = self.live._audio_of(mid, ex["before"])
+                now = self.live._audio_of(mid, ex["now"])
+            hot = (ex["lo_band"], ex["hi_band"]) if ex.get("status") == "ok" else None
+            pair = media.spectrogram_png(before, now, hot)
+        except Exception:
+            self.expert[mid] = {
+                "source": "rules",
+                "expert_check": "pending",
+                "why": "no before/now reading yet",
+            }
+            return self.expert[mid]
+        m = self.live.c.machines[mid]
+        f = self.live.c.factories[m["factory"]]
+        per_day = max(1, round(24 / self.live.c.cfg["tick_hours"]))
+        req = understand.build_request(pair, trend[-14 * per_day :], m, f, lang)
+        self.expert[mid] = understand.diagnose(req, machine_id=mid)
+        return self.expert[mid]
 
     def text(self, mid: str, lang: str) -> str | None:
         c = self.card(mid, lang)
@@ -190,6 +227,33 @@ class OwnerAlerts:
                                lang=a["lang"], body=self.details(mid, a["lang"]), kind="details", parent=a["id"])  # fmt: skip
         self.live.event("owner_reply", machine=mid, choice=choice, text=text)
         return {"alert": a["id"], "choice": choice}
+
+    def on_voice(self, phone: str, audio: bytes, mime: str = "audio/ogg") -> dict[str, Any] | None:
+        """A WhatsApp voice note: local Whisper -> lexicon (Claude for unknown words) -> weak label on the
+        machine of this owner's latest alert. The owner's words are a weak label, not an inspection."""
+        a = self.notifier.latest_for(phone)
+        if a is None:
+            return None
+        from . import folk, registry
+
+        ALERT_DIR.mkdir(parents=True, exist_ok=True)
+        ext = ".ogg" if "ogg" in mime else ".m4a" if "mp4" in mime or "aac" in mime else ".audio"
+        path = ALERT_DIR / f"voice_{a['machine']}_{int(time.time())}{ext}"
+        path.write_bytes(audio)
+        lang = (
+            a["lang"] if a["lang"] in ("hi", "mr", "en") else "hi"
+        )  # Whisper has no hi_latn; speech is Hindi
+        text, heard = folk.transcribe(str(path), language=lang)
+        llm = folk.claude_label if env.get("ANTHROPIC_API_KEY") else None
+        lab = folk.label_text(text, folk.load_lexicon(), llm)
+        with self.live.lock:
+            registry.add_weak_label(self.live.c.reg, a["factory"], a["machine"], text, heard, lab)
+        self.notifier.db.execute("UPDATE alerts SET last_reply=? WHERE id=?", (f"[voice] {text}", a["id"]))
+        self.notifier.db.commit()
+        self.live.event(
+            "owner_voice", machine=a["machine"], text=text, sound=lab.get("sound"), fault=lab.get("fault")
+        )
+        return {"alert": a["id"], "machine": a["machine"], "text": text, "label": lab}
 
     def tick(self) -> None:
         """Escalate unanswered Stop-now alerts after 2 h; resend anything waiting for the network."""

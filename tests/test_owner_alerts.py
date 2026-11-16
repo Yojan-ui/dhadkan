@@ -126,3 +126,19 @@ def test_demo_endpoint_accepts_every_owner_language():
 
     for lang in diagnosis.LANGS:
         assert DemoIn(on=True, to=None, lang=lang).lang == lang
+
+
+def test_voice_note_becomes_a_weak_label_on_the_alerted_machine(world, monkeypatch):
+    from server import folk
+
+    _, client, live, rec = world
+    monkeypatch.setattr(rec, "download", lambda audio: b"OggS-fake", raising=False)
+    monkeypatch.setattr(
+        folk, "transcribe", lambda path, language=None, **k: ("मोटर में खट-खट की आवाज़ है", "hi")
+    )
+    body = {"entry": [{"changes": [{"value": {"messages": [{"from": OWNER_A.replace("+", "").replace(" ", ""),
+            "id": "v1", "type": "audio", "audio": {"id": "M1", "mime_type": "audio/ogg"}}]}}]}]}  # fmt: skip
+    raw, headers = signed(body)
+    handled = client.post("/webhooks/whatsapp", content=raw, headers=headers).json()["handled"]
+    assert handled and handled[0]["machine"] == "A-G1" and handled[0]["label"]["sound"] == "khat-khat"
+    assert any(e["kind"] == "owner_voice" for e in live.events)

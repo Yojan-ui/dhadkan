@@ -266,3 +266,21 @@ def test_dry_run_switch_overrides_keys(monkeypatch):
     monkeypatch.setenv("DHADKAN_DRY_RUN", "1")
     w, sms = wa.from_env()
     assert w.name == sms.name == "dry_run"
+
+
+def test_voice_notes_are_parsed_from_both_providers():
+    meta = {"entry": [{"changes": [{"value": {"messages": [
+        {"from": "919876543210", "id": "w1", "type": "audio", "audio": {"id": "MEDIA1", "mime_type": "audio/ogg; codecs=opus"}}]}}]}]}  # fmt: skip
+    got = wa.parse_meta(meta)
+    assert got == [
+        {
+            "from": "919876543210",
+            "text": None,
+            "id": "w1",
+            "audio": {"id": "MEDIA1", "mime": "audio/ogg; codecs=opus"},
+        }
+    ]
+    form = {"From": "whatsapp:+919876543210", "Body": "", "MessageSid": "SM1", "NumMedia": "1",
+            "MediaUrl0": "https://api.twilio.com/m/1", "MediaContentType0": "audio/ogg"}  # fmt: skip
+    t = wa.parse_twilio(form)[0]
+    assert t["text"] is None and t["audio"] == {"url": "https://api.twilio.com/m/1", "mime": "audio/ogg"}

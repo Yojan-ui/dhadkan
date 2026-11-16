@@ -24,7 +24,9 @@
   "workers_idle": "workers paid but idle while this machine is down",
   "wage_per_hour_inr": "wage per worker-hour",
   "emergency_part_markup": "extra paid for parts bought the same day vs planned (parts prices from parts_mock.json, also MOCK)",
-  "technician_rate_inr_per_hour": "labour rate of a local mechanic or fitter (assumption, no published figure used)"
+  "technician_rate_inr_per_hour": "labour rate of a local mechanic or fitter (assumption, no published figure used)",
+  "usd_to_inr": "RBI reference rate USD/INR on 2026-11-05, from MSEI's RBI reference-rate archive (https://www.msei.in/markets/Currency/Historical-Data/RBIReferenceRateArchives.aspx), accessed 2026-11-16. Used only to show Claude API cost per call in rupees."
  },
- "technician_rate_inr_per_hour": 250
+ "technician_rate_inr_per_hour": 250,
+ "usd_to_inr": 94.3996
 }

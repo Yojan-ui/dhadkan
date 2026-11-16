@@ -41,3 +41,4 @@ data/**/*.mat
 *.keras
 *.h5
 *.ckpt
+data/llm/

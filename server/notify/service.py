@@ -187,6 +187,16 @@ class Notifier:
         return made
 
     # -- queries ------------------------------------------------------------
+    def latest_for(self, phone: str) -> dict[str, Any] | None:
+        """The newest alert sent to this phone, answered or not (a voice note is linked to it)."""
+        digits = "".join(c for c in phone if c.isdigit())
+        for r in self.db.execute(
+            "SELECT * FROM alerts WHERE kind IN ('alert','escalation') ORDER BY id DESC"
+        ):
+            if r["to_phone"] and "".join(c for c in r["to_phone"] if c.isdigit()) == digits:
+                return dict(r)
+        return None
+
     def alert(self, aid: int) -> dict[str, Any]:
         row = self.db.execute("SELECT * FROM alerts WHERE id=?", (aid,)).fetchone()
         return {**dict(row), "media": json.loads(row["media"] or "[]")}
