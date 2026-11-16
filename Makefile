@@ -3,18 +3,25 @@ PY      ?= .venv/bin/python
 PORT    ?= 8600
 WEB_SRC := $(shell find web/src web/index.html web/public -type f 2>/dev/null) web/package.json web/vite.config.ts
 
-.PHONY: setup data train demo serve dev test lint fmt clean
+.PHONY: setup data train results demo serve dev test lint fmt clean
 
 setup:                       ## venv, Python and web dependencies
 	python3.12 -m venv .venv
 	$(PY) -m pip install -q -r requirements.txt -r requirements-dev.txt
 	cd web && npm ci
 
-data:                        ## ~1 GB subset of MIMII + MIMII DUE (about 30 min)
+data:                        ## DCASE 2020 Task 2 (test split + training subset), NASA IMS, CWRU, MIMII DUE gearbox
+	$(PY) -m data.real
 	$(PY) -m data.download
 
-train:                       ## 3 models + docs/runs/eval_<UTC>.json (~2 min CPU)
+train:                       ## anomaly models, fault-type classifier, IMS run-to-failure, docs/RESULTS.md
 	$(PY) -m edge.train
+	$(PY) -m edge.faulttype
+	$(PY) -m edge.ims
+	$(PY) -m edge.results
+
+results:                     ## regenerate docs/RESULTS.md from the newest evaluation records
+	$(PY) -m edge.results
 
 web/node_modules: web/package-lock.json
 	cd web && npm ci
@@ -39,12 +46,12 @@ test:
 
 lint:                        ## zero warnings everywhere
 	$(PY) -m ruff check .
-	$(PY) -m black --check -q edge server data tests
+	$(PY) -m black --check -q edge server data tests tools
 	cd web && npx eslint . --max-warnings 0 && npx prettier --check . --log-level warn && npx tsc -b
 
 fmt:
 	$(PY) -m ruff check . --fix -q
-	$(PY) -m black -q edge server data tests
+	$(PY) -m black -q edge server data tests tools
 	cd web && npx prettier --write . --log-level warn
 
 clean:

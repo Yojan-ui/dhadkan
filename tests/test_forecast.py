@@ -76,3 +76,28 @@ def test_route_maximises_value_when_given():
 def test_route_with_no_time_visits_nobody(hours):
     stops = [{"id": "x", "xy_km": [10, 0], "service_h": 1, "risk": 2, "value": 5}]
     assert route.plan(stops, [0, 0], hours=hours, kmph=20)["order"] == []
+
+
+def test_calibrated_range_widens_by_measured_ratios():
+    """An IMS-style unit: the range is mid x the 10th-90th percentile of the given error ratios."""
+    ratios = [-0.5, -0.3, 0.0, 0.2, 0.4, 0.6]
+    forecast.register("test/ims", level=50.0, window_days=1.0, log=True, ratios_log10=ratios)
+    try:
+        hist = [{"tick": k, "risk": 10 ** (0.02 * k)} for k in range(60)]  # log score rising steadily
+        est = forecast.from_history(hist, tick_hours=1.0, unit="test/ims")
+        assert est["status"] == "estimate" and est["calibrated_on"].startswith("NASA IMS")
+        f = 10 ** np.asarray(ratios)
+        assert est["low"] == pytest.approx(est["mid"] * np.percentile(f, 10), abs=0.06)
+        assert est["high"] == pytest.approx(est["mid"] * np.percentile(f, 90), abs=0.06)
+        assert est["raw_low"] is not None and len(est["crossings"]) == len(ratios)
+    finally:
+        forecast.EXTRA.pop("test/ims", None)
+
+
+def test_ims_calibration_helpers():
+    from edge import ims
+
+    rows = [{"status": "estimate", "mid": 2.0, "remaining": 4.0}, {"status": "no_trend", "remaining": 1.0}]
+    assert ims.log_ratios(rows) == [pytest.approx(np.log10(2))]
+    out = ims.calibrate([dict(rows[0])], (-0.3, 0.35))[0]
+    assert out["cal_low"] == pytest.approx(2 * 10**-0.3, abs=1e-3) and out["cal_inside"] is True

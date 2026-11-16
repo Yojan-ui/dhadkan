@@ -100,8 +100,50 @@ def estimate(days: list[float], risk: list[float], level: float, seed: int = 0) 
             "band": band}  # fmt: skip
 
 
+# Units outside the evaluation record (the IMS bearing Demo mode replays): their failure level,
+# trend window and whether to work on log10(score), from edge/ims.py's calibration.
+EXTRA: dict[str, dict[str, Any]] = {}
+
+
+def register(
+    unit: str, level: float, window_days: float, log: bool = True, ratios_log10: list[float] | None = None
+) -> None:
+    """ratios_log10: log10(real remaining / estimated mid) measured on other run-to-failure bearings; when
+    given, the range becomes mid x their 10th-90th percentile (edge/ims.py's calibration)."""
+    EXTRA[unit] = {"level": level, "window": window_days, "log": log, "ratios": ratios_log10 or None}
+
+
+def _calibrated(est: dict[str, Any], ratios: list[float]) -> dict[str, Any]:
+    if est.get("status") != "estimate" or est.get("mid") is None:
+        return est
+    f = 10 ** np.asarray(ratios, float)
+    lo, hi = np.percentile(f, [10, 90])
+    mid = float(est["mid"])
+    return {**est, "low": round(mid * lo, 1), "high": round(mid * hi, 1), "raw_low": est["low"], "raw_high": est["high"],
+            "crossings": np.sort(mid * f).round(2).tolist(), "calibrated_on": "NASA IMS (other bearings)"}  # fmt: skip
+
+
+def known(unit: str) -> bool:
+    return unit in EXTRA or unit in fault_levels()
+
+
 def from_history(hist: list[dict[str, Any]], tick_hours: float, unit: str) -> dict[str, Any]:
     """Estimate for one machine from its readings (sim.Cluster.history rows)."""
+    if unit in EXTRA:
+        x = EXTRA[unit]
+        rows = hist[-(int(x["window"] * 24 / tick_hours) + 1) :]
+        tr = (lambda v: np.log10(max(v, 1e-3)) + 1.0) if x["log"] else (lambda v: v)
+        global WINDOW_DAYS
+        saved, WINDOW_DAYS = WINDOW_DAYS, x["window"]
+        try:
+            est = estimate(
+                [h["tick"] * tick_hours / 24 for h in rows], [tr(h["risk"]) for h in rows], tr(x["level"])
+            )
+        finally:
+            WINDOW_DAYS = saved
+        if x.get("ratios"):
+            est = _calibrated(est, x["ratios"])
+        return {**est, "level": x["level"], "scale": "log10" if x["log"] else "linear"}
     keep = int(WINDOW_DAYS * 24 / tick_hours) + 1  # only the window matters
     rows = tuple((h["tick"], round(h["risk"], 6)) for h in hist[-keep:])
     return _cached(rows, tick_hours, fault_levels()[unit]["level"])

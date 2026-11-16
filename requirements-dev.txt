@@ -2,3 +2,4 @@
 ruff==0.17.5
 black==26.10.1
 pytest==9.2.0
+playwright==1.55.0   # tools/demo_gif.py (drives the installed Chrome)

@@ -1,0 +1,203 @@
+{
+ "run_id": "20261116T060823Z",
+ "data": "CWRU 12 kHz drive-end: normal (48 kHz, resampled), inner race, outer race @6:00, ball; sizes 0.007-0.028 in; loads 0-3 HP",
+ "bearing": {
+  "name": "SKF 6205-2RS (CWRU drive end)",
+  "bpfo": 3.5848,
+  "bpfi": 5.4152,
+  "ball": 4.7135
+ },
+ "windows": {
+  "normal": 66,
+  "inner_race": 304,
+  "outer_race": 228,
+  "ball": 304
+ },
+ "recordings": 48,
+ "features": "envelope peaks at BPFO/BPFI/ball x1-3 (band 1.5-5 kHz), log kurtosis, crest factor",
+ "eval": {
+  "leave_one_load_out": {
+   "held_out_load_0hp": {
+    "accuracy": 0.926605504587156,
+    "per_class_recall": {
+     "normal": 0.8888888888888888,
+     "inner_race": 0.9736842105263158,
+     "outer_race": 0.8596491228070176,
+     "ball": 0.9342105263157895
+    },
+    "n_test": 218,
+    "confusion": [
+     [
+      8,
+      0,
+      0,
+      1
+     ],
+     [
+      0,
+      74,
+      0,
+      2
+     ],
+     [
+      0,
+      0,
+      49,
+      8
+     ],
+     [
+      4,
+      1,
+      0,
+      71
+     ]
+    ]
+   },
+   "held_out_load_1hp": {
+    "accuracy": 0.9649122807017544,
+    "per_class_recall": {
+     "normal": 1.0,
+     "inner_race": 0.9605263157894737,
+     "outer_race": 0.9473684210526315,
+     "ball": 0.9736842105263158
+    },
+    "n_test": 228,
+    "confusion": [
+     [
+      19,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      73,
+      0,
+      3
+     ],
+     [
+      0,
+      0,
+      54,
+      3
+     ],
+     [
+      0,
+      0,
+      2,
+      74
+     ]
+    ]
+   },
+   "held_out_load_2hp": {
+    "accuracy": 0.9692982456140351,
+    "per_class_recall": {
+     "normal": 1.0,
+     "inner_race": 0.9473684210526315,
+     "outer_race": 0.9649122807017544,
+     "ball": 0.9868421052631579
+    },
+    "n_test": 228,
+    "confusion": [
+     [
+      19,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      72,
+      0,
+      4
+     ],
+     [
+      0,
+      0,
+      55,
+      2
+     ],
+     [
+      0,
+      0,
+      1,
+      75
+     ]
+    ]
+   },
+   "held_out_load_3hp": {
+    "accuracy": 0.8596491228070176,
+    "per_class_recall": {
+     "normal": 0.8421052631578947,
+     "inner_race": 0.9868421052631579,
+     "outer_race": 0.7543859649122807,
+     "ball": 0.8157894736842105
+    },
+    "n_test": 228,
+    "confusion": [
+     [
+      16,
+      0,
+      0,
+      3
+     ],
+     [
+      0,
+      75,
+      0,
+      1
+     ],
+     [
+      1,
+      0,
+      43,
+      13
+     ],
+     [
+      0,
+      0,
+      14,
+      62
+     ]
+    ]
+   }
+  },
+  "mean_accuracy_leave_one_load_out": 0.9301162884274907,
+  "unseen_fault_size_0p028in": {
+   "accuracy": 0.48026315789473684,
+   "per_class_recall": {
+    "normal": null,
+    "inner_race": 0.0,
+    "outer_race": null,
+    "ball": 0.9605263157894737
+   },
+   "n_test": 152,
+   "confusion": [
+    [
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     1,
+     75
+    ],
+    [
+     0,
+     0,
+     0,
+     0
+    ],
+    [
+     2,
+     0,
+     1,
+     73
+    ]
+   ]
+  }
+ }
+}
