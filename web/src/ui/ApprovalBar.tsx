@@ -64,7 +64,7 @@ export function ApprovalBar({
         >
           <div className="who small muted">
             <span className="mono">
-              SMS · {f?.owner} · {LANG[msg.language] ?? msg.language}
+              Visit request · {f?.owner} · {LANG[msg.language] ?? msg.language}
             </span>
             {open.length > 1 && (
               <span className="mono">
@@ -156,7 +156,7 @@ export function ApprovalCard({
   return (
     <section className="ac" role="region" aria-label="owner approval">
       <div className="small muted mono">
-        SMS to {f?.owner} · {LANG[msg.language] ?? msg.language}
+        Visit request to {f?.owner} · {LANG[msg.language] ?? msg.language}
         {leg && <> · ETA {fmtClock(leg.arrive)}</>}
       </div>
       <p className="ac-msg" lang={msg.language}>
@@ -174,6 +174,9 @@ export function ApprovalCard({
         </button>
       </div>
       {msg.reply && <p className="small muted">Reply &ldquo;{msg.reply}&rdquo; was unclear; asking again.</p>}
+      <p className="small muted">
+        These buttons stand in for the owner&rsquo;s answer. On WhatsApp the same booking is a reply of 1.
+      </p>
     </section>
   );
 }

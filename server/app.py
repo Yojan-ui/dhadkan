@@ -988,7 +988,7 @@ class DemoIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     on: bool = True
     to: str | None = Field(default=None, max_length=24)
-    lang: str | None = Field(default=None, pattern="^(en|hi|mr)$")
+    lang: str | None = Field(default=None, pattern="^(en|hi|mr|hi_latn)$")
 
 
 class AlertReplyIn(BaseModel):

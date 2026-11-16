@@ -17,6 +17,12 @@ About 3 minutes. Every number is either from a logged run in `docs/runs/`, from 
 > and a part bought in a hurry. With the assumed costs in our demo profile, one unplanned stop of
 > a loom drive costs about ₹1.57 lakh. The owner usually finds out when the motor is already smoking."
 
+**Scale (cited):** India's powerloom sector had 3,85,596 units running 24,86,418 looms and employing
+44,18,240 workers, per the 2013 baseline survey quoted in a Rajya Sabha reply by the MoS Textiles
+([technicaltextiles.in report](https://www.technicaltextiles.in/?p=29103), accessed 2026-11-16).
+That works out to about 6.4 looms per unit on average, so a typical unit is very small. No newer
+census exists; the Ministry is still preparing a new baseline survey.
+
 **Sources / labels:**
 - 6205 bearing ₹65–180: `moglix_6205` in faults.yaml.
 - Rewinding ₹1,000/HP: `indiamart_rewind`, with `bhel_rewind_2018` for the HP bands.
@@ -97,7 +103,7 @@ or the unseen fault size from RESULTS.md) before a judge asks.
 ## 5. Business model: technicians and dealers pay, owners don't
 
 **Say:**
-> "The owner of a 20-loom shed won't pay for software. The people who earn from a repair will. A
+> "The owner of a small powerloom unit, about six looms on average, won't pay for software. The people who earn from a repair will. A
 > local motor-rewinding shop or bearing dealer subscribes, installs a phone in each customer's shed,
 > and gets the alerts, the diagnosis card and the route for the day. Every 'reply 1' is a booked
 > job for them. A dealer gets demand for the exact part number before the customer walks in."
@@ -109,6 +115,18 @@ or the unseen fault size from RESULTS.md) before a judge asks.
 
 Prices for these plans are **not set**. We have no willingness-to-pay data yet. The next step is to
 ask ten rewinding shops in one cluster. Don't quote a price on stage.
+
+**Hardware per machine (listed prices, accessed 2026-11-16; the Android app is not built, so none of
+this is tested):**
+- An entry-level Android phone as the listener: ₹4,990 (Lava Z22) to ₹5,799 (itel A05s), per the
+  [GizNext under-₹6,000 list](https://www.giznext.com/mobiles/top-phones-below-6000-price-list).
+- Optional vibration channel: an MPU-6050 accelerometer module, ₹119
+  ([Rytronics](https://rytronics.in/product-tag/imu)) to ₹275
+  ([Zbotic](https://zbotic.in/product/gy-521-mpu-6050-module-without-soldering/)). It also needs a
+  microcontroller to read it, which is not costed here.
+- So about ₹5,000–6,100 per machine before installation. Against the **assumed** ₹1,56,960 cost of one
+  unplanned stop (slide 1), that is 3.3–3.9% of one avoided breakdown. The ratio is only as good as that
+  assumption.
 
 ## 6. Roadmap
 

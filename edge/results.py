@@ -249,7 +249,7 @@ def main() -> None:
     )
     (ROOT / "docs" / "RESULTS.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     short = summary(ev, ft, ims)
-    for p in (ROOT / "README.md", ROOT / "docs" / "PITCH.md"):
+    for p in (ROOT / "README.md", ROOT / "docs" / "PITCH.md", ROOT / "docs" / "JUDGES.md"):
         fill_markers(p, short)
     print(ROOT / "docs" / "RESULTS.md")
 

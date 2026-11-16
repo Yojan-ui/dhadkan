@@ -117,3 +117,12 @@ def test_demo_number_only_hears_about_the_demo_machine(tmp_path):
         assert live.alerts.notifier.recent(50) == []
     finally:
         mp.undo()
+
+
+def test_demo_endpoint_accepts_every_owner_language():
+    """The Demo mode form offers every owner language the knowledge base has; the API must accept them all."""
+    from server import diagnosis
+    from server.app import DemoIn
+
+    for lang in diagnosis.LANGS:
+        assert DemoIn(on=True, to=None, lang=lang).lang == lang
