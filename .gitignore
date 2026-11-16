@@ -14,3 +14,30 @@ web/dist/
 .DS_Store
 .env
 data/alerts/
+
+# --- secrets: keys live only in a local .env (see .env.example) ---
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+secrets/
+credentials*.json
+
+# --- environments and dependencies, wherever they are ---
+venv/
+.venv*/
+env/
+node_modules/
+.cache/
+
+# --- large datasets and model weights (download/train them: make data, make train) ---
+data/raw/
+data/**/*.zip
+data/**/*.7z
+data/**/*.rar
+data/**/*.npy
+data/**/*.mat
+*.keras
+*.h5
+*.ckpt
