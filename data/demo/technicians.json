@@ -1,0 +1,9 @@
+{
+  "_source": "DEMO DATA: invented technicians for the demonstration. Not real people, not real availability.",
+  "_note": "A factory replaces this file with its own mechanic and nearby fitters (onboarding). Skills use faults.yaml keys plus 'inspection'.",
+  "technicians": [
+    {"id": "T1", "name": "Ramesh (own mechanic)", "skills": ["inspection", "bearing_wear", "belt_slip"], "works": ["mon", "tue", "wed", "thu", "fri", "sat"], "km": 2.0, "role": "own_mechanic"},
+    {"id": "T2", "name": "Salim (motor fitter)", "skills": ["inspection", "bearing_wear", "motor_winding", "imbalance"], "works": ["mon", "wed", "fri", "sat"], "km": 6.5, "role": "fitter"},
+    {"id": "T3", "name": "Pawar Alignment Services", "skills": ["inspection", "misalignment"], "works": ["tue", "thu", "sat"], "km": 14.0, "role": "service"}
+  ]
+}
