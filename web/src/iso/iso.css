@@ -456,3 +456,31 @@
 .iso.picked .hud-r {
   display: none;
 }
+.iso .side .msgs ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.iso .side .msgs li {
+  margin: 6px 0;
+  padding: 6px 8px;
+  border-left: 2px solid var(--muted);
+  background: rgba(255, 255, 255, 0.03);
+}
+.iso .side .msgs li.m-out {
+  border-color: var(--teal);
+}
+.iso .side .msgs li.m-in {
+  border-color: var(--cyan);
+}
+.iso .side .msgs li.k-tool {
+  opacity: 0.75;
+}
+.iso .side .msgs p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

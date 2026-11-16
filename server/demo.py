@@ -3,12 +3,16 @@
 python -m server.demo [--port 8600] [--no-replay] [--no-open] [--ims]
 
 --ims (what `npm run demo` uses): instead of the scripted MIMII replay, start Demo mode: the real NASA IMS
-bearing run-to-failure plays as Loom 1, the fault grows, and at the alarm the owner's agent runs
-observe -> diagnose -> plan -> ask owner (WhatsApp; a dry run without keys). Approving (Haan) is left to you.
+bearing run-to-failure plays as Loom 4 (Shed A), the fault grows, and the WhatsApp flow messages owner,
+supervisor, mechanic and dealer (a dry run without Twilio keys). Approving (1) is left to you.
+
+Tunnel: with NGROK_AUTHTOKEN in the environment or .env, an ngrok tunnel is opened on the port and
+PUBLIC_BASE_URL is set to it, so Twilio's signature check and webhook URL match. --no-tunnel skips it.
 """
 
 import argparse
 import json
+import os
 import threading
 import time
 import urllib.request
@@ -17,6 +21,30 @@ import webbrowser
 import uvicorn
 
 from .app import create_app
+from .notify import env
+
+
+def _tunnel(port: int) -> str | None:
+    """Open an ngrok tunnel to the local port; returns the public https URL, or None (and says why)."""
+    token = env.get("NGROK_AUTHTOKEN")
+    if not token:
+        print(
+            "ngrok: no NGROK_AUTHTOKEN in the environment or .env; WhatsApp replies will not reach this machine."
+        )
+        return None
+    try:
+        from pyngrok import conf, ngrok
+
+        conf.get_default().auth_token = token
+        public = ngrok.connect(port, "http").public_url.replace("http://", "https://")
+    except Exception as e:  # a tunnel failure must not stop the local demo
+        print(f"ngrok: tunnel failed ({type(e).__name__}: {e}); continuing without it.")
+        return None
+    os.environ["PUBLIC_BASE_URL"] = public
+    print(
+        f"ngrok: {public}\n  Twilio Sandbox settings -> 'When a message comes in': {public}/whatsapp/twilio  (POST)"
+    )
+    return public
 
 
 def _post(url: str, body: dict) -> None:
@@ -48,8 +76,11 @@ def main() -> None:
     ap.add_argument("--no-replay", action="store_true")
     ap.add_argument("--no-open", action="store_true")
     ap.add_argument("--ims", action="store_true", help="start Demo mode (NASA IMS bearing failure + agent)")
+    ap.add_argument("--no-tunnel", action="store_true", help="do not open the ngrok tunnel")
     args = ap.parse_args()
     url = f"http://127.0.0.1:{args.port}"
+    if not args.no_tunnel:
+        _tunnel(args.port)
     threading.Thread(
         target=_kick, args=(url, not args.no_replay, not args.no_open, args.ims), daemon=True
     ).start()

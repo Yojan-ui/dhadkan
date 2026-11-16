@@ -132,9 +132,13 @@ class Live:
         self.link_up = True
         self.outbox = Outbox(Path(node_db or NODE_DB).with_name("outbox.db"), self._send)
         self.alerts = OwnerAlerts(self, node_db)
+        from .factory.flow import Flow
+
+        self.flow = Flow(self)  # who gets which WhatsApp per stage (server/factory/contacts.yaml)
         self.demo: dict[str, Any] = {"on": False, "phase": "off"}
         self.last_agent: dict[str, Any] | None = None  # the owner agent's last run (timeline, checklist)
         self._ims_saved: dict[str, Any] | None = None
+        self._ims_names: dict[str, dict[str, Any]] = {}
         self.cache = {}  # machine -> analysis of its latest reading
         self._readings: dict[tuple[str, int], dict[str, Any]] = {}  # rebuilt past readings (LRU-ish)
         self._explained: dict[tuple[str, int], dict[str, Any]] = {}
@@ -824,6 +828,8 @@ class Live:
             self.outbox.db.execute("DELETE FROM outbox")
             self.outbox.db.commit()
             self.alerts.notifier.clear()  # WhatsApp alerts from an earlier replay must not show in this one
+            if hasattr(self, "flow"):
+                self.flow.reset()
             self.alerts.expert.clear()
             self.link_up = True
             self.events = []
@@ -842,11 +848,18 @@ class Live:
                 self.c.machines[mid]["source"] = src
             self._ims_saved = None
         self.c.ims.clear()
+        for mid, names in (
+            self._ims_names or {}
+        ).items():  # Demo mode's display name ("Loom 4") back to the cluster's
+            self.c.machines[mid].update(names)
+        self._ims_names = {}
         self.alerts.contact_override.clear()
         self.alerts.lang_override.clear()
         self.alerts.classified.clear()
 
-    async def run_ims_demo(self, to: str | None, lang: str | None = None, tick_s: float = 0.45) -> None:
+    async def run_ims_demo(
+        self, to: str | None, lang: str | None = None, tick_s: float | None = None, day_seconds: float = 5.0
+    ) -> None:
         """Replay NASA IMS test 2, bearing 1 (outer race failure, Feb 2004) as Loom 1's motor bearing.
 
         At the first alarm the CWRU-trained classifier names the fault from the real vibration, the rules
@@ -876,6 +889,10 @@ class Live:
             )
             self.c.ims[mid] = src
             self.c.set_mode(mid, "ims")
+            name = self.c.cfg.get("demo_machine_name") or {}
+            if name:  # shown as "Loom 4, Shed A" in Demo mode (data/sim/cluster.json)
+                self._ims_names = {mid: {k: m[k] for k in name if k in m}}
+                m.update(name)
             if to:
                 self.alerts.contact_override[mid] = to
             if lang:
@@ -889,11 +906,15 @@ class Live:
             at=0,
         )
         self.version += 1
+        if tick_s is None:  # 1 real day of the IMS run ~ day_seconds of replay
+            tick_s = src.tick_hours / 24 * day_seconds
         try:
             for k in range(src.readings):
                 t0 = time.monotonic()
                 await asyncio.to_thread(self.step)
                 self.demo["at"] = k + 1
+                self.flow.on_reading(mid, background=tick_s > 0)  # stage messages, once per stage
+                self.flow.tick()  # reminders for unanswered owner decisions
                 row = next(r for r in self.ranking() if r["machine_id"] == mid)
                 if self.demo["alerted"] or row["status"] == "alarm":
                     # name the fault from the last hour of vibration; after the alarm, every reading
@@ -1354,6 +1375,51 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
         if factory not in live.c.factories:
             raise HTTPException(404)
         return prove.mechanic_stats(live, factory)
+
+    @app.post("/whatsapp/twilio")
+    async def whatsapp_twilio(request: Request) -> Response:
+        """Replies from the Twilio sandbox: 1/2/3, Haan/Nahi, voice notes (MediaUrl0). Signature checked."""
+        from . import whatsapp as wa_send
+
+        form = {k: str(v) for k, v in (await request.form()).items()}
+        token = env.get("TWILIO_TOKEN")
+        url = (env.get("PUBLIC_BASE_URL") or str(request.base_url).rstrip("/")) + "/whatsapp/twilio"
+        if not token or not whatsapp.verify_twilio_signature(
+            token, url, form, request.headers.get("X-Twilio-Signature")
+        ):
+            raise HTTPException(403, "bad signature")
+        phone = form.get("From", "")
+        audio = None
+        if form.get("NumMedia", "0") != "0" and form.get("MediaContentType0", "").startswith("audio/"):
+            audio = await asyncio.to_thread(wa_send.download, form.get("MediaUrl0", ""))
+        await asyncio.to_thread(live.flow.inbound, phone, form.get("Body") or None, audio)
+        return Response("<Response/>", media_type="application/xml")
+
+    @app.get("/api/messages/{mid}")
+    def machine_messages(mid: str) -> list[dict[str, Any]]:
+        """Every WhatsApp sent / received and every agent step for this machine (Messages timeline)."""
+        if mid not in live.c.machines:
+            raise HTTPException(404)
+        return live.flow.timeline(mid)
+
+    @app.post("/api/whatsapp/test")
+    def whatsapp_test() -> dict[str, Any]:
+        """Setup check: 'Dhadkan connected' to OWNER_PHONE through the Twilio sandbox."""
+        from . import whatsapp as wa_send
+
+        to = env.get("OWNER_PHONE")
+        if not to:
+            raise HTTPException(400, "OWNER_PHONE is not set in .env")
+        res = wa_send.send(to, "Dhadkan connected. Aapki machines ki khabar yahin aayegi.")
+        from .factory.flow import mask
+
+        return {**res, "to": mask(to)}
+
+    @app.get("/api/whatsapp/status/{sid}")
+    def whatsapp_status(sid: str) -> dict[str, Any]:
+        from . import whatsapp as wa_send
+
+        return {"sid": sid, "status": wa_send.status(sid)}
 
     @app.get("/api/twin")
     def twin(focus: str | None = None) -> dict[str, Any]:

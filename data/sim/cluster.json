@@ -239,5 +239,10 @@
  "_hp_note": "motor_hp per machine is an ASSUMPTION (typical small-factory motors); it sizes the rewinding cost in diagnosis cards.",
  "learning_days": 7,
  "_learning_note": "ASSUMPTION: days a newly installed machine only learns its normal and raises no alarm (spec: 3-7 days). Demo mode's NASA IMS bearing learns in the IMS learning window instead (first 10% of its run, 0.7 days), because the whole test lasted 7 days.",
- "_alert_timing_note": "ASSUMPTIONS per factory: quiet_hours, power_cuts (scheduled load-shedding), digest_at. Watch-level alerts go into one daily digest; repair-soon alerts wait out quiet hours and power cuts; stop-level alerts always go at once (server/notify/policy.py)."
+ "_alert_timing_note": "ASSUMPTIONS per factory: quiet_hours, power_cuts (scheduled load-shedding), digest_at. Watch-level alerts go into one daily digest; repair-soon alerts wait out quiet hours and power cuts; stop-level alerts always go at once (server/notify/policy.py).",
+ "demo_machine_name": {
+  "name": "Loom 4",
+  "name_local": "लूम 4"
+ },
+ "_demo_name_note": "Demo mode shows the NASA IMS bearing (machine A-G1) as Loom 4 in Shed A (factory A)."
 }

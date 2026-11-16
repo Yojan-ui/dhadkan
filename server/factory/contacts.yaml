@@ -1,0 +1,25 @@
+# Who gets which WhatsApp (server/factory/flow.py). For the demo every phone defaults to OWNER_PHONE from
+# .env, so all four roles arrive on your phone, each message tagged with its role. Replace with real
+# numbers (with consent) for a real factory. Names and the address below are demo data.
+factory:
+  id: A
+  shed: Shed A
+  name: Shinde Engineering Works (demo)
+  address: Plot 12, Bhosari MIDC, Pune (demo address)
+contacts:
+  owner:
+    name: Sunil Shinde
+    phone: ${OWNER_PHONE}
+    language: hi_latn
+  supervisor:
+    name: Prakash (shift supervisor)
+    phone: ${SUPERVISOR_PHONE:-OWNER_PHONE}
+    language: hi_latn
+  mechanic:
+    name: Ramesh (motor mistri)
+    phone: ${MECHANIC_PHONE:-OWNER_PHONE}
+    language: hi_latn
+  dealer:
+    name: Bhosari Bearing House
+    phone: ${DEALER_PHONE:-OWNER_PHONE}
+    language: hi_latn

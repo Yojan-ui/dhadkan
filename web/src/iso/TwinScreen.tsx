@@ -7,6 +7,7 @@ import { HealthRing, Spectro2D } from "../ui/bits";
 import { DiagnosisBlock } from "../ui/Diagnosis";
 import { playClip, useHistory } from "../ui/hooks";
 import { AgentDock } from "./AgentDock";
+import { Messages } from "./Messages";
 import {
   Actions,
   Chips,
@@ -123,6 +124,7 @@ function SidePanel({ m, onClose }: { m: Machine; onClose: () => void }) {
       </svg>
       <ApprovalCard machine={m} messages={state.messages} factories={meta.factories} route={state.route} />
       <DiagnosisBlock id={m.id} tick={tick} alerts={state.alerts} />
+      <Messages id={m.id} tick={tick} />
     </aside>
   );
 }

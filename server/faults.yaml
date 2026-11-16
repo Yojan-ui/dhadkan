@@ -101,6 +101,7 @@ faults:
       labour_hours: [1, 2]
       labour_source: null
       technician: {en: "motor mechanic (fitter)", hi: "मोटर मिस्त्री", mr: "मोटर मिस्त्री", hi_latn: "motor mistri", gu: "મોટર મિસ્ત્રી"}
+      tools: [bearing puller, spanner set, grease gun, rubber mallet]  # typical, for the mechanic's message
     misuse:
       - {en: "no greasing, or the wrong grease", source: skf_causes}
       - {en: "dust or water getting in", source: skf_causes}
@@ -126,6 +127,7 @@ faults:
       labour_hours: [1, 3]
       labour_source: null
       technician: {en: "alignment technician", hi: "अलाइनमेंट मिस्त्री", mr: "अलाइनमेंट मिस्त्री", hi_latn: "alignment mistri", gu: "એલાઇનમેન્ટ મિસ્ત્રી"}
+      tools: [dial gauge or laser alignment kit, shims, spanner set]  # typical, for the mechanic's message
     misuse:
       - {en: "refitting the motor without checking alignment", source: fluidlife_skf}
       - {en: "loose or settling base bolts", source: null}
@@ -145,6 +147,7 @@ faults:
       labour_hours: [2, 6]
       labour_source: null
       technician: {en: "balancing shop", hi: "बैलेंसिंग वर्कशॉप", mr: "बॅलन्सिंग वर्कशॉप", hi_latn: "balancing workshop", gu: "બેલેન્સિંગ વર્કશોપ"}
+      tools: [spanner set to take the fan or impeller off; balancing is done at the shop]  # typical, for the mechanic's message
     misuse:
       - {en: "dust or material building up on the fan", source: null}
       - {en: "a bent or repaired blade", source: null}
@@ -164,6 +167,7 @@ faults:
       labour_hours: [0.5, 1]
       labour_source: null
       technician: {en: "fitter", hi: "फिटर", mr: "फिटर", hi_latn: "fitter", gu: "ફિટર"}
+      tools: [spanner set, belt tension gauge or straight edge]  # typical, for the mechanic's message
     misuse:
       - {en: "wrong belt tension (too loose or too tight)", source: null}
       - {en: "oil or grease on the belt", source: null}
@@ -184,6 +188,7 @@ faults:
       labour_hours: [1, 3]
       labour_source: null
       technician: {en: "pump mechanic", hi: "पंप मिस्त्री", mr: "पंप मिस्त्री", hi_latn: "pump mistri", gu: "પંપ મિસ્ત્રી"}
+      tools: [pipe wrench, spanner set, new gasket]  # typical, for the mechanic's message
     misuse:
       - {en: "running the pump dry or with a low water level", source: null}
       - {en: "a choked strainer or foot valve", source: null}
@@ -205,6 +210,7 @@ faults:
       labour_hours: [8, 24]
       labour_source: null
       technician: {en: "motor rewinding shop", hi: "मोटर रिवाइंडिंग की दुकान", mr: "मोटर रिवाइंडिंगचे दुकान", hi_latn: "motor rewinding ki dukaan", gu: "મોટર રિવાઇન્ડિંગની દુકાન"}
+      tools: [megger (insulation tester), multimeter, spanner set]  # typical, for the mechanic's message
     misuse:
       - {en: "voltage fluctuation, low or high supply voltage", source: synchronics_warranty}
       - {en: "single-phasing (one phase missing)", source: synchronics_warranty}
@@ -231,6 +237,7 @@ faults:
       labour_hours: [0.5, 2]
       labour_source: null
       technician: {en: "fitter", hi: "फिटर", mr: "फिटर", hi_latn: "fitter", gu: "ફિટર"}
+      tools: [torque wrench, spanner set, shims]  # typical, for the mechanic's message
     misuse:
       - {en: "vibration working bolts loose over time", source: null}
       - {en: "a weak or uneven floor", source: null}

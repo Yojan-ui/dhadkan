@@ -16,3 +16,6 @@ remotezip==0.12.6
 reportlab==5.1.0
 PyYAML==6.0.3
 cryptography==50.0.2   # Ed25519 signatures on repair records and passports
+twilio==9.13.0   # WhatsApp via the Twilio sandbox (server/whatsapp.py)
+python-dotenv==1.2.4
+pyngrok==9.1.4   # public URL for the Twilio webhook during the demo

@@ -1,19 +1,25 @@
 """Shared fixtures: a live server that has replayed the real NASA IMS bearing failure (Demo mode).
 
-The alert, WhatsApp, diagnosis and booking paths are exercised on Loom 1 (A-G1), which replays NASA IMS
+The alert, WhatsApp, diagnosis and booking paths are exercised on Loom 4 (A-G1, Shed A), which replays NASA IMS
 test 2 bearing 1. That machine deterministically crosses its alarm on real data. The MIMII/DCASE
 units the scripted story replays do not: on the official DCASE test split the model cannot separate
 fan id_00's faults (docs/RESULTS.md), so tests must not depend on them alarming.
 """
 
 import asyncio
+import os
 from pathlib import Path
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 
+import server.notify.env as _env
 from edge.config import MODELS
+
+# Tests never read the real .env (it may hold live Twilio / Anthropic keys) and never send anything.
+_env._dotenv = dict  # type: ignore[assignment]
+os.environ["DHADKAN_DRY_RUN"] = "1"
 
 OWNER_A, SUPERVISOR_A = "+91 90000 11111", "+91 90000 22222"
 # a coarser replay than the UI's (~110 readings); the alarm still comes from the real curve
@@ -44,7 +50,8 @@ def ims_world(d: Path, mp: pytest.MonkeyPatch, to: str | None = None, lang: str 
     from server import imsdemo
     from server.owner_alerts import OwnerAlerts
 
-    for k in ("WA_TOKEN", "WA_PHONE_NUMBER_ID", "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN"):
+    for k in ("WA_TOKEN", "WA_PHONE_NUMBER_ID", "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_SID", "TWILIO_TOKEN",
+              "TWILIO_WA_FROM", "ANTHROPIC_API_KEY"):  # fmt: skip
         mp.delenv(k, raising=False)
     mp.setenv("DHADKAN_PHONE_A", OWNER_A)
     mp.setenv("DHADKAN_SUPERVISOR_A", SUPERVISOR_A)

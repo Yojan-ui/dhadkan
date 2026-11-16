@@ -257,6 +257,7 @@ def test_media_formats():
 
 
 def test_dry_run_switch_overrides_keys(monkeypatch):
+    monkeypatch.delenv("DHADKAN_DRY_RUN", raising=False)
     monkeypatch.setenv("WA_TOKEN", "t")
     monkeypatch.setenv("WA_PHONE_NUMBER_ID", "1")
     monkeypatch.setenv("TWILIO_ACCOUNT_SID", "s")

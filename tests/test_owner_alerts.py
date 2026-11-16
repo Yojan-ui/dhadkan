@@ -35,7 +35,7 @@ def test_the_real_bearing_failure_sends_a_whatsapp_alert_with_media(world):
     _, client, live, rec = world
     assert live.demo["alerted"] and live.demo["phase"].startswith("bearing failed")
     to_a = [s for s in rec.sent if s["to"] == OWNER_A]
-    loom = [s for s in to_a if "लूम 1" in s["text"]]
+    loom = [s for s in to_a if "लूम 4" in s["text"]]
     assert loom, "factory A's owner gets the Loom 1 alert"
     a = loom[0]
     assert a["lang"] == "hi" and "1 = मिस्त्री बुलाओ" in a["text"] and not a["text"].startswith("⚠")
@@ -112,7 +112,7 @@ def test_demo_number_only_hears_about_the_demo_machine(tmp_path):
         to_judge = [a for a in live.alerts.notifier.recent(50) if a["to_phone"] == DEMO_TO]
         assert to_judge and {a["machine"] for a in to_judge} == {"A-G1"}
         assert all(a["lang"] == "en" for a in to_judge)
-        assert all(s["to"] != DEMO_TO or "Loom 1" in s["text"] for s in rec.sent)
+        assert all(s["to"] != DEMO_TO or "Loom 4" in s["text"] for s in rec.sent)
         live.reset()  # a new replay must not show the previous one's alerts
         assert live.alerts.notifier.recent(50) == []
     finally:
