@@ -7,6 +7,7 @@ disclaimer:
   hi: "अनुमानित दाम और वारंटी, डीलर से पक्का करें।"
   mr: "अंदाजे किंमत आणि वॉरंटी, डीलरकडून खात्री करा."
   hi_latn: "Andaazan daam aur warranty, dealer se pakka karein."
+  gu: "અંદાજિત ભાવ અને વોરંટી, ડીલર પાસે પાકું કરો."
 
 sources:
   moglix_6205:
@@ -74,10 +75,10 @@ sources:
 severity:
   order: [watch, repair_soon, stop_now, replace]
   labels:
-    watch: {en: "Watch", hi: "नज़र रखें", mr: "लक्ष ठेवा", hi_latn: "Dhyan do"}
-    repair_soon: {en: "Repair soon", hi: "जल्द ठीक कराएँ", mr: "लवकर दुरुस्त करा", hi_latn: "Jaldi repair"}
-    stop_now: {en: "Stop now", hi: "अभी बंद करें", mr: "आत्ताच बंद करा", hi_latn: "Band karne ka sochiye"}
-    replace: {en: "Beyond repair (replace)", hi: "मरम्मत से बाहर, बदलें", mr: "दुरुस्तीपलीकडे, बदला", hi_latn: "Badalna padega"}
+    watch: {en: "Watch", hi: "नज़र रखें", mr: "लक्ष ठेवा", hi_latn: "Dhyan do", gu: "ધ્યાન રાખો"}
+    repair_soon: {en: "Repair soon", hi: "जल्द ठीक कराएँ", mr: "लवकर दुरुस्त करा", hi_latn: "Jaldi repair", gu: "જલ્દી રિપેર કરાવો"}
+    stop_now: {en: "Stop now", hi: "अभी बंद करें", mr: "आत्ताच बंद करा", hi_latn: "Band karne ka sochiye", gu: "બંધ કરવાનું વિચારો"}
+    replace: {en: "Beyond repair (replace)", hi: "मरम्मत से बाहर, बदलें", mr: "दुरुस्तीपलीकडे, बदला", hi_latn: "Badalna padega", gu: "રિપેરથી બહાર, બદલો"}
   rules:
     stop_now_within_days: 2      # the low end of the days-to-fault range is this close, or it already sounds faulty
     repair_soon_within_days: 14  # alarm, registry match, or the low end of the range within this
@@ -86,20 +87,20 @@ severity:
 
 faults:
   bearing_wear:
-    name: {en: "motor bearing wear", hi: "मोटर बेयरिंग घिसना", mr: "मोटर बेअरिंग झिजणे", hi_latn: "motor bearing ghisna"}
-    what: {en: "The ball bearing in the motor is wearing out.", hi: "मोटर का बेयरिंग घिस रहा है।", mr: "मोटरचे बेअरिंग झिजत आहे.", hi_latn: "Motor ka bearing ghis raha hai."}
+    name: {en: "motor bearing wear", hi: "मोटर बेयरिंग घिसना", mr: "मोटर बेअरिंग झिजणे", hi_latn: "motor bearing ghisna", gu: "મોટર બેરિંગ ઘસાવું"}
+    what: {en: "The ball bearing in the motor is wearing out.", hi: "मोटर का बेयरिंग घिस रहा है।", mr: "मोटरचे बेअरिंग झिजत आहे.", hi_latn: "Motor ka bearing ghis raha hai.", gu: "મોટરનું બેરિંગ ઘસાઈ રહ્યું છે."}
     repairable:
       answer: true
       why: "A bearing is a wear part. A new one restores the motor if the shaft and housing are not damaged."
       not_when: "the shaft or the bearing housing is scored or worn oval"
     fix:
-      part: {en: "ball bearing 6205 (same number as the old one)", hi: "बेयरिंग 6205 (पुराने जैसा नंबर)", mr: "बेअरिंग 6205 (जुन्यासारखा नंबर)", hi_latn: "bearing 6205 (purane jaisa number)"}
+      part: {en: "ball bearing 6205 (same number as the old one)", hi: "बेयरिंग 6205 (पुराने जैसा नंबर)", mr: "बेअरिंग 6205 (जुन्यासारखा नंबर)", hi_latn: "bearing 6205 (purane jaisa number)", gu: "બેરિંગ 6205 (જૂના જેવો નંબર)"}
       price_inr: [65, 180]
       price_unit: "per bearing; a motor usually has two"
       price_source: moglix_6205
       labour_hours: [1, 2]
       labour_source: null
-      technician: {en: "motor mechanic (fitter)", hi: "मोटर मिस्त्री", mr: "मोटर मिस्त्री", hi_latn: "motor mistri"}
+      technician: {en: "motor mechanic (fitter)", hi: "मोटर मिस्त्री", mr: "मोटर मिस्त्री", hi_latn: "motor mistri", gu: "મોટર મિસ્ત્રી"}
     misuse:
       - {en: "no greasing, or the wrong grease", source: skf_causes}
       - {en: "dust or water getting in", source: skf_causes}
@@ -111,99 +112,99 @@ faults:
       note: "No published figure found for a fitted bearing. Ask the dealer what they give."
       voided_by: [{en: "running without grease", source: null}, {en: "overload or misalignment after fitting", source: null}]
     if_ignored:
-      what: {en: "the motor can burn", hi: "मोटर जल सकती है", mr: "मोटर जळू शकते", hi_latn: "motor jal sakti hai"}
+      what: {en: "the motor can burn", hi: "मोटर जल सकती है", mr: "मोटर जळू शकते", hi_latn: "motor jal sakti hai", gu: "મોટર બળી શકે છે"}
       cost_basis: rewind
   misalignment:
-    name: {en: "shaft misalignment", hi: "शाफ़्ट का टेढ़ापन", mr: "शाफ्ट चुकीच्या रेषेत", hi_latn: "shaft ka tedhapan"}
-    what: {en: "The motor and machine shafts are out of line.", hi: "मोटर और मशीन का शाफ़्ट एक सीध में नहीं है।", mr: "मोटर आणि मशीनचा शाफ्ट एका रेषेत नाही.", hi_latn: "Motor aur machine ka shaft ek seedh mein nahi hai."}
+    name: {en: "shaft misalignment", hi: "शाफ़्ट का टेढ़ापन", mr: "शाफ्ट चुकीच्या रेषेत", hi_latn: "shaft ka tedhapan", gu: "શાફ્ટ વાંકો/લાઇનમાં નથી"}
+    what: {en: "The motor and machine shafts are out of line.", hi: "मोटर और मशीन का शाफ़्ट एक सीध में नहीं है।", mr: "मोटर आणि मशीनचा शाफ्ट एका रेषेत नाही.", hi_latn: "Motor aur machine ka shaft ek seedh mein nahi hai.", gu: "મોટર અને મશીનનો શાફ્ટ એક લાઇનમાં નથી."}
     repairable: {answer: true, why: "Realigning the shafts fixes it; a worn coupling element is a cheap part."}
     fix:
-      part: {en: "laser shaft alignment (and coupling rubber if worn)", hi: "लेज़र शाफ़्ट अलाइनमेंट", mr: "लेझर शाफ्ट अलाइनमेंट", hi_latn: "laser shaft alignment"}
+      part: {en: "laser shaft alignment (and coupling rubber if worn)", hi: "लेज़र शाफ़्ट अलाइनमेंट", mr: "लेझर शाफ्ट अलाइनमेंट", hi_latn: "laser shaft alignment", gu: "લેસર શાફ્ટ એલાઇનમેન્ટ"}
       price_inr: [13500, 20000]
       price_unit: "per job or day (laser); a dial-gauge job costs less, no published figure found"
       price_source: indiamart_alignment
       labour_hours: [1, 3]
       labour_source: null
-      technician: {en: "alignment technician", hi: "अलाइनमेंट मिस्त्री", mr: "अलाइनमेंट मिस्त्री", hi_latn: "alignment mistri"}
+      technician: {en: "alignment technician", hi: "अलाइनमेंट मिस्त्री", mr: "अलाइनमेंट मिस्त्री", hi_latn: "alignment mistri", gu: "એલાઇનમેન્ટ મિસ્ત્રી"}
     misuse:
       - {en: "refitting the motor without checking alignment", source: fluidlife_skf}
       - {en: "loose or settling base bolts", source: null}
     warranty: {period: null, note: "Ask the service provider.", voided_by: []}
     if_ignored:
-      what: {en: "bearings and coupling wear out fast", hi: "बेयरिंग और कपलिंग जल्दी घिसेंगे", mr: "बेअरिंग आणि कपलिंग लवकर झिजतील", hi_latn: "bearing aur coupling jaldi ghisenge"}
+      what: {en: "bearings and coupling wear out fast", hi: "बेयरिंग और कपलिंग जल्दी घिसेंगे", mr: "बेअरिंग आणि कपलिंग लवकर झिजतील", hi_latn: "bearing aur coupling jaldi ghisenge", gu: "બેરિંગ અને કપલિંગ જલ્દી ઘસાશે"}
       cost_basis: bearing
   imbalance:
-    name: {en: "imbalance", hi: "असंतुलन", mr: "असंतुलन", hi_latn: "asantulan (imbalance)"}
-    what: {en: "The rotating part (fan, impeller or roller) is heavier on one side.", hi: "घूमने वाला हिस्सा (पंखा, इम्पेलर या रोलर) एक तरफ़ भारी हो गया है।", mr: "फिरणारा भाग (पंखा, इम्पेलर किंवा रोलर) एका बाजूला जड झाला आहे.", hi_latn: "Ghoomne wala hissa (pankha, impeller ya roller) ek taraf bhaari ho gaya hai."}
+    name: {en: "imbalance", hi: "असंतुलन", mr: "असंतुलन", hi_latn: "asantulan (imbalance)", gu: "અસંતુલન"}
+    what: {en: "The rotating part (fan, impeller or roller) is heavier on one side.", hi: "घूमने वाला हिस्सा (पंखा, इम्पेलर या रोलर) एक तरफ़ भारी हो गया है।", mr: "फिरणारा भाग (पंखा, इम्पेलर किंवा रोलर) एका बाजूला जड झाला आहे.", hi_latn: "Ghoomne wala hissa (pankha, impeller ya roller) ek taraf bhaari ho gaya hai.", gu: "ફરતો ભાગ (પંખો, ઇમ્પેલર કે રોલર) એક બાજુ ભારે થઈ ગયો છે."}
     repairable: {answer: true, why: "Cleaning off build-up and dynamic balancing fixes it.", not_when: "a blade or vane is cracked"}
     fix:
-      part: {en: "dynamic balancing of the fan / impeller", hi: "पंखे / इम्पेलर की डायनामिक बैलेंसिंग", mr: "पंखा / इम्पेलरचे डायनॅमिक बॅलन्सिंग", hi_latn: "pankhe / impeller ki dynamic balancing"}
+      part: {en: "dynamic balancing of the fan / impeller", hi: "पंखे / इम्पेलर की डायनामिक बैलेंसिंग", mr: "पंखा / इम्पेलरचे डायनॅमिक बॅलन्सिंग", hi_latn: "pankhe / impeller ki dynamic balancing", gu: "પંખા / ઇમ્પેલરનું ડાયનેમિક બેલેન્સિંગ"}
       price_inr: [500, 8500]
       price_unit: "per rotor; on-site costs more"
       price_source: indiamart_balancing
       labour_hours: [2, 6]
       labour_source: null
-      technician: {en: "balancing shop", hi: "बैलेंसिंग वर्कशॉप", mr: "बॅलन्सिंग वर्कशॉप", hi_latn: "balancing workshop"}
+      technician: {en: "balancing shop", hi: "बैलेंसिंग वर्कशॉप", mr: "बॅलन्सिंग वर्कशॉप", hi_latn: "balancing workshop", gu: "બેલેન્સિંગ વર્કશોપ"}
     misuse:
       - {en: "dust or material building up on the fan", source: null}
       - {en: "a bent or repaired blade", source: null}
     warranty: {period: null, note: "Ask the service provider.", voided_by: []}
     if_ignored:
-      what: {en: "bearings fail and the fan can crack", hi: "बेयरिंग खराब होंगे, पंखा टूट सकता है", mr: "बेअरिंग खराब होतील, पंखा तुटू शकतो", hi_latn: "bearing kharab honge, pankha toot sakta hai"}
+      what: {en: "bearings fail and the fan can crack", hi: "बेयरिंग खराब होंगे, पंखा टूट सकता है", mr: "बेअरिंग खराब होतील, पंखा तुटू शकतो", hi_latn: "bearing kharab honge, pankha toot sakta hai", gu: "બેરિંગ ખરાબ થશે, પંખો તૂટી શકે છે"}
       cost_basis: bearing
   belt_slip:
-    name: {en: "belt slip", hi: "बेल्ट फिसलना", mr: "बेल्ट घसरणे", hi_latn: "belt phisalna"}
-    what: {en: "The belt is loose or worn and slipping on the pulley.", hi: "बेल्ट ढीला या घिसा है और पुली पर फिसल रहा है।", mr: "बेल्ट सैल किंवा झिजलेला आहे आणि पुलीवर घसरत आहे.", hi_latn: "Belt dheela ya ghisa hai aur pulley par phisal raha hai."}
+    name: {en: "belt slip", hi: "बेल्ट फिसलना", mr: "बेल्ट घसरणे", hi_latn: "belt phisalna", gu: "બેલ્ટ લપસવો"}
+    what: {en: "The belt is loose or worn and slipping on the pulley.", hi: "बेल्ट ढीला या घिसा है और पुली पर फिसल रहा है।", mr: "बेल्ट सैल किंवा झिजलेला आहे आणि पुलीवर घसरत आहे.", hi_latn: "Belt dheela ya ghisa hai aur pulley par phisal raha hai.", gu: "બેલ્ટ ઢીલો કે ઘસાયેલો છે અને પુલી પર લપસે છે."}
     repairable: {answer: true, why: "A new belt at the right tension fixes it."}
     fix:
-      part: {en: "V-belt (same section and length)", hi: "वी-बेल्ट (वही साइज़)", mr: "व्ही-बेल्ट (तोच साइज)", hi_latn: "V-belt (wahi size)"}
+      part: {en: "V-belt (same section and length)", hi: "वी-बेल्ट (वही साइज़)", mr: "व्ही-बेल्ट (तोच साइज)", hi_latn: "V-belt (wahi size)", gu: "વી-બેલ્ટ (એ જ સાઇઝ)"}
       price_inr: [100, 800]
       price_unit: "per belt"
       price_source: vbelt_listings
       labour_hours: [0.5, 1]
       labour_source: null
-      technician: {en: "fitter", hi: "फिटर", mr: "फिटर", hi_latn: "fitter"}
+      technician: {en: "fitter", hi: "फिटर", mr: "फिटर", hi_latn: "fitter", gu: "ફિટર"}
     misuse:
       - {en: "wrong belt tension (too loose or too tight)", source: null}
       - {en: "oil or grease on the belt", source: null}
       - {en: "mixing old and new belts on one drive", source: null}
     warranty: {period: null, note: "Ask the dealer.", voided_by: []}
     if_ignored:
-      what: {en: "the belt snaps and the machine stops", hi: "बेल्ट टूटेगा, मशीन रुकेगी", mr: "बेल्ट तुटेल, मशीन थांबेल", hi_latn: "belt tootega, machine rukegi"}
+      what: {en: "the belt snaps and the machine stops", hi: "बेल्ट टूटेगा, मशीन रुकेगी", mr: "बेल्ट तुटेल, मशीन थांबेल", hi_latn: "belt tootega, machine rukegi", gu: "બેલ્ટ તૂટશે, મશીન અટકશે"}
       cost_basis: part
   cavitation:
-    name: {en: "pump cavitation / blocked suction", hi: "पंप में हवा / सक्शन जाम", mr: "पंपात हवा / सक्शन अडकले", hi_latn: "pump mein hawa / suction jam"}
-    what: {en: "The pump is not getting enough water at its inlet; bubbles form and burst inside it.", hi: "पंप के इनलेट पर पूरा पानी नहीं आ रहा; अंदर बुलबुले बनकर फट रहे हैं।", mr: "पंपाच्या इनलेटला पुरेसे पाणी येत नाही; आत बुडबुडे तयार होऊन फुटत आहेत.", hi_latn: "Pump ke inlet par poora paani nahi aa raha; andar bulbule bankar phat rahe hain."}
+    name: {en: "pump cavitation / blocked suction", hi: "पंप में हवा / सक्शन जाम", mr: "पंपात हवा / सक्शन अडकले", hi_latn: "pump mein hawa / suction jam", gu: "પંપમાં હવા / સક્શન જામ"}
+    what: {en: "The pump is not getting enough water at its inlet; bubbles form and burst inside it.", hi: "पंप के इनलेट पर पूरा पानी नहीं आ रहा; अंदर बुलबुले बनकर फट रहे हैं।", mr: "पंपाच्या इनलेटला पुरेसे पाणी येत नाही; आत बुडबुडे तयार होऊन फुटत आहेत.", hi_latn: "Pump ke inlet par poora paani nahi aa raha; andar bulbule bankar phat rahe hain.", gu: "પંપના ઇનલેટ પર પૂરતું પાણી નથી આવતું; અંદર પરપોટા બનીને ફૂટે છે."}
     repairable: {answer: true, why: "Clearing the suction and fixing air leaks stops it; a leaking seal is replaceable.", not_when: "the impeller is badly pitted"}
     fix:
-      part: {en: "clean strainer / foot valve; mechanical seal if leaking", hi: "स्ट्रेनर / फुट वाल्व साफ़; लीक हो तो मैकेनिकल सील", mr: "स्ट्रेनर / फूट व्हॉल्व्ह साफ; गळत असल्यास मेकॅनिकल सील", hi_latn: "strainer / foot valve saaf; leak ho to mechanical seal"}
+      part: {en: "clean strainer / foot valve; mechanical seal if leaking", hi: "स्ट्रेनर / फुट वाल्व साफ़; लीक हो तो मैकेनिकल सील", mr: "स्ट्रेनर / फूट व्हॉल्व्ह साफ; गळत असल्यास मेकॅनिकल सील", hi_latn: "strainer / foot valve saaf; leak ho to mechanical seal", gu: "સ્ટ્રેનર / ફૂટ વાલ્વ સાફ; લીક હોય તો મિકેનિકલ સીલ"}
       price_inr: [610, 4500]
       price_unit: "mechanical seal, 25 mm; cleaning is labour only"
       price_source: indiamart_seal
       labour_hours: [1, 3]
       labour_source: null
-      technician: {en: "pump mechanic", hi: "पंप मिस्त्री", mr: "पंप मिस्त्री", hi_latn: "pump mistri"}
+      technician: {en: "pump mechanic", hi: "पंप मिस्त्री", mr: "पंप मिस्त्री", hi_latn: "pump mistri", gu: "પંપ મિસ્ત્રી"}
     misuse:
       - {en: "running the pump dry or with a low water level", source: null}
       - {en: "a choked strainer or foot valve", source: null}
       - {en: "air leaking into the suction pipe", source: null}
     warranty: {period: null, note: "Ask the dealer.", voided_by: [{en: "running dry", source: null}]}
     if_ignored:
-      what: {en: "the impeller pits and the seal fails", hi: "इम्पेलर खराब होगा, सील टूटेगी", mr: "इम्पेलर खराब होईल, सील तुटेल", hi_latn: "impeller kharab hoga, seal tootegi"}
+      what: {en: "the impeller pits and the seal fails", hi: "इम्पेलर खराब होगा, सील टूटेगी", mr: "इम्पेलर खराब होईल, सील तुटेल", hi_latn: "impeller kharab hoga, seal tootegi", gu: "ઇમ્પેલર ખરાબ થશે, સીલ તૂટશે"}
       cost_basis: part
   motor_winding:
-    name: {en: "motor winding fault", hi: "मोटर वाइंडिंग खराबी", mr: "मोटर वाइंडिंग बिघाड", hi_latn: "motor winding kharabi"}
-    what: {en: "The motor's copper winding is overheating or its insulation is breaking down.", hi: "मोटर की वाइंडिंग गरम हो रही है या उसका इंसुलेशन खराब हो रहा है।", mr: "मोटरची वाइंडिंग गरम होत आहे किंवा तिचे इन्सुलेशन खराब होत आहे.", hi_latn: "Motor ki winding garam ho rahi hai ya uska insulation kharab ho raha hai."}
+    name: {en: "motor winding fault", hi: "मोटर वाइंडिंग खराबी", mr: "मोटर वाइंडिंग बिघाड", hi_latn: "motor winding kharabi", gu: "મોટર વાઇન્ડિંગ ખામી"}
+    what: {en: "The motor's copper winding is overheating or its insulation is breaking down.", hi: "मोटर की वाइंडिंग गरम हो रही है या उसका इंसुलेशन खराब हो रहा है।", mr: "मोटरची वाइंडिंग गरम होत आहे किंवा तिचे इन्सुलेशन खराब होत आहे.", hi_latn: "Motor ki winding garam ho rahi hai ya uska insulation kharab ho raha hai.", gu: "મોટરની વાઇન્ડિંગ ગરમ થાય છે અથવા તેનું ઇન્સ્યુલેશન ખરાબ થાય છે."}
     repairable: {answer: true, why: "A burnt winding can be rewound.", not_when: "the stator core is damaged; then replace the motor"}
     fix:
-      part: {en: "motor rewinding", hi: "मोटर रिवाइंडिंग", mr: "मोटर रिवाइंडिंग", hi_latn: "motor rewinding"}
+      part: {en: "motor rewinding", hi: "मोटर रिवाइंडिंग", mr: "मोटर रिवाइंडिंग", hi_latn: "motor rewinding", gu: "મોટર રિવાઇન્ડિંગ"}
       price_inr_per_hp: 1000
       price_unit: "per HP of the motor"
       price_source: indiamart_rewind
       also_source: bhel_rewind_2018
       labour_hours: [8, 24]
       labour_source: null
-      technician: {en: "motor rewinding shop", hi: "मोटर रिवाइंडिंग की दुकान", mr: "मोटर रिवाइंडिंगचे दुकान", hi_latn: "motor rewinding ki dukaan"}
+      technician: {en: "motor rewinding shop", hi: "मोटर रिवाइंडिंग की दुकान", mr: "मोटर रिवाइंडिंगचे दुकान", hi_latn: "motor rewinding ki dukaan", gu: "મોટર રિવાઇન્ડિંગની દુકાન"}
     misuse:
       - {en: "voltage fluctuation, low or high supply voltage", source: synchronics_warranty}
       - {en: "single-phasing (one phase missing)", source: synchronics_warranty}
@@ -216,26 +217,26 @@ faults:
         - {en: "single-phasing or phase reversal", source: synchronics_warranty}
         - {en: "mechanical damage after repair", source: synchronics_warranty}
     if_ignored:
-      what: {en: "the motor burns out", hi: "मोटर जल जाएगी", mr: "मोटर जळून जाईल", hi_latn: "motor jal jayegi"}
+      what: {en: "the motor burns out", hi: "मोटर जल जाएगी", mr: "मोटर जळून जाईल", hi_latn: "motor jal jayegi", gu: "મોટર બળી જશે"}
       cost_basis: rewind
   looseness:
-    name: {en: "looseness", hi: "ढीलापन", mr: "सैलपणा", hi_latn: "dheelapan"}
-    what: {en: "Bolts or mounts are loose; the machine rocks on its base.", hi: "बोल्ट या माउंट ढीले हैं; मशीन अपने बेस पर हिल रही है।", mr: "बोल्ट किंवा माउंट सैल आहेत; मशीन आपल्या बेसवर हलत आहे.", hi_latn: "Bolt ya mount dheele hain; machine apne base par hil rahi hai."}
+    name: {en: "looseness", hi: "ढीलापन", mr: "सैलपणा", hi_latn: "dheelapan", gu: "ઢીલાપણું"}
+    what: {en: "Bolts or mounts are loose; the machine rocks on its base.", hi: "बोल्ट या माउंट ढीले हैं; मशीन अपने बेस पर हिल रही है।", mr: "बोल्ट किंवा माउंट सैल आहेत; मशीन आपल्या बेसवर हलत आहे.", hi_latn: "Bolt ya mount dheele hain; machine apne base par hil rahi hai.", gu: "બોલ્ટ કે માઉન્ટ ઢીલા છે; મશીન તેના બેઝ પર હલે છે."}
     repairable: {answer: true, why: "Tightening bolts and replacing cracked mounts fixes it.", not_when: "the base frame is cracked"}
     fix:
-      part: {en: "tighten base bolts, new mounts or shims", hi: "बेस बोल्ट कसना, नए माउंट", mr: "बेस बोल्ट घट्ट करणे, नवे माउंट", hi_latn: "base bolt kasna, naye mount"}
+      part: {en: "tighten base bolts, new mounts or shims", hi: "बेस बोल्ट कसना, नए माउंट", mr: "बेस बोल्ट घट्ट करणे, नवे माउंट", hi_latn: "base bolt kasna, naye mount", gu: "બેઝ બોલ્ટ કસવા, નવા માઉન્ટ"}
       price_inr: null
       price_unit: "no published figure found; mostly labour"
       price_source: null
       labour_hours: [0.5, 2]
       labour_source: null
-      technician: {en: "fitter", hi: "फिटर", mr: "फिटर", hi_latn: "fitter"}
+      technician: {en: "fitter", hi: "फिटर", mr: "फिटर", hi_latn: "fitter", gu: "ફિટર"}
     misuse:
       - {en: "vibration working bolts loose over time", source: null}
       - {en: "a weak or uneven floor", source: null}
     warranty: {period: null, note: "Ask the service provider.", voided_by: []}
     if_ignored:
-      what: {en: "bearings wear and the base can crack", hi: "बेयरिंग घिसेंगे, बेस टूट सकता है", mr: "बेअरिंग झिजतील, बेस तुटू शकतो", hi_latn: "bearing ghisenge, base toot sakta hai"}
+      what: {en: "bearings wear and the base can crack", hi: "बेयरिंग घिसेंगे, बेस टूट सकता है", mr: "बेअरिंग झिजतील, बेस तुटू शकतो", hi_latn: "bearing ghisenge, base toot sakta hai", gu: "બેરિંગ ઘસાશે, બેઝ તૂટી શકે છે"}
       cost_basis: bearing
 
 # Which detector output names which fault.

@@ -40,6 +40,7 @@ export function DemoMode({ state }: { state: State }) {
         <select className="input" value={lang} onChange={(e) => setLang(e.target.value)}>
           <option value="hi">Hindi</option>
           <option value="hi_latn">Hindi (Roman script)</option>
+          <option value="gu">Gujarati</option>
           <option value="mr">Marathi</option>
           <option value="en">English</option>
         </select>

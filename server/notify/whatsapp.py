@@ -79,6 +79,16 @@ def template_payload(to: str, name: str, lang: str, params: list[str]) -> dict[s
     }
 
 
+def interactive_payload(to: str, text: str, buttons: list[str]) -> dict[str, Any]:
+    """Reply buttons (inside the 24 h session); ids 1/2/3 are what parse_choice reads back."""
+    return {"messaging_product": "whatsapp", "recipient_type": "individual", "to": _number(to), "type": "interactive",
+            "interactive": {"type": "button", "body": {"text": text[:1024]}, "action": {"buttons": [
+                {"type": "reply", "reply": {"id": str(i), "title": b[:20]}} for i, b in enumerate(buttons[:3], 1)]}}}  # fmt: skip
+
+
+META_LANG = {"hi": "hi", "mr": "mr", "gu": "gu", "en": "en", "hi_latn": "en"}  # template language buckets
+
+
 def media_payload(to: str, kind: str, media_id: str, caption: str = "") -> dict[str, Any]:
     body: dict[str, Any] = {"id": media_id}
     if caption and kind == "image":
@@ -109,10 +119,16 @@ class MetaCloud:
         got.raise_for_status()
         return got.content
 
-    def send(self, to: str, text: str, media: list[Media], lang: str = "en") -> dict[str, Any]:
-        payload = (
-            template_payload(to, self.template, lang, [text]) if self.template else text_payload(to, text)
-        )
+    def send(self, to: str, text: str, media: list[Media], lang: str = "en", template: str | None = None,
+             buttons: list[str] | None = None) -> dict[str, Any]:  # fmt: skip
+        """Approved template when WA_TEMPLATES=1 (needed outside the 24 h window), else buttons, else text."""
+        name = template or self.template
+        if name and env.get("WA_TEMPLATES") == "1":
+            payload = template_payload(to, name, META_LANG.get(lang, "en"), [text])
+        elif buttons:
+            payload = interactive_payload(to, text, buttons)
+        else:
+            payload = text_payload(to, text)
         ids = [_post(self.http, f"{self.base}/messages", json=payload)["messages"][0]["id"]]
         for m in media:
             kind = "audio" if m.mime.startswith("audio/") else "image"
@@ -144,7 +160,7 @@ class _Twilio:
 class TwilioWhatsApp(_Twilio):
     name = "whatsapp_twilio"
 
-    def send(self, to: str, text: str, media: list[Media], lang: str = "en") -> dict[str, Any]:
+    def send(self, to: str, text: str, media: list[Media], lang: str = "en", **_: Any) -> dict[str, Any]:
         urls = [m.public_url for m in media if m.public_url]  # Twilio fetches media from a public URL
         return {"provider": self.name, "ids": [self._send(f"whatsapp:+{_number(to)}", text, urls)]}
 
@@ -152,7 +168,7 @@ class TwilioWhatsApp(_Twilio):
 class TwilioSMS(_Twilio):
     name = "sms_twilio"
 
-    def send(self, to: str, text: str, media: list[Media], lang: str = "en") -> dict[str, Any]:
+    def send(self, to: str, text: str, media: list[Media], lang: str = "en", **_: Any) -> dict[str, Any]:
         return {"provider": self.name, "ids": [self._send(f"+{_number(to)}", text, [])]}
 
 
@@ -164,7 +180,7 @@ class DryRun:
     def __init__(self) -> None:
         self.sent: list[dict[str, Any]] = []
 
-    def send(self, to: str, text: str, media: list[Media], lang: str = "en") -> dict[str, Any]:
+    def send(self, to: str, text: str, media: list[Media], lang: str = "en", **_: Any) -> dict[str, Any]:
         self.sent.append({"to": to, "text": text, "media": [str(m.path) for m in media]})
         return {"provider": self.name, "ids": []}
 
@@ -221,7 +237,10 @@ def parse_meta(payload: dict[str, Any]) -> list[dict[str, str]]:
                         m.get("button", {}).get("text")
                         if kind == "button"
                         else (
-                            m.get("interactive", {}).get("button_reply", {}).get("title")
+                            (
+                                m.get("interactive", {}).get("button_reply", {}).get("id")
+                                or m.get("interactive", {}).get("button_reply", {}).get("title")
+                            )
                             if kind == "interactive"
                             else None
                         )

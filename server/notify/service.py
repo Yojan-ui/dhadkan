@@ -30,17 +30,61 @@ CREATE TABLE IF NOT EXISTS alerts (
   provider_ids TEXT, error TEXT, sent_at REAL, reply TEXT, choice TEXT, replied_at REAL,
   escalated_alert INTEGER, parent INTEGER, last_reply TEXT);
 """
+NEW_COLUMNS = {"template": "TEXT", "send_after": "REAL"}  # added later; older databases get them on open
 
-CHOICES = {
-    "book": {"1", "१", "haan", "हाँ", "हां", "हो", "yes", "ha", "ho"},
-    "later": {"2", "२", "baad", "बाद", "नंतर", "later", "nahi", "नहीं", "नाही", "ना", "no"},
-    "details": {"3", "३", "details", "जानकारी", "माहिती", "info"},
+CHOICES = {  # digits (Latin, Devanagari, Gujarati), the button titles, and the usual words
+    "book": {
+        "1",
+        "१",
+        "૧",
+        "haan",
+        "हाँ",
+        "हां",
+        "हो",
+        "yes",
+        "ha",
+        "ho",
+        "હા",
+        "mechanic",
+        "mistri",
+        "bulao",
+        "bolva",
+        "bolavo",
+        "मिस्त्री",
+        "बुलाओ",
+        "बोलवा",
+        "મિસ્ત્રી",
+        "બોલાવો",
+    },
+    "later": {
+        "2",
+        "२",
+        "૨",
+        "baad",
+        "बाद",
+        "नंतर",
+        "later",
+        "nahi",
+        "नहीं",
+        "नाही",
+        "ना",
+        "no",
+        "kal",
+        "कल",
+        "उद्या",
+        "કાલે",
+        "udya",
+        "kale",
+        "પછી",
+        "ના",
+    },
+    "details": {"3", "३", "૩", "details", "जानकारी", "माहिती", "info", "mahiti", "vigat", "માહિતી"},
 }
 
 
 def parse_choice(text: str) -> str | None:
     """'1' / '2' / '3' (or the words for them) -> book / later / details; anything else -> None."""
-    words = re.findall(r"[\wऀ-ॿ]+", text.lower())
+    words = re.findall(r"[\wऀ-ॿ઀-૿]+", text.lower())
     hits = {c for c, vocab in CHOICES.items() for w in words if w in vocab}
     return hits.pop() if len(hits) == 1 else None
 
@@ -56,6 +100,11 @@ class Notifier:
     ) -> None:
         self.db, self.wa, self.sms, self.clock = db, whatsapp, sms, clock
         self.db.executescript(SCHEMA)
+        have = {r[1] for r in self.db.execute("PRAGMA table_info(alerts)")}
+        for col, typ in NEW_COLUMNS.items():
+            if col not in have:
+                self.db.execute(f"ALTER TABLE alerts ADD COLUMN {col} {typ}")
+        self.db.commit()
         self.outbox = Outbox(outbox_path, self._deliver, clock)
 
     def clear(self) -> None:
@@ -72,12 +121,13 @@ class Notifier:
             Media(Path(m["path"]), m["mime"], m.get("caption", ""), m.get("public_url")) for m in p["media"]
         ]
         try:
-            res = self.wa.send(p["to"], p["body"], media, lang=p["lang"])
+            res = self.wa.send(p["to"], p["body"], media, lang=p["lang"], template=p.get("template"),
+                               buttons=p.get("buttons"))  # fmt: skip
             channel = self.wa.name
         except OFFLINE:
             if isinstance(self.sms, DryRun) and not isinstance(self.wa, DryRun):
                 raise
-            res = self.sms.send(p["to"], p["body"], [], lang=p["lang"])
+            res = self.sms.send(p["to"], p["body"], [], lang=p["lang"])  # SMS: plain text, no buttons
             channel = self.sms.name
         self._mark(p["alert_id"], "dry_run" if channel == "dry_run" else "sent", channel, res.get("ids", []))
         return res
@@ -111,23 +161,57 @@ class Notifier:
         message_id: int | None = None,
         kind: str = "alert",
         parent: int | None = None,
+        template: str | None = None,
+        buttons: list[str] | None = None,
+        hold_until: float | None = None,
+        digest: bool = False,
     ) -> dict[str, Any]:
+        """hold_until: quiet hours / power cut, released by release(); digest: waits for the daily digest."""
         media = media or []
+        status = "no_contact" if not to else "digest" if digest else "held" if hold_until else "queued"
         cur = self.db.execute(
             "INSERT INTO alerts (created, machine, factory, severity, kind, to_phone, lang, body, media, message_id,"
-            " status, parent) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            " status, parent, template, send_after) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (self.clock(), machine, factory, severity, kind, to, lang, body, json.dumps(media), message_id,
-             "queued" if to else "no_contact", parent),
+             status, parent, template, hold_until),
         )  # fmt: skip
         self.db.commit()
         aid = int(cur.lastrowid or 0)
-        if not to:  # no phone on file for this contact: logged, nothing sent
+        if status != "queued":  # no phone on file, or waiting for the right time: logged, not sent yet
             return self.alert(aid)
-        self.outbox.put("alert", {"alert_id": aid, "to": to, "lang": lang, "body": body, "media": media})
+        self._queue(aid, to or "", lang, body, media, template, buttons)
+        return self.alert(aid)
+
+    def _queue(self, aid: int, to: str, lang: str, body: str, media: list[dict[str, Any]],
+               template: str | None, buttons: list[str] | None) -> None:  # fmt: skip
+        self.db.execute("UPDATE alerts SET status='queued' WHERE id=?", (aid,))
+        self.db.commit()
+        self.outbox.put("alert", {"alert_id": aid, "to": to, "lang": lang, "body": body, "media": media,
+                                  "template": template, "buttons": buttons})  # fmt: skip
         out = self.outbox.flush(force=True)
         for r in out["rejected"]:
             self._mark(aid, "failed", None, [], r["error"])
-        return self.alert(aid)
+
+    def release(self, now_ts: float) -> list[int]:
+        """Send alerts held for quiet hours or a power cut once their time has come (factory clock)."""
+        from .policy import BUTTONS
+
+        due = self.db.execute(
+            "SELECT * FROM alerts WHERE status='held' AND send_after <= ? ORDER BY id", (now_ts,)
+        ).fetchall()
+        for r in due:
+            self._queue(int(r["id"]), r["to_phone"], r["lang"], r["body"], json.loads(r["media"] or "[]"),
+                        r["template"], BUTTONS.get(r["lang"]))  # fmt: skip
+        return [int(r["id"]) for r in due]
+
+    def pending_digest(self) -> list[dict[str, Any]]:
+        return [dict(r) for r in self.db.execute("SELECT * FROM alerts WHERE status='digest' ORDER BY id")]
+
+    def mark_digested(self, ids: list[int], digest_id: int) -> None:
+        self.db.executemany(
+            "UPDATE alerts SET status='in_digest', parent=? WHERE id=?", [(digest_id, i) for i in ids]
+        )
+        self.db.commit()
 
     def retry(self) -> dict[str, Any]:
         """Send what waited for the network (called periodically)."""

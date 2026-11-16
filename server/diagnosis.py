@@ -12,7 +12,7 @@ import yaml
 from . import costs, forecast
 from .config import FAULTS
 
-LANGS = ("en", "hi", "mr", "hi_latn")  # hi_latn: Hindi in Latin script, as many owners type on WhatsApp
+LANGS = ("en", "hi", "mr", "hi_latn", "gu")  # hi_latn: Hindi in Latin script, as many owners type on WhatsApp
 SEVERITIES = ("watch", "repair_soon", "stop_now", "replace")
 WAIT_DAYS = 7  # "if you wait a week"
 
@@ -40,7 +40,7 @@ def validate(kb: dict[str, Any]) -> None:
         raise KnowledgeBaseError("severity order must be watch, repair_soon, stop_now, replace")
     for lvl in SEVERITIES:
         if set(kb["severity"]["labels"][lvl]) != set(LANGS):
-            raise KnowledgeBaseError(f"severity {lvl} needs en/hi/mr/hi_latn labels")
+            raise KnowledgeBaseError(f"severity {lvl} needs en/hi/mr/hi_latn/gu labels")
 
     def cited(sid: str | None, where: str) -> None:
         if sid is not None and sid not in srcs:
@@ -52,10 +52,10 @@ def validate(kb: dict[str, Any]) -> None:
             raise KnowledgeBaseError(f"fault {key} is missing {missing}")
         for field in ("name", "what"):
             if set(f[field]) != set(LANGS):
-                raise KnowledgeBaseError(f"fault {key}.{field} needs en/hi/mr/hi_latn")
+                raise KnowledgeBaseError(f"fault {key}.{field} needs en/hi/mr/hi_latn/gu")
         fix = f["fix"]
         if set(fix["part"]) != set(LANGS) or set(fix["technician"]) != set(LANGS):
-            raise KnowledgeBaseError(f"fault {key}.fix needs en/hi/mr/hi_latn part and technician")
+            raise KnowledgeBaseError(f"fault {key}.fix needs en/hi/mr/hi_latn/gu part and technician")
         price = fix.get("price_inr")
         if price is not None and not (len(price) == 2 and 0 < price[0] <= price[1]):
             raise KnowledgeBaseError(f"fault {key}.fix.price_inr must be [low, high]")
@@ -71,7 +71,7 @@ def validate(kb: dict[str, Any]) -> None:
         if f["if_ignored"]["cost_basis"] not in ("rewind", "bearing", "part"):
             raise KnowledgeBaseError(f"fault {key}: unknown cost_basis")
         if set(f["if_ignored"]["what"]) != set(LANGS):
-            raise KnowledgeBaseError(f"fault {key}.if_ignored.what needs en/hi/mr/hi_latn")
+            raise KnowledgeBaseError(f"fault {key}.if_ignored.what needs en/hi/mr/hi_latn/gu")
     for kind, table in kb["naming"].items():
         for src, fault in table.items():
             if fault not in kb["faults"]:
@@ -153,6 +153,7 @@ def card(
             "hi": "आवाज़ बदली है, पर खराबी का नाम अभी पता नहीं। मिस्त्री को दिखाएँ।",
             "mr": "आवाज बदलला आहे, पण बिघाड अजून कळलेला नाही. मिस्त्रीला दाखवा.",
             "hi_latn": "Aawaz badli hai, par kharabi ka naam abhi pata nahi. Mistri ko dikhayein.",
+            "gu": "અવાજ બદલાયો છે, પણ ખામીનું નામ હજુ ખબર નથી. મિસ્ત્રીને બતાવો.",
         }
         return out
     f = kb["faults"][fault]
@@ -208,30 +209,36 @@ TEMPLATE = {
     "Reply 1 = send mechanic, 2 = later, 3 = details. ({disc})",
     "hi_latn": "⚠ {sev} · {name} – {what} {rising}Abhi theek ho sakta hai: {part}, ~{price}, {hours} ghanta. {ignore}"
     "Reply 1 = mistri bulao, 2 = baad mein, 3 = poori jaankari. ({disc})",
+    "gu": "⚠ {sev} · {name} – {what} {rising}હમણાં ઠીક થઈ શકે: {part}, ~{price}, {hours} કલાક. {ignore}"
+    "જવાબ આપો: 1 = મિસ્ત્રી બોલાવો, 2 = પછી, 3 = પૂરી માહિતી. ({disc})",
 }
 RISING = {
     "hi": "{n} दिन से आवाज़ बढ़ रही है। ",
     "mr": "{n} दिवसांपासून आवाज वाढतोय. ",
     "en": "Sound rising for {n} days. ",
     "hi_latn": "{n} din se aawaz badh rahi hai. ",
+    "gu": "{n} દિવસથી અવાજ વધી રહ્યો છે. ",
 }
 IGNORE_DAYS = {
     "hi": "{d} दिन से ज़्यादा चलाया तो {what} (~{cost})। ",
     "mr": "{d} दिवसांपेक्षा जास्त चालवले तर {what} (~{cost}). ",
     "en": "Run it more than {d} days and {what} (~{cost}). ",
     "hi_latn": "{d} din se zyada chalaya to {what} (~{cost}). ",
+    "gu": "{d} દિવસથી વધુ ચલાવ્યું તો {what} (~{cost}). ",
 }
 IGNORE = {
     "hi": "चलाते रहे तो {what} (~{cost})। ",
     "mr": "चालू ठेवले तर {what} (~{cost}). ",
     "en": "Keep running it and {what} (~{cost}). ",
     "hi_latn": "Chalate rahe to {what} (~{cost}). ",
+    "gu": "ચલાવતા રહ્યા તો {what} (~{cost}). ",
 }
 UNKNOWN = {
     "hi": "⚠ {sev} · {name} – {text} जवाब दें: 1 = मिस्त्री बुलाओ, 2 = बाद में, 3 = पूरी जानकारी।",
     "mr": "⚠ {sev} · {name} – {text} उत्तर द्या: 1 = मिस्त्री बोलवा, 2 = नंतर, 3 = सविस्तर माहिती.",
     "en": "⚠ {sev} · {name} – {text} Reply 1 = send mechanic, 2 = later, 3 = details.",
     "hi_latn": "⚠ {sev} · {name} – {text} Reply 1 = mistri bulao, 2 = baad mein, 3 = poori jaankari.",
+    "gu": "⚠ {sev} · {name} – {text} જવાબ આપો: 1 = મિસ્ત્રી બોલાવો, 2 = પછી, 3 = પૂરી માહિતી.",
 }
 
 

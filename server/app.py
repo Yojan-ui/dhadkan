@@ -586,6 +586,7 @@ class Live:
             for _ in range(n):
                 scored = self.c.step()
             self._analyse(scored)
+            self.alerts.release_due()  # quiet hours / power cuts end and the daily digest, on the factory clock
             rank = self.ranking()
             for r in rank:
                 was = self.prev_status.get(r["machine_id"])
@@ -990,7 +991,7 @@ class DemoIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     on: bool = True
     to: str | None = Field(default=None, max_length=24)
-    lang: str | None = Field(default=None, pattern="^(en|hi|mr|hi_latn)$")
+    lang: str | None = Field(default=None, pattern="^(" + "|".join(diagnosis.LANGS) + ")$")
 
 
 class AlertReplyIn(BaseModel):

@@ -81,7 +81,7 @@ def test_webhook_verification_and_signature(world):
 
 def test_unclear_reply_does_not_book(world):
     _, client, live, _ = world
-    client.post("/api/alerts/reply", json={"phone": OWNER_A, "text": "kal dekhenge"})
+    client.post("/api/alerts/reply", json={"phone": OWNER_A, "text": "dekhte hain"})
     assert next(m for m in live.messages() if m["machine"] == "A-G1")["approved"] != 1
 
 

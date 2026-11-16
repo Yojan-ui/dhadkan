@@ -120,7 +120,7 @@ def test_parse_incoming():
 @pytest.mark.parametrize(
     "text, choice",
     [("1", "book"), ("१", "book"), ("हाँ", "book"), ("2", "later"), ("बाद में", "later"), ("3", "details"),
-     ("1 2", None), ("kal dekhenge", None)],
+     ("1 2", None), ("dekhte hain", None)],
 )  # fmt: skip
 def test_parse_choice(text, choice):
     assert parse_choice(text) == choice
@@ -133,7 +133,7 @@ class Flaky:
     def __init__(self, name):
         self.name, self.up, self.sent = name, True, []
 
-    def send(self, to, text, media_, lang="en"):
+    def send(self, to, text, media_, lang="en", **kw):
         if not self.up:
             raise ConnectionError("no network")
         self.sent.append({"to": to, "text": text, "media": len(media_)})

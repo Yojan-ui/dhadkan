@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from . import diagnosis, forecast, understand
 from .config import DATA, NODE_DB
-from .notify import env, media, whatsapp
+from .notify import env, media, policy, whatsapp
 from .notify.service import Notifier
 
 if TYPE_CHECKING:
@@ -35,6 +35,9 @@ DETAIL_LABELS = {
     "hi_latn": {"repairable": "Marammat ho sakti hai", "yes": "haan", "no": "nahi", "fix": "Ilaaj", "incl_labour": "mazdoori sahit",
                 "caused_by": "Aam kaaran", "warranty": "Warranty", "ask_dealer": "dealer se poochhein",
                 "money": "Abhi theek karayein ~₹{lo}-{hi} (tay bandi sahit). {d} din rukein to: {p}% sambhavna breakdown ki, kharcha ~₹{cost}."},
+    "gu": {"repairable": "રિપેર થઈ શકે", "yes": "હા", "no": "ના", "fix": "ઉપાય", "incl_labour": "મજૂરી સાથે",
+           "caused_by": "સામાન્ય કારણ", "warranty": "વોરંટી", "ask_dealer": "ડીલરને પૂછો",
+           "money": "હમણાં રિપેર ~₹{lo}-{hi} (નક્કી બંધી સાથે). {d} દિવસ રાહ જુઓ તો: {p}% શક્યતા બ્રેકડાઉનની, ખર્ચ ~₹{cost}."},
 }  # fmt: skip
 
 
@@ -198,10 +201,45 @@ class OwnerAlerts:
         c = self.card(mid, lang)
         if c is None:
             return None
+        sev = c["severity"]["level"]
+        now = self.live.c.now()
+        when, at = policy.decide(sev, now, self.live.c.factories[m["factory"]])
         return self.notifier.send(
-            machine=mid, factory=m["factory"], severity=c["severity"]["level"], to=to or self.contact(m["factory"], machine=mid),
+            machine=mid, factory=m["factory"], severity=sev, to=to or self.contact(m["factory"], machine=mid),
             lang=lang, body=self.text(mid, lang) or "", media=self.media(mid), message_id=message_id,
+            template=policy.TEMPLATES.get(sev), buttons=policy.BUTTONS.get(lang),
+            hold_until=at.timestamp() if when == "hold" and at else None, digest=when == "digest",
         )  # fmt: skip
+
+    def release_due(self) -> dict[str, Any]:
+        """On the factory clock: send held alerts whose quiet hours / power cut are over; the daily digest."""
+        now = self.live.c.now()
+        released = self.notifier.release(now.timestamp())
+        digests = self.digest(now)
+        return {"released": released, "digests": digests}
+
+    def digest(self, now: Any) -> list[int]:
+        """One message per phone with every watch-level alert since the last digest, once digest time has come."""
+        out = []
+        by_phone: dict[str, list[dict[str, Any]]] = {}
+        for a in self.notifier.pending_digest():
+            by_phone.setdefault(a["to_phone"], []).append(a)
+        for phone, rows in by_phone.items():
+            f = self.live.c.factories[rows[0]["factory"]]
+            at = now.replace(
+                hour=int(f.get("digest_at", "19:00")[:2]), minute=int(f.get("digest_at", "19:00")[3:5])
+            )
+            if now < at:
+                continue
+            lang = rows[0]["lang"]
+            body = "\n".join(
+                [policy.DIGEST_HEAD.get(lang, policy.DIGEST_HEAD["en"]), *(f"- {r['body']}" for r in rows)]
+            )
+            d = self.notifier.send(machine=rows[0]["machine"], factory=rows[0]["factory"], severity="watch", to=phone,
+                                   lang=lang, body=body, kind="digest", template=policy.DIGEST_TEMPLATE)  # fmt: skip
+            self.notifier.mark_digested([int(r["id"]) for r in rows], int(d["id"]))
+            out.append(int(d["id"]))
+        return out
 
     def after_digest(self, run_id: str) -> list[dict[str, Any]]:
         """One WhatsApp alert per owner message the agent drafted in this run."""
@@ -267,8 +305,10 @@ class OwnerAlerts:
             )  # same language as the alert
             head = {"hi": "मालिक ने 2 घंटे में जवाब नहीं दिया। ", "mr": "मालकांनी 2 तासांत उत्तर दिले नाही. ",
                     "hi_latn": "Maalik ne 2 ghante mein jawab nahi diya. ",
+                    "gu": "માલિકે 2 કલાકમાં જવાબ નથી આપ્યો. ",
                     "en": "The owner has not replied in 2 hours. "}.get(lang, "")  # fmt: skip
             return head + row["body"]
 
         self.notifier.escalate(contact, text)
+        self.release_due()
         self.notifier.retry()

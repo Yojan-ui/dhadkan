@@ -33,7 +33,7 @@ class Recorder:
     def __init__(self) -> None:
         self.sent: list[dict[str, Any]] = []
 
-    def send(self, to: str, text: str, media: list[Any], lang: str = "en") -> dict[str, Any]:
+    def send(self, to: str, text: str, media: list[Any], lang: str = "en", **kw: Any) -> dict[str, Any]:
         self.sent.append({"to": to, "text": text, "media": [m.mime for m in media], "lang": lang})
         return {"provider": self.name, "ids": [f"wamid.{len(self.sent)}"]}
 
