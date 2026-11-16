@@ -91,8 +91,17 @@ def send_job(alerts: Any, alert_row: dict[str, Any]) -> dict[str, Any]:
 
 def parts_forecast(live: Any, horizon_days: float = 14.0) -> list[dict[str, Any]]:
     """Per part and area: how many machines may (range low end) and likely (high end) need it in the horizon."""
+    from . import prove
+
+    fixed = {
+        r["record"]["machine"]["id"]
+        for r in prove.records(live)
+        if r["record"]["verification"]["outcome"] == "fixed"
+    }
     rows: dict[tuple[str, str], dict[str, Any]] = {}
     for r in live.ranking():
+        if r["machine_id"] in fixed:  # repaired and verified: no part needed now
+            continue
         est = r.get("days_to_fault_level") or {}
         mid = r["machine_id"]
         card = live.alerts.card(mid, "en") or {}

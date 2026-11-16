@@ -84,3 +84,5 @@ def test_repair_record_passport_and_privacy(world):
         {"mechanic": "Ramesh", "repairs": 1, "fixed": 1, "partly": 0, "failed": 0, "success_rate": 1.0}
     ]
     assert all("mechanic" not in r for r in client.get("/api/records").json())
+    rows = client.get("/api/forecast/parts?days=14").json()["rows"]
+    assert all("A-G1" not in e["machines"] for e in rows)  # a verified repair needs no part
