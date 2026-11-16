@@ -1288,13 +1288,13 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
                 try:
                     audio = await asyncio.to_thread(provider.download, m["audio"])
                     got = await asyncio.to_thread(
-                        live.alerts.on_voice, m["from"], audio, m["audio"].get("mime", "")
+                        live.alerts.on_audio, m["from"], audio, m["audio"].get("mime", "")
                     )
                 except Exception as e:  # a failed download or transcription must not drop the webhook
                     live.event("owner_voice_failed", error=type(e).__name__)
                     got = None
             elif m.get("text") is not None:
-                got = live.alerts.on_reply(m["from"], m["text"])
+                got = live.alerts.on_message(m["from"], m["text"])
             else:
                 got = None
             if got:

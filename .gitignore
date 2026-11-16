@@ -46,3 +46,4 @@ data/llm/
 # signing keys for repair records and passports (private key never committed)
 keys/
 data/labels/
+data/factories/

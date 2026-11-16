@@ -1,0 +1,81 @@
+# Factory presets for onboarding (server/onboard.py). ASSUMPTIONS: which machines a typical unit has,
+# which faults to expect and which sound band to watch are our starting guesses from general maintenance
+# practice (server/sound_words.json), not measurements. `model` is the trained listening model a machine
+# uses until it has its own data (edge/models/<model>); `hp` is an assumed motor size for the price card.
+# Local part names are everyday shop words; confirm them with the owner's dealer.
+
+presets:
+  powerloom:
+    name: {en: "Powerloom unit", hi: "पावरलूम यूनिट", hi_latn: "Powerloom unit", mr: "पॉवरलूम युनिट", gu: "પાવરલૂમ યુનિટ"}
+    machines:
+      - kind: loom
+        name: {en: "Loom", hi: "लूम", hi_latn: "Loom", mr: "लूम", gu: "લૂમ"}
+        model: gearbox
+        hp: 2
+        faults: [bearing_wear, belt_slip, looseness]
+        watch_band: "high-pitched whine"
+        parts: {en: "motor bearing 6205, V-belt", hi: "मोटर बेयरिंग 6205, बेल्ट", hi_latn: "motor bearing 6205, belt",
+                mr: "मोटर बेअरिंग 6205, बेल्ट", gu: "મોટર બેરિંગ 6205, બેલ્ટ"}
+  flour_mill:
+    name: {en: "Flour mill", hi: "आटा चक्की", hi_latn: "Aata chakki", mr: "पिठाची गिरणी", gu: "લોટની ઘંટી"}
+    machines:
+      - kind: mill
+        name: {en: "Chakki", hi: "चक्की", hi_latn: "Chakki", mr: "गिरणी", gu: "ઘંટી"}
+        model: gearbox
+        hp: 10
+        faults: [bearing_wear, misalignment, belt_slip]
+        watch_band: "deep hum"
+        parts: {en: "bearing, V-belt, coupling rubber", hi: "बेयरिंग, बेल्ट, कपलिंग रबर", hi_latn: "bearing, belt, coupling rubber",
+                mr: "बेअरिंग, बेल्ट, कपलिंग रबर", gu: "બેરિંગ, બેલ્ટ, કપલિંગ રબર"}
+      - kind: blower
+        name: {en: "Blower", hi: "ब्लोअर", hi_latn: "Blower", mr: "ब्लोअर", gu: "બ્લોઅર"}
+        model: fan
+        hp: 3
+        faults: [imbalance, bearing_wear]
+        watch_band: "low rumble"
+        parts: {en: "impeller balancing, bearing", hi: "पंखे की बैलेंसिंग, बेयरिंग", hi_latn: "pankhe ki balancing, bearing",
+                mr: "पंख्याचे बॅलन्सिंग, बेअरिंग", gu: "પંખાનું બેલેન્સિંગ, બેરિંગ"}
+  pump_set:
+    name: {en: "Pump set", hi: "पंप सेट", hi_latn: "Pump set", mr: "पंप सेट", gu: "પંપ સેટ"}
+    machines:
+      - kind: pump
+        name: {en: "Pump", hi: "पंप", hi_latn: "Pump", mr: "पंप", gu: "પંપ"}
+        model: pump
+        hp: 5
+        faults: [cavitation, bearing_wear, motor_winding]
+        watch_band: "hiss or squeal"
+        parts: {en: "foot valve, mechanical seal, bearing", hi: "फुट वाल्व, सील, बेयरिंग", hi_latn: "foot valve, seal, bearing",
+                mr: "फूट व्हॉल्व्ह, सील, बेअरिंग", gu: "ફૂટ વાલ્વ, સીલ, બેરિંગ"}
+  machine_shop:
+    name: {en: "Machine shop", hi: "मशीन शॉप", hi_latn: "Machine shop", mr: "मशीन शॉप", gu: "મશીન શોપ"}
+    machines:
+      - kind: lathe
+        name: {en: "Lathe", hi: "खराद", hi_latn: "Kharad", mr: "लेथ", gu: "લેથ"}
+        model: gearbox
+        hp: 3
+        faults: [bearing_wear, belt_slip, looseness]
+        watch_band: "high-pitched whine"
+        parts: {en: "spindle bearing, V-belt", hi: "स्पिंडल बेयरिंग, बेल्ट", hi_latn: "spindle bearing, belt",
+                mr: "स्पिंडल बेअरिंग, बेल्ट", gu: "સ્પિન્ડલ બેરિંગ, બેલ્ટ"}
+      - kind: compressor
+        name: {en: "Compressor", hi: "कंप्रेसर", hi_latn: "Compressor", mr: "कंप्रेसर", gu: "કોમ્પ્રેસર"}
+        model: pump
+        hp: 5
+        faults: [bearing_wear, belt_slip, motor_winding]
+        watch_band: "deep hum"
+        parts: {en: "belt, bearing", hi: "बेल्ट, बेयरिंग", hi_latn: "belt, bearing", mr: "बेल्ट, बेअरिंग", gu: "બેલ્ટ, બેરિંગ"}
+
+# District -> default owner language (ASSUMPTION, the owner can change it in the first message).
+district_language:
+  surat: gu
+  ahmedabad: gu
+  rajkot: gu
+  bhiwandi: hi_latn
+  malegaon: hi_latn
+  ichalkaranji: mr
+  solapur: mr
+  pune: mr
+  panipat: hi
+  ludhiana: hi
+  kanpur: hi
+  varanasi: hi

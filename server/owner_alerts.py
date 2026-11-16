@@ -54,6 +54,9 @@ class OwnerAlerts:
         self.contact_override: dict[str, str] = {}
         self.lang_override: dict[str, str] = {}
         self.expert: dict[str, dict[str, Any]] = {}  # machine -> Claude's second look (or the rules fallback)
+        from .onboard import Onboarding
+
+        self.onboard = Onboarding(live.c.db, learning_days=int(live.c.cfg.get("learning_days", 7)))
 
     @property
     def provider(self) -> str:
@@ -269,6 +272,33 @@ class OwnerAlerts:
                                lang=a["lang"], body=self.details(mid, a["lang"]), kind="details", parent=a["id"])  # fmt: skip
         self.live.event("owner_reply", machine=mid, choice=choice, text=text)
         return {"alert": a["id"], "choice": choice}
+
+    def on_message(self, phone: str, text: str) -> dict[str, Any] | None:
+        """Any text: a reply to an open alert first; otherwise the onboarding chat ("Namaste")."""
+        got = self.on_reply(phone, text)
+        if got is not None:
+            return got
+        q = self.onboard.handle(phone, text)
+        if q is None:
+            return None
+        lang = (self.onboard._load(phone) or ({}, {}))[1].get("language", "en")
+        self.notifier.send(
+            machine="-", factory="-", severity="info", to=phone, lang=lang, body=q, kind="onboarding"
+        )
+        return {"onboarding": True, "next": q}
+
+    def on_audio(self, phone: str, audio: bytes, mime: str = "audio/ogg") -> dict[str, Any] | None:
+        """A recording: an onboarding baseline clip if this phone is setting up, else a voice note on an alert."""
+        if self.onboard.active(phone):
+            q = self.onboard.clip(phone, audio, ".ogg" if "ogg" in mime else ".audio")
+            if q is None:
+                return None
+            lang = (self.onboard._load(phone) or ({}, {}))[1].get("language", "en")
+            self.notifier.send(
+                machine="-", factory="-", severity="info", to=phone, lang=lang, body=q, kind="onboarding"
+            )
+            return {"onboarding": True, "next": q}
+        return self.on_voice(phone, audio, mime)
 
     def on_voice(self, phone: str, audio: bytes, mime: str = "audio/ogg") -> dict[str, Any] | None:
         """A WhatsApp voice note: local Whisper -> lexicon (Claude for unknown words) -> weak label on the
