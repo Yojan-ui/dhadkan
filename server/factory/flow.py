@@ -81,7 +81,8 @@ class Flow:
     def __init__(self, live: Any, contacts_path: Path = CONTACTS) -> None:
         self.live = live
         self.cfg = yaml.safe_load(contacts_path.read_text(encoding="utf-8"))
-        self.lock = threading.RLock()
+        # the live state's own RLock: the flow shares its sqlite connection, so one lock serialises both
+        self.lock = getattr(live, "lock", None) or threading.RLock()
         self.live.c.db.executescript(SCHEMA)
 
     # ---------------------------------------------------------------- facts (tool handlers use these)
@@ -100,7 +101,8 @@ class Flow:
         }
 
     def card(self, mid: str, lang: str = "en") -> dict[str, Any] | None:
-        return self.live.alerts.card(mid, lang)
+        with self.lock:  # reads the shared connection (history)
+            return self.live.alerts.card(mid, lang)
 
     def alerted(self, mid: str, lang: str = "hi_latn") -> dict[str, Any] | None:
         """The highest stage WhatsApp has alerted for this machine, with its faults.yaml label (phone screen)."""
