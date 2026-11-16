@@ -27,12 +27,18 @@ class OwnerAlerts:
         wa, sms = providers or whatsapp.from_env()
         self.notifier = Notifier(live.c.db, wa, sms, Path(node_db or NODE_DB).with_name("alerts_outbox.db"))
         self.classified: dict[str, str] = {}  # machine -> fault class from the CWRU-trained classifier
+        # Demo mode: machine -> the judge's number / language. Per machine, not per factory, so the
+        # judge only hears about the demo machine (never about other machines' false alarms).
+        self.contact_override: dict[str, str] = {}
+        self.lang_override: dict[str, str] = {}
 
     @property
     def provider(self) -> str:
         return str(self.notifier.wa.name)
 
-    def contact(self, factory: str, role: str = "owner") -> str | None:
+    def contact(self, factory: str, role: str = "owner", machine: str | None = None) -> str | None:
+        if role == "owner" and machine in self.contact_override:
+            return self.contact_override[machine]
         return env.get(f"DHADKAN_{'PHONE' if role == 'owner' else 'SUPERVISOR'}_{factory}")
 
     # -- cards ----------------------------------------------------------------
@@ -44,7 +50,7 @@ class OwnerAlerts:
             return None
         rank = next((r for r in self.live.ranking() if r["machine_id"] == mid), {})
         th = c.cfg["tick_hours"]
-        est = forecast.from_history(hist, th, m["source"]) if m["source"] in forecast.fault_levels() else {}
+        est = forecast.from_history(hist, th, m["source"]) if forecast.known(m["source"]) else {}
         level = est.get("level", float("inf"))
         at_fault = 0
         for h in reversed(hist):
@@ -124,12 +130,12 @@ class OwnerAlerts:
     ) -> dict[str, Any] | None:
         m = self.live.c.machines[mid]
         f = self.live.c.factories[m["factory"]]
-        lang = lang or f["language"]
+        lang = lang or self.lang_override.get(mid) or f["language"]
         c = self.card(mid, lang)
         if c is None:
             return None
         return self.notifier.send(
-            machine=mid, factory=m["factory"], severity=c["severity"]["level"], to=to or self.contact(m["factory"]),
+            machine=mid, factory=m["factory"], severity=c["severity"]["level"], to=to or self.contact(m["factory"], machine=mid),
             lang=lang, body=self.text(mid, lang) or "", media=self.media(mid), message_id=message_id,
         )  # fmt: skip
 

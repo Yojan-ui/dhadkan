@@ -4,6 +4,7 @@ import { useState } from "react";
 import { m as anim } from "framer-motion";
 import { post, type Meta, type State } from "../api";
 import { fmtT } from "../theme";
+import { alertWord } from "./Diagnosis";
 
 export function Drawer({
   title,
@@ -252,11 +253,19 @@ export function Evaluation({ meta }: { meta: Meta }) {
       </table>
       <h3>Where it fails</h3>
       <ul className="small">
-        <li>
-          <b>Noisy shed</b>: pump at −6 dB keeps AUC {f3(ev.types.pump?.conditions["-6dB"]?.auc)}, but with
-          the alarm level from the quieter recording{" "}
-          {pct(ev.types.pump?.conditions["-6dB"]?.false_alarm_rate)} of healthy readings raise an alarm.
-        </li>
+        {(() => {
+          const units = Object.values(ev.types).flatMap((rep) =>
+            Object.entries(rep.per_unit).flatMap(([u, m]) => (m ? [{ u, auc: m.auc }] : [])),
+          );
+          const worst = units.sort((a, b) => a.auc - b.auc)[0];
+          return (
+            worst && (
+              <li>
+                <b>Weakest machine</b>: {worst.u} on the official DCASE test split, AUC {f3(worst.auc)}.
+              </li>
+            )
+          );
+        })()}
         <li>
           <b>Speed / load change</b>: gearbox target domain AUC {f3(ev.types.gearbox?.conditions.target?.auc)}
           , catches {pct(ev.types.gearbox?.conditions.target?.detection_rate)} of faults.
@@ -305,6 +314,17 @@ export function Evaluation({ meta }: { meta: Meta }) {
 export function Log({ state }: { state: State }) {
   return (
     <div>
+      <h3>WhatsApp alerts</h3>
+      {state.alerts.length === 0 && <p className="small muted">No owner alert yet.</p>}
+      {state.alerts.map((a) => (
+        <details key={a.id} className="call">
+          <summary className="mono small">
+            <span className="muted">#{a.id}</span> {a.kind} · {a.machine} · {a.severity} · {alertWord(a)}
+            {a.choice ? ` · reply ${a.reply} (${a.choice})` : ""}
+          </summary>
+          <pre className="mono">{a.body}</pre>
+        </details>
+      ))}
       <h3>Agent tool calls</h3>
       {state.tool_calls.length === 0 && <p className="small muted">No agent run yet.</p>}
       {state.tool_calls.map((t) => (

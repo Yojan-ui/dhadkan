@@ -24,7 +24,7 @@ import threading
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -34,14 +34,14 @@ import soundfile as sf
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
-from edge import data, embed, features
-from edge.config import HOP, N_MELS, RUNS, SR
+from edge import data, embed, faulttype, features, ims
+from edge.config import HOP, MODELS, N_MELS, RUNS, SR
 from edge.outbox import Outbox
 from edge.runtime import EdgeModel
 
-from . import agent, costs, folk, forecast, registry, report, route
+from . import agent, costs, diagnosis, folk, forecast, registry, report, route
 from . import explain as sound
 from .config import NODE_DB, VOICE_NOTE, WEB_DIST
 from .notify import env, whatsapp
@@ -51,6 +51,7 @@ from .sim import Cluster
 SLICES = 20  # 10 s reading -> 20 slices of 0.5 s (the 2 Hz stream)
 FRAME_S = 0.5
 FAULT_MACHINE, SIMILAR_MACHINE = "A-F1", "B-F1"
+IMS_MACHINE = "A-G1"  # Loom 1: Demo mode plays the NASA IMS bearing failure as its motor bearing
 REPLAY_FAULT_AT, REPLAY_LABEL_AT, REPLAY_PUBLISH_AT, REPLAY_MAX = 4, 5, 7, 20  # live readings
 # Before the live part, the replay records 14 simulated days (fast) in which A-F1's
 # bearing sound grows slowly: a SYNTHETIC onset from day 6, +0.03 strength per reading.
@@ -131,6 +132,8 @@ class Live:
         self.link_up = True
         self.outbox = Outbox(Path(node_db or NODE_DB).with_name("outbox.db"), self._send)
         self.alerts = OwnerAlerts(self, node_db)
+        self.demo: dict[str, Any] = {"on": False, "phase": "off"}
+        self._ims_saved: dict[str, Any] | None = None
         self.cache = {}  # machine -> analysis of its latest reading
         self._readings: dict[tuple[str, int], dict[str, Any]] = {}  # rebuilt past readings (LRU-ish)
         self._explained: dict[tuple[str, int], dict[str, Any]] = {}
@@ -157,9 +160,14 @@ class Live:
             else:
                 row = self.c.history(mid, 1)[0]
                 audio, _ = self.c.audio(mid, tick, row["mode"], row["mix"])
-                r = self.c.model(m["type"]).score_audio(audio, m["source"])
+                r = self._score(mid, tick, audio)
             self.cache[mid] = {"tick": tick, **slices(audio, r, self.c.model(m["type"]))}
         self.tick, self.cursor = tick, 0
+
+    def _score(self, mid: str, tick: int, audio: np.ndarray) -> dict[str, Any]:
+        if mid in self.c.ims:
+            return self.c.ims[mid].result(tick)
+        return self.c.scorer(mid).score_audio(audio, self.c.machines[mid]["source"])
 
     # -- state ----------------------------------------------------------------
     def ranking(self) -> list[dict[str, Any]]:
@@ -259,6 +267,7 @@ class Live:
                         "status": r.get("status", "no_data"),
                         "days_rising": r.get("days_rising", 0),
                         "known_fault": r.get("known_fault"),
+                        "fault_name": self._fault_name(mid, r.get("known_fault")),
                         "registry": r.get("registry"),
                         "forecast": self._forecast(mid, hist),
                         "rupees_at_risk": r.get("rupees_at_risk", 0),
@@ -312,6 +321,7 @@ class Live:
                 "link": {"up": self.link_up, "pending": len(self.outbox.pending())},
                 "alerts": self.alerts.notifier.recent(20),
                 "whatsapp": {"provider": self.alerts.provider},
+                "demo": self.demo,
             }
 
     def reading(self, mid: str, tick: int | None = None) -> dict[str, Any]:
@@ -326,7 +336,7 @@ class Live:
             key = (mid, row["tick"])
             if key not in self._readings:
                 audio, _ = self.c.audio(mid, row["tick"], row["mode"], row["mix"])
-                r = self.c.scorer(mid).score_audio(audio, self.c.machines[mid]["source"])
+                r = self._score(mid, row["tick"], audio)
                 self._readings[key] = slices(audio, r, self.c.model(self.c.machines[mid]["type"]))
                 if len(self._readings) > 256:
                     self._readings.pop(next(iter(self._readings)))
@@ -349,7 +359,7 @@ class Live:
             return None
         src = self.c.machines[mid]["source"]
         est = forecast.public(forecast.from_history(hist, self.c.cfg["tick_hours"], src))
-        return {**est, "fault_level_clips": forecast.fault_levels()[src]["n"]}
+        return {**est, "fault_level_clips": forecast.fault_levels().get(src, {}).get("n")}
 
     def history(self, mid: str, days: float = TIME_MACHINE_DAYS) -> dict[str, Any]:
         """Each reading of the last `days`, with the status and estimate as they stood at that moment."""
@@ -383,7 +393,8 @@ class Live:
             "rows": rows[-keep:],
             "first_warning": warn and {k: warn[k] for k in ("tick", "ts", "status")},
             "fault_sound": broke and {k: broke[k] for k in ("tick", "ts", "mode", "mix")},
-            "fault_level": forecast.fault_levels()[m["source"]],
+            "fault_level": forecast.fault_levels().get(m["source"])
+            or {"level": forecast.EXTRA.get(m["source"], {}).get("level"), "healthy": None, "n": None},
         }
 
     def _audio_of(self, mid: str, row: dict[str, Any]) -> np.ndarray:
@@ -403,11 +414,19 @@ class Live:
             before = next((h for h in hist if h["mode"] == "normal"), None)
             m = self.c.machines[mid]
             now_audio = self._audio_of(mid, now)
-            r = self.c.scorer(mid).score_audio(now_audio, m["source"])
+            if mid in self.c.ims:  # vibration: compare each band with the bearing's own first reading
+                before = hist[0]
+                b_mel = features.log_mel(self._audio_of(mid, before))
+                band_z = (
+                    (features.log_mel(now_audio).mean(axis=1) - b_mel.mean(axis=1))
+                    / (b_mel.std(axis=1) + 1e-6)
+                ).tolist()
+            else:
+                band_z = self.c.scorer(mid).score_audio(now_audio, m["source"])["band_z"]
             if before is None or before["tick"] == now["tick"]:
                 out: dict[str, Any] = {"status": "no_normal_reading"}
             else:
-                out = sound.explain(now_audio, self._audio_of(mid, before), r["band_z"], self.mel_hz)
+                out = sound.explain(now_audio, self._audio_of(mid, before), band_z, self.mel_hz)
             fp = next((f for f in reversed(registry.fingerprints(self.c.reg)) if f["machine"] == mid), None)
             rank = next((x for x in self.ranking() if x["machine_id"] == mid), {})
             out.update(
@@ -740,13 +759,107 @@ class Live:
     def reset(self) -> None:
         with self.lock:
             self.c.reset()
+            self._end_ims()
             self.cache, self.pending_label, self.prev_status, self.tick = {}, None, {}, -1
             self._readings, self._explained = {}, {}
             self.outbox.db.execute("DELETE FROM outbox")
             self.outbox.db.commit()
+            self.alerts.notifier.clear()  # WhatsApp alerts from an earlier replay must not show in this one
             self.link_up = True
             self.events = []
             self.event("reset")
+
+    # -- Demo mode: a real bearing failure (NASA IMS) on Loom 1, and a real WhatsApp alert ----------
+    def _fault_name(self, mid: str, owner_word: str | None) -> dict[str, str] | None:
+        """The fault the diagnosis card names (classifier first, then the owner's word), in hi/mr/en."""
+        key = diagnosis.fault_for(owner_word, self.alerts.classified.get(mid))
+        return diagnosis.load()["faults"][key]["name"] if key else None
+
+    def _end_ims(self) -> None:
+        if self._ims_saved is not None:
+            self.c.cfg.update(self._ims_saved["cfg"])
+            for mid, src in self._ims_saved["sources"].items():
+                self.c.machines[mid]["source"] = src
+            self._ims_saved = None
+        self.c.ims.clear()
+        self.alerts.contact_override.clear()
+        self.alerts.lang_override.clear()
+        self.alerts.classified.clear()
+
+    async def run_ims_demo(self, to: str | None, lang: str | None = None, tick_s: float = 0.45) -> None:
+        """Replay NASA IMS test 2, bearing 1 (outer race failure, Feb 2004) as Loom 1's motor bearing.
+
+        At the first alarm the CWRU-trained classifier names the fault from the real vibration, the rules
+        agent plans the visit, and the WhatsApp alert goes to `to` (a judge's phone) in `lang`.
+        """
+        from .imsdemo import ImsSource
+
+        src = await asyncio.to_thread(ImsSource)
+        await asyncio.to_thread(self.reset)
+        mid = IMS_MACHINE
+        with self.lock:
+            m = self.c.machines[mid]
+            self._ims_saved = {
+                "cfg": {k: self.c.cfg[k] for k in ("start", "tick_hours")},
+                "sources": {mid: m["source"]},
+            }
+            first = datetime.strptime(src.meta["first_snapshot"], "%Y.%m.%d.%H.%M.%S")
+            first += timedelta(days=src.start_day)  # the clock starts after the learning window
+            self.c.cfg.update(start=first.isoformat(), tick_hours=src.tick_hours)
+            m["source"] = src.unit
+            forecast.register(
+                src.unit,
+                src.meta["failure_level"],
+                src.meta["window_days"],
+                log=True,
+                ratios_log10=src.meta.get("ratios_log10"),
+            )
+            self.c.ims[mid] = src
+            self.c.set_mode(mid, "ims")
+            if to:
+                self.alerts.contact_override[mid] = to
+            if lang:
+                self.alerts.lang_override[mid] = lang
+        self.demo.update(
+            on=True,
+            phase="replaying NASA IMS test 2",
+            machine=mid,
+            alerted=False,
+            readings=src.readings,
+            at=0,
+        )
+        self.version += 1
+        try:
+            for k in range(src.readings):
+                t0 = time.monotonic()
+                await asyncio.to_thread(self.step)
+                self.demo["at"] = k + 1
+                row = next(r for r in self.ranking() if r["machine_id"] == mid)
+                if self.demo["alerted"] or row["status"] == "alarm":
+                    # name the fault from the last hour of vibration; after the alarm, every reading
+                    # (the classifier's answer changes as the damage grows; the UI shows the latest)
+                    guess = await asyncio.to_thread(
+                        faulttype.predict, src.snapshots_up_to(k), ims.FS, ims.SHAFT_HZ, ims.ZA2115
+                    )
+                    self.alerts.classified[mid] = guess["class"]
+                    first_alarm = not self.demo["alerted"]
+                    if first_alarm or guess["class"] != (self.demo.get("classified") or {}).get("class"):
+                        self.event("classified", machine=mid, **guess, true_fault=src.meta["true_fault"])
+                    self.demo.update(classified=guess)
+                    if first_alarm:
+                        self.demo.update(phase="alert", alerted=True, first_classified=guess, alarm_at=k)
+                        await asyncio.to_thread(self.run_agent, "rules")
+                await asyncio.sleep(max(0.0, tick_s - (time.monotonic() - t0)))
+            self.demo["phase"] = "bearing failed (end of IMS test 2)"
+        except asyncio.CancelledError:
+            self.demo["phase"] = "stopped"
+            raise
+        except Exception as e:
+            self.demo["phase"] = f"error: {e}"
+            raise
+        finally:
+            self.demo["on"] = False
+            self.version += 1
 
     # -- demo replay ----------------------------------------------------------
     def _seed(self, days: float) -> None:
@@ -873,6 +986,13 @@ class ReplyIn(BaseModel):
     reply: str
 
 
+class DemoIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    on: bool = True
+    to: str | None = Field(default=None, max_length=24)
+    lang: str | None = Field(default=None, pattern="^(en|hi|mr)$")
+
+
 class AlertReplyIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     phone: str
@@ -987,7 +1107,11 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
                 if c.unit == m["source"] and c.split == "val" and c.label == 0
             )
             return Response(
-                _wav(features.load(ref.path)), media_type="audio/wav", headers={"X-Clip": ref.path.name}
+                _wav(features.load(ref.path)),
+                media_type="audio/wav",
+                headers={
+                    "X-Clip": f"{ref.path.parent.name}/{ref.path.name}"
+                },  # DCASE reuses names across splits
             )
         with live.lock:
             hist = live.c.history(mid, 1)
@@ -1036,6 +1160,26 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
     @app.get("/api/report/{factory}")
     def report_json(factory: str) -> dict[str, Any]:
         return live.savings(factory)
+
+    @app.post("/api/demo")
+    async def demo(body: DemoIn) -> dict[str, Any]:
+        """Demo mode: replay the NASA IMS bearing failure on Loom 1 and alert `to` on WhatsApp."""
+        for name in ("replay", "demo"):
+            t = tasks.get(name)
+            if t and not t.done():
+                t.cancel()
+                with suppress(asyncio.CancelledError):
+                    await t
+        if not body.on:
+            await asyncio.to_thread(live.reset)
+            return {"on": False}
+        if not (MODELS / "ims_replay.json").exists():
+            raise HTTPException(
+                409, "IMS data not prepared: run python -m data.real ims && python -m edge.ims"
+            )
+        to = body.to or env.get("DHADKAN_DEMO_TO")
+        tasks["demo"] = asyncio.create_task(live.run_ims_demo(to, body.lang))
+        return {"on": True, "to": bool(to), "provider": live.alerts.provider}
 
     @app.get("/api/alert-media/{name}")
     def alert_media(name: str) -> Response:

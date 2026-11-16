@@ -1,12 +1,13 @@
-"""Download a small subset of MIMII (pump, fan) and MIMII DUE (gearbox).
+"""Download the gearbox subset of MIMII DUE (the DCASE 2021 Task 2 development set).
+
+pump, fan, valve and slider come from DCASE 2020 Task 2 (data/real.py); this keeps the gearbox,
+whose target-domain test (changed speed or load) is the "speed change" failure case.
 
 The full archives are 1-10 GB each. Zenodo serves HTTP range requests, so we
-read the zip's central directory and pull only the members we need. MIMII
-files are 8-channel; we keep channel 0 only (mono, 16 kHz) to save disk.
+read the zip's central directory and pull only the members we need. Multi-channel
+files keep channel 0 only (mono, 16 kHz).
 
-Datasets (CC BY-SA 4.0):
-  MIMII      https://zenodo.org/records/3384388  (Purohit et al., 2019)
-  MIMII DUE  https://zenodo.org/records/4740355  (Tanabe et al., 2021)
+Dataset (CC BY-SA 4.0): MIMII DUE https://zenodo.org/records/4740355 (Tanabe et al., 2021)
 
 Usage:  python -m data.download [--small]
 """
@@ -20,47 +21,19 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import requests
 import soundfile as sf
+import urllib3
 from remotezip import RemoteIOError, RemoteZip
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "raw"
 
-MIMII = "https://zenodo.org/records/3384388/files/{name}?download=1"
 DUE = "https://zenodo.org/records/4740355/files/{name}?download=1"
 
 # (archive url, output dir, [(member regex, count), ...])
 # Counts are per class. Files are taken in sorted order, so reruns are stable.
 PLAN = [
-    (
-        MIMII.format(name="6_dB_pump.zip"),
-        "mimii_6dB/pump",
-        [
-            (r"pump/id_00/normal/", 60),
-            (r"pump/id_00/abnormal/", 20),
-            (r"pump/id_02/normal/", 60),
-            (r"pump/id_02/abnormal/", 20),
-        ],
-    ),
-    (
-        MIMII.format(name="6_dB_fan.zip"),
-        "mimii_6dB/fan",
-        [
-            (r"fan/id_00/normal/", 60),
-            (r"fan/id_00/abnormal/", 20),
-            (r"fan/id_02/normal/", 60),
-            (r"fan/id_02/abnormal/", 20),
-        ],
-    ),
-    # Same pump, recorded with louder factory noise: the "noisy shed" check.
-    (
-        MIMII.format(name="-6_dB_pump.zip"),
-        "mimii_-6dB/pump",
-        [
-            (r"pump/id_00/normal/", 20),
-            (r"pump/id_00/abnormal/", 20),
-        ],
-    ),
     (
         DUE.format(name="dev_data_gearbox.zip"),
         "mimii_due",
@@ -99,7 +72,8 @@ _local = threading.local()
 def _zip(url: str) -> RemoteZip:
     """One open archive per thread, so the central directory is read once."""
     if getattr(_local, "url", None) != url:
-        _local.zip, _local.url = RemoteZip(url), url
+        # timeout: a stalled Zenodo connection otherwise hangs a worker forever (seen on valve)
+        _local.zip, _local.url = RemoteZip(url, timeout=(20, 90)), url
     return _local.zip
 
 
@@ -111,7 +85,8 @@ def fetch(url: str, member: str, out_dir: Path) -> str:
         try:
             raw = _zip(url).read(member)
             break
-        except RemoteIOError:  # Zenodo answers 429 when pushed too hard
+        # 429 when pushed too hard; timeouts surface from requests, or from urllib3 mid-stream
+        except (RemoteIOError, requests.RequestException, urllib3.exceptions.HTTPError, TimeoutError):
             if attempt == 7:
                 raise
             time.sleep(min(60, 5 * 2**attempt))

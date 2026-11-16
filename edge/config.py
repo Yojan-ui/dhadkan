@@ -22,4 +22,4 @@ THRESHOLD_QUANTILE = 0.95  # per-machine alarm = 95th pct of held-out normal cli
 MATCH_QUANTILE = 0.99  # registry flag = above 99th pct of similarity on held-out normal clips
 PAUC_MAX_FPR = 0.1  # DCASE convention
 
-MACHINE_TYPES = ("pump", "fan", "gearbox")
+MACHINE_TYPES = ("pump", "fan", "valve", "slider", "gearbox")

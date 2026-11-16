@@ -155,7 +155,11 @@ class DryRun:
 
 
 def from_env() -> tuple[Any, Any]:
-    """(WhatsApp provider, SMS provider) from configuration; DryRun where keys are missing."""
+    """(WhatsApp provider, SMS provider) from configuration; DryRun where keys are missing.
+
+    DHADKAN_DRY_RUN=1 forces DryRun for both even when keys are set (recordings, rehearsals)."""
+    if env.get("DHADKAN_DRY_RUN") == "1":
+        return DryRun(), DryRun()
     wa: Any = DryRun()
     if env.get("WA_TOKEN") and env.get("WA_PHONE_NUMBER_ID"):
         wa = MetaCloud(env.get("WA_TOKEN") or "", env.get("WA_PHONE_NUMBER_ID") or "",

@@ -1100,3 +1100,58 @@ kbd {
   width: 100%;
   justify-content: space-between;
 }
+
+/* diagnosis card, demo mode */
+.diag {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.diag-what {
+  margin: 0;
+  font-size: 14px;
+}
+.diag .kv th {
+  width: 92px;
+}
+.sev {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.sev-watch {
+  color: var(--amber);
+  border-color: var(--amber);
+}
+.sev-soon {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.sev-stop {
+  background: var(--accent);
+  color: #121417;
+  border-color: var(--accent);
+}
+.wa-status {
+  margin: 0;
+  color: var(--ink);
+}
+.demo {
+  display: grid;
+  gap: 10px;
+}
+.demo label {
+  display: grid;
+  gap: 2px;
+}
+.demo-status {
+  display: grid;
+  gap: 3px;
+  border-left: 3px solid var(--accent);
+  padding-left: 8px;
+}

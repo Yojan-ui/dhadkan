@@ -1,49 +1,22 @@
-"""The live server's alert path: digest -> WhatsApp alert with media -> signed webhook reply -> booking."""
+"""The live server's alert path on real data: Demo mode replays the NASA IMS bearing failure as Loom 1;
+its alarm -> diagnosis card -> WhatsApp alert with media -> signed webhook reply -> booking."""
 
-import asyncio
 import hashlib
 import hmac
 import json
 
 import pytest
-from fastapi.testclient import TestClient
 
-from edge.config import MODELS
-from server import app as app_mod
-from server import folk
-from server.owner_alerts import OwnerAlerts
+from tests.conftest import OWNER_A, ims_world, needs_ims
 
-pytestmark = pytest.mark.skipif(not (MODELS / "fan" / "model.tflite").exists(), reason="needs trained models")
-NOTE = "ब्लोअर में खट-खट की आवाज़ आ रही है"
-OWNER_B, SUPERVISOR_B = "+91 90000 11111", "+91 90000 22222"
-
-
-class Recorder:
-    name = "whatsapp_meta"
-
-    def __init__(self):
-        self.sent = []
-
-    def send(self, to, text, media, lang="en"):
-        self.sent.append({"to": to, "text": text, "media": [m.mime for m in media], "lang": lang})
-        return {"provider": self.name, "ids": [f"wamid.{len(self.sent)}"]}
+pytestmark = needs_ims
+DEMO_TO = "+91 90000 44444"
 
 
 @pytest.fixture(scope="module")
 def world(tmp_path_factory):
     mp = pytest.MonkeyPatch()
-    mp.setenv("DHADKAN_PHONE_B", OWNER_B)
-    mp.setenv("DHADKAN_SUPERVISOR_B", SUPERVISOR_B)
-    mp.setenv("WA_APP_SECRET", "test-secret")
-    mp.setenv("WA_VERIFY_TOKEN", "verify-me")
-    mp.setattr(folk, "transcribe", lambda path, language=None, **k: (NOTE, language))
-    d = tmp_path_factory.mktemp("alerts")
-    app = app_mod.create_app(d / "node.db", d / "registry.db", stream=False)
-    live = app.state.live
-    rec = Recorder()
-    live.alerts = OwnerAlerts(live, d / "node.db", providers=(rec, rec))
-    asyncio.run(live.run_replay(tick_s=0, seed_days=2))
-    yield app, TestClient(app), live, rec
+    yield ims_world(tmp_path_factory.mktemp("alerts"), mp)
     mp.undo()
 
 
@@ -58,22 +31,27 @@ def wa_reply(phone: str, text: str) -> dict:
         {"from": phone.replace("+", "").replace(" ", ""), "id": "x", "type": "text", "text": {"body": text}}]}}]}]}  # fmt: skip
 
 
-def test_digest_sends_a_whatsapp_alert_with_media(world):
-    _, client, _live, rec = world
-    to_b = [s for s in rec.sent if s["to"] == OWNER_B]
-    assert to_b, "factory B's owner gets the B-F1 alert"
-    a = to_b[0]
-    assert a["lang"] == "mr" and "1 = मिस्त्री बोलवा" in a["text"] and a["text"].startswith("⚠ ")
+def test_the_real_bearing_failure_sends_a_whatsapp_alert_with_media(world):
+    _, client, live, rec = world
+    assert live.demo["alerted"] and live.demo["phase"].startswith("bearing failed")
+    to_a = [s for s in rec.sent if s["to"] == OWNER_A]
+    loom = [s for s in to_a if "लूम 1" in s["text"]]
+    assert loom, "factory A's owner gets the Loom 1 alert"
+    a = loom[0]
+    assert a["lang"] == "hi" and "1 = मिस्त्री बुलाओ" in a["text"] and a["text"].startswith("⚠ ")
+    assert "बेयरिंग" in a["text"]  # the classifier's bearing fault maps to the bearing-wear card
     assert a["media"] == ["audio/ogg", "image/png"]
     alerts = client.get("/api/state").json()["alerts"]
-    factory_a = [x for x in alerts if x["factory"] == "A"]
-    assert factory_a and all(x["status"] == "no_contact" for x in factory_a)  # no number on file for A
-    assert all(x["status"] == "sent" for x in alerts if x["factory"] == "B")
+    assert all(
+        x["status"] == "no_contact" for x in alerts if x["factory"] in ("B", "C")
+    )  # no numbers on file
+    assert any(x["machine"] == "A-G1" and x["status"] == "sent" for x in alerts)
 
 
 def test_diagnosis_endpoint(world):
     _, client, *_ = world
-    d = client.get("/api/diagnosis/B-F1?lang=en").json()
+    d = client.get("/api/diagnosis/A-G1?lang=en").json()
+    assert d["card"]["fault"] == "bearing_wear" and d["card"]["named_by"] == "classifier"
     assert d["card"]["severity"]["level"] in ("watch", "repair_soon", "stop_now", "replace")
     assert d["text"].startswith("⚠ ")
 
@@ -92,7 +70,7 @@ def test_webhook_verification_and_signature(world):
         ).status_code
         == 403
     )
-    raw = json.dumps(wa_reply(OWNER_B, "1")).encode()
+    raw = json.dumps(wa_reply(OWNER_A, "1")).encode()
     assert (
         client.post(
             "/webhooks/whatsapp", content=raw, headers={"Content-Type": "application/json"}
@@ -101,33 +79,39 @@ def test_webhook_verification_and_signature(world):
     )
 
 
+def test_unclear_reply_does_not_book(world):
+    _, client, live, _ = world
+    client.post("/api/alerts/reply", json={"phone": OWNER_A, "text": "kal dekhenge"})
+    assert next(m for m in live.messages() if m["machine"] == "A-G1")["approved"] != 1
+
+
 def test_details_then_book_and_no_machine_is_touched(world):
     _, client, live, rec = world
     modes = {m: live.c.mode(m) for m in live.c.machines}
-    raw, headers = signed(wa_reply(OWNER_B, "3"))
-    assert (
-        client.post("/webhooks/whatsapp", content=raw, headers=headers).json()["handled"][0]["choice"]
-        == "details"
-    )
-    assert rec.sent[-1]["to"] == OWNER_B and "Repairable" in rec.sent[-1]["text"]
-    msg = next(m for m in live.messages() if m["machine"] == "B-F1")
-    assert msg["approved"] is None
-    raw, headers = signed(wa_reply(OWNER_B, "1"))
+    raw, headers = signed(wa_reply(OWNER_A, "3"))
+    handled = client.post("/webhooks/whatsapp", content=raw, headers=headers).json()["handled"]
+    assert handled[0]["choice"] == "details"
+    assert rec.sent[-1]["to"] == OWNER_A and "Repairable:" in rec.sent[-1]["text"]
+    assert next(m for m in live.messages() if m["machine"] == "A-G1")["approved"] is None
+    raw, headers = signed(wa_reply(OWNER_A, "1"))
     assert (
         client.post("/webhooks/whatsapp", content=raw, headers=headers).json()["handled"][0]["choice"]
         == "book"
     )
-    assert next(m for m in live.messages() if m["machine"] == "B-F1")["approved"] == 1  # the visit is booked
+    assert next(m for m in live.messages() if m["machine"] == "A-G1")["approved"] == 1  # the visit is booked
     assert {m: live.c.mode(m) for m in live.c.machines} == modes  # and nothing else changed
 
 
-def test_only_one_books(world):
-    _, client, live, _ = world
-    a_msg = next(m for m in live.messages() if m["machine"] == "A-F1")
-    live.alerts.notifier.db.execute(
-        "UPDATE alerts SET to_phone=? WHERE message_id=?", ("+91 90000 33333", a_msg["id"])
-    )
-    live.alerts.notifier.db.commit()
-    for text in ("2", "kal dekhenge"):
-        client.post("/api/alerts/reply", json={"phone": "+91 90000 33333", "text": text})
-    assert next(m for m in live.messages() if m["machine"] == "A-F1")["approved"] != 1
+def test_demo_number_only_hears_about_the_demo_machine(tmp_path):
+    """The judge's number is attached to Loom 1 only: other machines' (false) alarms never reach it."""
+    mp = pytest.MonkeyPatch()
+    try:
+        _, _, live, rec = ims_world(tmp_path, mp, to=DEMO_TO, lang="en")
+        to_judge = [a for a in live.alerts.notifier.recent(50) if a["to_phone"] == DEMO_TO]
+        assert to_judge and {a["machine"] for a in to_judge} == {"A-G1"}
+        assert all(a["lang"] == "en" for a in to_judge)
+        assert all(s["to"] != DEMO_TO or "Loom 1" in s["text"] for s in rec.sent)
+        live.reset()  # a new replay must not show the previous one's alerts
+        assert live.alerts.notifier.recent(50) == []
+    finally:
+        mp.undo()

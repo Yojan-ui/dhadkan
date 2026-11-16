@@ -9,7 +9,8 @@ from fastapi.testclient import TestClient
 
 from edge.config import MODELS
 from server import app as app_mod
-from server import explain, folk, report
+from server import explain, folk, forecast, report
+from tests.conftest import ims_world, needs_ims
 
 pytestmark = pytest.mark.skipif(not (MODELS / "fan" / "model.tflite").exists(), reason="needs trained models")
 NOTE = "ब्लोअर में खट-खट की आवाज़ आ रही है"
@@ -67,33 +68,47 @@ def test_time_machine_history_marks_warning_and_fault(replayed):
     assert len(h["rows"]) == 14 * 3
     assert h["first_warning"]["tick"] < h["fault_sound"]["tick"]  # warned days before
     warn = next(r for r in h["rows"] if r["tick"] == h["first_warning"]["tick"])
-    assert warn["status"] in ("alarm", "early_match") and warn["forecast"]["status"] == "estimate"
+    # A-F1 replays fan id_00. If its recorded faults score below the alarm on average (the model can't
+    # separate them; docs/RESULTS.md), the page must say so instead of counting down.
+    separable = forecast.fault_levels()["fan/id_00"]["level"] > 1.0
+    assert warn["status"] in ("alarm", "early_match")
+    assert warn["forecast"]["status"] == ("estimate" if separable else "not_separable")
     before = [r for r in h["rows"] if r["tick"] < h["first_warning"]["tick"]]
     assert all(r["status"] not in ("alarm", "early_match") for r in before)
     r = client.get(f"/api/reading/A-F1?tick={h['rows'][0]['tick']}").json()
     assert len(r["spec"]) == 20 and r["mode"] == "normal"
 
 
-def test_explain_endpoint_and_clips(replayed):
-    _, client = replayed
-    ex = client.get("/api/explain/A-F1").json()
-    assert ex["status"] == "ok" and ex["lo_hz"] < ex["hi_hz"] and ex["owner_said"] == "khat-khat"
+@pytest.fixture(scope="module")
+def failed_bearing(tmp_path_factory):
+    mp = pytest.MonkeyPatch()
+    yield ims_world(tmp_path_factory.mktemp("ims"), mp)
+    mp.undo()
+
+
+@needs_ims
+def test_explain_endpoint_and_clips(failed_bearing):
+    """At the end of the real IMS run the vibration has changed a lot: the page can say where and play it."""
+    _, client, *_ = failed_bearing
+    ex = client.get("/api/explain/A-G1").json()
+    assert ex["status"] == "ok" and ex["lo_hz"] < ex["hi_hz"] and ex["change_pct"] > 0
     assert ex["before"]["tick"] < ex["now"]["tick"]
     for which in ("before", "now"):
-        wav = client.get(f"/api/explain/A-F1/{which}.wav")
+        wav = client.get(f"/api/explain/A-G1/{which}.wav")
         assert wav.status_code == 200 and wav.content[:4] == b"RIFF"
         assert abs(len(wav.content) - 44 - 3 * 16_000 * 2) <= 2  # 3 s of 16-bit mono
 
 
-def test_savings_counts_only_approved_visits(replayed):
-    app, client = replayed
-    assert client.get("/api/report/B").json()["visits"] == []
-    msg = next(m for m in app.state.live.messages() if m["machine"] == "B-F1")
-    client.post("/api/reply", json={"message_id": msg["id"], "reply": "हो"})
-    rep = client.get("/api/report/B").json()
-    assert [v["machine"] for v in rep["visits"]] == ["B-F1"]
+@needs_ims
+def test_savings_counts_only_approved_visits(failed_bearing):
+    app, client, *_ = failed_bearing
+    assert client.get("/api/report/A").json()["visits"] == []
+    msg = next(m for m in app.state.live.messages() if m["machine"] == "A-G1")
+    client.post("/api/reply", json={"message_id": msg["id"], "reply": "हाँ"})
+    rep = client.get("/api/report/A").json()
+    assert [v["machine"] for v in rep["visits"]] == ["A-G1"]
     assert rep["totals"]["saved_inr"] == rep["visits"][0]["saved_inr"] > 0
-    assert "before its own alarm" in rep["visits"][0]["how"]
-    pdf = client.get("/api/report/B.pdf")
+    assert "alarm" in rep["visits"][0]["how"]
+    pdf = client.get("/api/report/A.pdf")
     assert pdf.headers["content-type"] == "application/pdf" and pdf.content[:4] == b"%PDF"
     assert client.get("/api/report/Z.pdf").status_code == 404

@@ -119,7 +119,7 @@ def _calibrated(est: dict[str, Any], ratios: list[float]) -> dict[str, Any]:
     f = 10 ** np.asarray(ratios, float)
     lo, hi = np.percentile(f, [10, 90])
     mid = float(est["mid"])
-    return {**est, "low": round(mid * lo, 1), "high": round(mid * hi, 1), "raw_low": est["low"], "raw_high": est["high"],
+    return {**est, "low": round(float(mid * lo), 1), "high": round(float(mid * hi), 1), "raw_low": est["low"], "raw_high": est["high"],
             "crossings": np.sort(mid * f).round(2).tolist(), "calibrated_on": "NASA IMS (other bearings)"}  # fmt: skip
 
 

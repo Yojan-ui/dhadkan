@@ -1,10 +1,11 @@
 // One machine, in the right column: the owner's question first, then the live sound, what changed,
 // the 14-day trend, the countdown, and the numbers behind them.
 import { useEffect, useState } from "react";
-import type { Explanation, Factory, History, Machine, Message, Meta, Route } from "../api";
+import type { Alert, Explanation, Factory, History, Machine, Message, Meta, Route } from "../api";
 import { store, useFrame } from "../api";
 import { fmtClock, mechanicLine, pct, SHAPE_WORD, sourceWord, STATUS_WORD } from "../theme";
 import { ApprovalCard } from "./ApprovalBar";
+import { DiagnosisBlock } from "./Diagnosis";
 import { HealthRing, Spectro2D } from "./bits";
 import { ExplainCard } from "./Explain";
 import { ForecastBlock } from "./Forecast";
@@ -32,6 +33,8 @@ export function MachinePanel({
   messages,
   route,
   hotBands = null,
+  alerts,
+  tick,
 }: {
   m: Machine;
   meta: Meta;
@@ -44,6 +47,8 @@ export function MachinePanel({
   messages: Message[];
   route: Route | null;
   hotBands?: [number, number] | null;
+  alerts: Alert[];
+  tick: number;
 }) {
   const f = meta.factories.find((x) => x.id === m.factory) as Factory;
   const frame = useFrame()[m.id];
@@ -114,6 +119,8 @@ export function MachinePanel({
       </section>
 
       {flagged && !past && <ExplainCard id={m.id} ex={ex} />}
+
+      {flagged && !past && <DiagnosisBlock id={m.id} tick={tick} alerts={alerts} />}
 
       {hist.data ? (
         <TimeMachine

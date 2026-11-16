@@ -1,4 +1,10 @@
-"""Which clip is used for what. Splits are deterministic (sorted file names)."""
+"""Which clip is used for what. Splits are deterministic (sorted file names).
+
+pump, fan, valve, slider: DCASE 2020 Task 2 development set, official splits. The train split is
+  normal only; its last 10 clips per machine ID are held out (val) for that machine's alarm level.
+  The test split (normal + anomalous) is the one the DCASE baseline is scored on.
+gearbox: MIMII DUE (DCASE 2021 Task 2 development set), source and target (changed speed/load) test.
+"""
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,11 +15,11 @@ from .config import RAW
 @dataclass(frozen=True)
 class Clip:
     path: Path
-    mtype: str  # pump | fan | gearbox
+    mtype: str  # pump | fan | valve | slider | gearbox
     unit: str  # pump/id_00, gearbox/section_01, ...
     split: str  # train | val | test
     label: int  # 0 normal, 1 anomalous
-    condition: str  # 6dB | -6dB | source | target
+    condition: str  # test (DCASE 2020) | source | target (gearbox)
 
 
 def _split_normals(files: list[Path], n_val: int, n_test: int) -> list[tuple[Path, str]]:
@@ -26,19 +32,17 @@ def _split_normals(files: list[Path], n_val: int, n_test: int) -> list[tuple[Pat
     )
 
 
-def mimii(mtype: str, snr: str = "6dB") -> list[Clip]:
+def dcase2020(mtype: str, n_val: int = 10) -> list[Clip]:
+    root = RAW / "dcase2020" / mtype
     clips = []
-    root = RAW / f"mimii_{snr}" / mtype / mtype
-    for unit_dir in sorted(root.glob("id_*")):
-        unit = f"{mtype}/{unit_dir.name}"
-        normals = list((unit_dir / "normal").glob("*.wav"))
-        abnormal = sorted((unit_dir / "abnormal").glob("*.wav"))
-        if snr == "6dB":
-            split = _split_normals(normals, n_val=10, n_test=16)
-        else:  # the noisy recordings are only ever used for testing
-            split = [(f, "test") for f in sorted(normals)]
-        clips += [Clip(f, mtype, unit, s, 0, snr) for f, s in split]
-        clips += [Clip(f, mtype, unit, "test", 1, snr) for f in abnormal]
+    ids = sorted({f.name.split("_")[2] for f in (root / "train").glob("normal_id_*.wav")})
+    for i in ids:
+        unit = f"{mtype}/id_{i}"
+        train = sorted((root / "train").glob(f"normal_id_{i}_*.wav"))
+        clips += [Clip(f, mtype, unit, "train", 0, "test") for f in train[:-n_val]]
+        clips += [Clip(f, mtype, unit, "val", 0, "test") for f in train[-n_val:]]
+        for f in sorted((root / "test").glob(f"*_id_{i}_*.wav")):
+            clips.append(Clip(f, mtype, unit, "test", int(f.name.startswith("anomaly")), "test"))
     return clips
 
 
@@ -56,7 +60,10 @@ def gearbox() -> list[Clip]:
     return clips
 
 
+# The condition each type is headlined on (the other conditions are stress tests).
+HEADLINE = {"pump": "test", "fan": "test", "valve": "test", "slider": "test", "gearbox": "source"}
+HEADLINE_CONDITIONS = ("test", "source")
+
+
 def clips_for(mtype: str) -> list[Clip]:
-    if mtype == "gearbox":
-        return gearbox()
-    return mimii(mtype, "6dB") + (mimii(mtype, "-6dB") if mtype == "pump" else [])
+    return gearbox() if mtype == "gearbox" else dcase2020(mtype)

@@ -4,6 +4,10 @@ A machine whose source is `ims/<test>/<bearing>` reads 1 s vibration snapshots f
 instead of DCASE clips. Its score is the IMS health score from edge/ims.py (1.0 = alarm level), its
 sound is the vibration snapshot resampled to 16 kHz and looped to 10 s, and its timestamps are the
 real IMS ones. Nothing is synthesised.
+
+The replay starts after the learning window (edge/ims.py's first BASELINE_FRAC of snapshots): that is
+where the health score learned this bearing's normal, so it is not monitored. The bearing's run-in
+transient sits in that window and would otherwise raise an alarm on the first reading.
 """
 
 import json
@@ -24,19 +28,25 @@ class ImsSource:
         self.meta: dict[str, Any] = json.loads((MODELS / "ims_replay.json").read_text())
         self.t, self.x = ims.load(self.meta["test"], self.meta["bearing"])
         self.score = np.asarray(self.meta["score"])
-        self.stride = max(1, math.ceil(len(self.t) / READINGS))
+        self.start = int(len(self.t) * ims.BASELINE_FRAC)  # first monitored snapshot
+        self.stride = max(1, math.ceil((len(self.t) - self.start) / READINGS))
         self.unit = f"ims/{self.meta['test']}/{self.meta['bearing']}"
 
     @property
     def readings(self) -> int:
-        return math.ceil(len(self.t) / self.stride)
+        return math.ceil((len(self.t) - self.start) / self.stride)
+
+    @property
+    def start_day(self) -> float:
+        """Days from the first IMS snapshot to the first monitored one (the learning window)."""
+        return float(self.t[self.start])
 
     @property
     def tick_hours(self) -> float:
         return float(np.median(np.diff(self.t))) * 24 * self.stride
 
     def index(self, tick: int) -> int:
-        return min(len(self.t) - 1, max(0, tick) * self.stride)
+        return min(len(self.t) - 1, self.start + max(0, tick) * self.stride)
 
     def audio(self, tick: int) -> np.ndarray:
         snap = self.x[self.index(tick)].astype(np.float64)

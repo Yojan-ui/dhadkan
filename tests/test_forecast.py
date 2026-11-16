@@ -46,9 +46,20 @@ def test_probability_grows_with_time():
 
 
 def test_fault_levels_come_from_the_evaluation_record():
+    import json
+
+    ev = json.loads(sorted(forecast.RUNS.glob("eval_*.json"))[-1].read_text())
     lv = forecast.fault_levels()
-    assert lv["fan/id_00"]["n"] == 20 and lv["fan/id_00"]["level"] > 1.0
-    assert lv["gearbox/section_00"]["level"] < 1.0  # the model can't separate these faults: no estimate
+    for rep in ev["types"].values():
+        for unit, thr in rep["thresholds"].items():
+            rows = [
+                r
+                for r in rep["clip_scores"]
+                if r["unit"] == unit and r["condition"] == rep["headline_condition"]
+            ]
+            bad = sorted(r["score"] / thr for r in rows if r["label"] == 1)
+            assert lv[unit]["n"] == len(bad) > 0, unit
+            assert lv[unit]["level"] == pytest.approx(float(np.median(bad))), unit
 
 
 def test_breakdown_cost_is_all_assumptions():

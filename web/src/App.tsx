@@ -5,6 +5,7 @@ import type { View } from "./scene/CameraRig";
 import { fmtClock, fmtT, inr, usePhone, useReducedMotion } from "./theme";
 import { ApprovalBar } from "./ui/ApprovalBar";
 import { Attention } from "./ui/Attention";
+import { DemoMode } from "./ui/DemoMode";
 import { Drawer, Evaluation, Log, Operator } from "./ui/Drawers";
 import { useExplain, useHistory } from "./ui/hooks";
 import { MachinePanel, type TM } from "./ui/MachinePanel";
@@ -16,7 +17,7 @@ import { BootSkeleton } from "./ui/Skeleton";
 const sceneChunk = window.matchMedia("(max-width: 767px)").matches ? null : import("./scene/Scene");
 const Scene = lazy(() => sceneChunk ?? import("./scene/Scene"));
 
-type DrawerName = "operator" | "eval" | "log" | "keys" | null;
+type DrawerName = "operator" | "eval" | "log" | "keys" | "demo" | null;
 
 export default function App() {
   return (
@@ -209,6 +210,8 @@ function Main() {
       tm={tm}
       messages={state.messages}
       route={state.route}
+      alerts={state.alerts}
+      tick={state.tick}
       hotBands={
         idx === null && ex.data?.status === "ok" ? [ex.data.lo_band ?? 0, ex.data.hi_band ?? 0] : null
       }
@@ -227,6 +230,10 @@ function Main() {
     ) : drawer === "log" ? (
       <Drawer title="Decision log" onClose={() => setDrawer(null)} reduced={reduced}>
         <Log state={state} />
+      </Drawer>
+    ) : drawer === "demo" ? (
+      <Drawer title="Demo mode" onClose={() => setDrawer(null)} reduced={reduced}>
+        <DemoMode state={state} />
       </Drawer>
     ) : drawer === "keys" ? (
       <Drawer title="How to read this" onClose={() => setDrawer(null)} reduced={reduced}>
@@ -370,6 +377,13 @@ function TopBar({
         </div>
       )}
       <div className="row gap controls">
+        <button
+          className={`btn ${state.demo.on ? "yes" : "ghost"} ${drawer === "demo" ? "on" : ""}`}
+          onClick={() => toggle("demo")}
+          title="Replay a real bearing failure and send a WhatsApp alert"
+        >
+          Demo mode
+        </button>
         <label className={`switch ${replay.on ? "on" : ""}`}>
           <input
             type="checkbox"

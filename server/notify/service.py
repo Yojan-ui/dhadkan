@@ -58,6 +58,13 @@ class Notifier:
         self.db.executescript(SCHEMA)
         self.outbox = Outbox(outbox_path, self._deliver, clock)
 
+    def clear(self) -> None:
+        """Forget every alert and anything still queued (a new replay starts from nothing)."""
+        self.db.execute("DELETE FROM alerts")
+        self.db.commit()
+        self.outbox.db.execute("DELETE FROM outbox")
+        self.outbox.db.commit()
+
     # -- sending ------------------------------------------------------------
     def _deliver(self, kind: str, p: dict[str, Any]) -> dict[str, Any]:
         """Outbox transport: WhatsApp, else SMS; raises ConnectionError when both are unreachable."""

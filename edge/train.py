@@ -29,6 +29,7 @@ from .config import (
     N_FFT,
     N_MELS,
     PAUC_MAX_FPR,
+    RAW,
     ROOT,
     RUNS,
     SR,
@@ -154,7 +155,7 @@ def train_type(mtype: str, epochs: int) -> dict[str, Any]:
         }
 
     # Headline: in-domain test set. Failure panel: noisy shed / changed speed.
-    main_cond = "source" if mtype == "gearbox" else "6dB"
+    main_cond = data.HEADLINE[mtype]
     test = [r for r in rows if r["split"] == "test"]
     report = {"headline_condition": main_cond, "per_unit": {}, "conditions": {}}
     for u in units:
@@ -221,7 +222,10 @@ def registry_transfer(
         return [
             c
             for c in clips
-            if c.unit == u and c.split == "test" and c.label == label and c.condition in ("6dB", "source")
+            if c.unit == u
+            and c.split == "test"
+            and c.label == label
+            and c.condition in data.HEADLINE_CONDITIONS
         ]
 
     def clip_emb(x_audio: np.ndarray, u: str) -> tuple[np.ndarray, float]:
@@ -316,6 +320,11 @@ def main() -> None:
         },
         "types": {},
     }
+    subsets = sorted((RAW / "dcase2020").glob("*/subset.json"))
+    if subsets:  # how much of the official DCASE train split was used
+        record["train_per_id"] = json.loads(subsets[0].read_text())["train_used"] // max(
+            1, len(json.loads(subsets[0].read_text())["train_available"])
+        )
     for mtype in args.types:
         record["types"][mtype] = train_type(mtype, args.epochs)
     record["seconds"] = round(time.time() - t0, 1)

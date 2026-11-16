@@ -63,6 +63,7 @@ class Cluster:
             self.db.execute("ALTER TABLE state ADD COLUMN step REAL")
         self.reg = registry.connect(registry_db)
         self.models = {}
+        self.ims: dict[str, Any] = {}  # machine -> imsdemo.ImsSource while Demo mode runs
         self._scorers = {}  # one interpreter per machine, so a reading's 12 clips score in parallel
         self._pool = ThreadPoolExecutor(max_workers=8)
         self._pools = None
@@ -72,15 +73,17 @@ class Cluster:
         """Held-out test clips per machine. Machines sharing a source split its clips."""
         if self._pools is None:
             by_source = {}
-            for t in ("pump", "fan", "gearbox"):
+            for t in sorted({m["type"] for m in self.cfg["machines"]}):
                 for c in data.clips_for(t):
-                    if c.split == "test" and c.condition in ("6dB", "source"):
+                    if c.split == "test" and c.condition in data.HEADLINE_CONDITIONS:
                         by_source.setdefault(c.unit, {0: [], 1: []})[c.label].append(c.path)
             sharing = {}
             for m in self.cfg["machines"]:
                 sharing.setdefault(m["source"], []).append(m["id"])
             self._pools = {}
             for m in self.cfg["machines"]:
+                if m["id"] in self.ims:  # Demo mode: this machine plays NASA IMS snapshots, not clips
+                    continue
                 k, i = len(sharing[m["source"]]), sharing[m["source"]].index(m["id"])
                 src = by_source[m["source"]]
                 self._pools[m["id"]] = {lab: src[lab][i::k] or src[lab] for lab in (0, 1)}
@@ -123,6 +126,8 @@ class Cluster:
     # -- one tick ---------------------------------------------------------
     def audio(self, mid: str, tick: int, mode: str, mix: float) -> tuple[np.ndarray, str]:
         """Rebuild the exact 10 s the machine played at `tick` (also used for spectrograms)."""
+        if mid in self.ims:  # Demo mode: a real run-to-failure, read from NASA IMS snapshots
+            return self.ims[mid].audio(tick), self.ims[mid].clip(tick)
         pool = self.pools()[mid]
         normal = pool[0][tick % len(pool[0])]
         if mode == "normal":
@@ -155,6 +160,8 @@ class Cluster:
 
         def play(mid: str) -> tuple[str, str, np.ndarray, dict[str, Any]]:
             audio, clip = self.audio(mid, tick, *modes[mid])
+            if mid in self.ims:
+                return mid, clip, audio, self.ims[mid].result(tick)
             return mid, clip, audio, self.scorer(mid).score_audio(audio, self.machines[mid]["source"])
 
         out = {}
@@ -164,7 +171,11 @@ class Cluster:
             em = self.model(m["type"])
             out[mid] = (audio, r)
             cos, level, fp_id = None, None, None
-            matches = registry.match(self.reg, m["type"], r["embedding"], exclude_machine=mid)
+            matches = (
+                registry.match(self.reg, m["type"], r["embedding"], exclude_machine=mid)
+                if r["embedding"]
+                else []
+            )
             if matches:
                 best = matches[0]
                 fp = next(

@@ -254,3 +254,15 @@ def test_media_formats():
     assert png[:8] == b"\x89PNG\r\n\x1a\n"
     short = media.before_now_clip(before[:16_000], now[:16_000])  # a 1 s snapshot is looped to fill 5 s
     assert abs(len(sf.read(io.BytesIO(short))[0]) / 16_000 - media.CLIP_S) < 0.1
+
+
+def test_dry_run_switch_overrides_keys(monkeypatch):
+    monkeypatch.setenv("WA_TOKEN", "t")
+    monkeypatch.setenv("WA_PHONE_NUMBER_ID", "1")
+    monkeypatch.setenv("TWILIO_ACCOUNT_SID", "s")
+    monkeypatch.setenv("TWILIO_AUTH_TOKEN", "a")
+    monkeypatch.setenv("TWILIO_SMS_FROM", "+1")
+    assert wa.from_env()[0].name == "whatsapp_meta"
+    monkeypatch.setenv("DHADKAN_DRY_RUN", "1")
+    w, sms = wa.from_env()
+    assert w.name == sms.name == "dry_run"

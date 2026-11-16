@@ -1,7 +1,8 @@
 // Left column: every machine, the ones that need attention first. Click a row to fly to it.
-import type { Machine, Message, Meta, State } from "../api";
+import type { Alert, Machine, Message, Meta, State } from "../api";
 import { inr } from "../theme";
 import { HealthRing } from "./bits";
+import { alertWord } from "./Diagnosis";
 
 const RANK: Record<string, number> = { alarm: 0, early_match: 0, watch: 1, ok: 2, no_data: 3 };
 const FAULT: Record<string, string> = {
@@ -13,7 +14,8 @@ const FAULT: Record<string, string> = {
 
 /** One line, the way the mechanic would put it. */
 export function shortReason(m: Machine) {
-  const fault = m.known_fault ? (FAULT[m.known_fault] ?? m.known_fault) : null;
+  const fault =
+    m.fault_name?.en.toLowerCase() ?? (m.known_fault ? (FAULT[m.known_fault] ?? m.known_fault) : null);
   const pct = Math.round((m.risk3 ?? 0) * 100);
   switch (m.status) {
     case "alarm":
@@ -50,6 +52,7 @@ function Row({
   m,
   meta,
   open,
+  alert,
   on,
   hover,
   onPick,
@@ -58,6 +61,7 @@ function Row({
   m: Machine;
   meta: Meta;
   open: Message | undefined;
+  alert: Alert | undefined;
   on: boolean;
   hover: boolean;
   onPick: () => void;
@@ -79,7 +83,14 @@ function Row({
             <b>{m.name}</b> <span className="muted">{f?.name.split(" ")[0]}</span>
           </span>
           <span className="arow-why">{shortReason(m)}</span>
-          {open && <span className="arow-sms mono">SMS sent · waiting for owner</span>}
+          {alert ? (
+            <span className="arow-sms mono">
+              WhatsApp {alertWord(alert)}
+              {alert.choice ? ` · replied ${alert.reply}` : ""}
+            </span>
+          ) : (
+            open && <span className="arow-sms mono">owner message ready · no reply yet</span>
+          )}
         </span>
         <span className="arow-num mono">
           <span className={hot ? "accent" : ""}>{daysShort(m)}</span>
@@ -117,6 +128,7 @@ export function Attention({
       m={m}
       meta={meta}
       open={openFor(m.id)}
+      alert={state.alerts.find((a) => a.machine === m.id && a.kind === "alert")}
       on={m.id === selected}
       hover={m.id === hover}
       onPick={() => onPick(m.id)}

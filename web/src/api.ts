@@ -42,6 +42,8 @@ export interface Machine {
   status: Status;
   days_rising: number;
   known_fault: string | null;
+  /** the fault the diagnosis card names (CWRU classifier first, then the owner's word) */
+  fault_name?: { en: string; hi: string; mr: string } | null;
   registry: Registry | null;
   latest: Reading | null;
   history: { tick: number; ts: string; risk: number; match: boolean }[];
@@ -111,6 +113,63 @@ export interface Explanation {
   before: { tick: number; ts: string; clip: string } | null;
   owner_said: string | null;
   fault: string | null;
+}
+export interface Alert {
+  id: number;
+  created: number;
+  machine: string;
+  factory: string;
+  severity: string;
+  kind: string;
+  to_phone: string | null;
+  lang: string;
+  body: string;
+  status: string; // queued | sent | dry_run | no_contact | failed
+  channel: string | null;
+  reply: string | null;
+  choice: string | null;
+  last_reply: string | null;
+  escalated_alert: number | null;
+}
+export interface DemoState {
+  on: boolean;
+  phase: string;
+  machine?: string;
+  readings?: number;
+  at?: number;
+  alerted?: boolean;
+  classified?: { class: string; p: Record<string, number> };
+}
+type L3 = { en: string; hi: string; mr: string };
+export interface DiagnosisCard {
+  machine: string;
+  fault: string | null;
+  severity: { level: string; label: L3 };
+  disclaimer: L3;
+  unknown?: L3;
+  name?: L3;
+  what?: L3;
+  repairable?: { answer: boolean; why: string; not_when?: string };
+  fix?: {
+    part: L3;
+    technician: L3;
+    labour_hours: [number, number];
+    price_unit: string;
+    price_inr: [number, number] | null;
+    total_inr: [number, number] | null;
+    sources: string[];
+  };
+  misuse?: { en: string; source: string | null }[];
+  warranty?: { period: string | null; note?: string; source?: string; voided_by: { en: string }[] };
+  money?: {
+    fix_now_inr: [number, number];
+    wait_days: number;
+    p_fault_within_wait: number;
+    breakdown_inr: number;
+    expected_if_wait_inr: number;
+    basis: string;
+  };
+  named_by?: string | null;
 }
 export interface Leg {
   machine: string;
@@ -197,6 +256,9 @@ export interface State {
   events: LiveEvent[];
   replay: { on: boolean; phase: string; t: number | null; progress?: number };
   link: { up: boolean; pending: number };
+  alerts: Alert[];
+  whatsapp: { provider: string };
+  demo: DemoState;
 }
 export interface Factory {
   id: string;

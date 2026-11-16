@@ -21,6 +21,7 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
+FAKE_TO = "+91 90000 00000"  # never a real number; only ever used with the dry-run provider
 
 
 def wait_up(url: str, timeout: float = 60) -> None:
@@ -57,7 +58,9 @@ def main() -> None:
     from playwright.sync_api import sync_playwright
 
     base = f"http://127.0.0.1:{args.port}"
-    env = {**os.environ, "PYTHONUNBUFFERED": "1"}
+    # never send from a recording: drop any WhatsApp/Twilio keys so the provider is the dry run
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("WA_", "TWILIO_"))}
+    env.update(PYTHONUNBUFFERED="1", DHADKAN_DRY_RUN="1")
     srv = subprocess.Popen([sys.executable, "-m", "server.demo", "--port", str(args.port), "--no-replay", "--no-open"],
                            cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)  # fmt: skip
     frames: list[tuple[bytes, float]] = []
@@ -76,18 +79,29 @@ def main() -> None:
             shot()
             page.get_by_role("button", name="Demo mode", exact=True).click()
             page.wait_for_timeout(600)
+            # an obviously fake number: with no keys in .env the alert is built and shown as a dry run
+            page.locator(".demo input").fill(FAKE_TO)
             page.locator(".demo select").select_option("hi")
             shot()
             page.get_by_role("button", name=re.compile("Start Demo mode")).click()
             page.wait_for_timeout(1200)
             shot()
+            page.get_by_role("button", name="Close").click()  # back to Loom 1's panel (diagnosis card)
+            page.wait_for_timeout(400)
             row = page.locator('aside[aria-label="needs attention"] button', has_text="Loom 1")
-            (
-                row.filter(has_text="Shinde").first if row.filter(has_text="Shinde").count() else row.first
-            ).click()
+            if not page.locator(".diag").count() and row.count():
+                (
+                    row.filter(has_text="Shinde").first
+                    if row.filter(has_text="Shinde").count()
+                    else row.first
+                ).click()
+            scrolled = False
             while time.monotonic() - t0 < args.max_s:
                 shot()
                 st = page.evaluate("fetch('/api/state').then(r => r.json()).then(s => s.demo)")
+                if st.get("alerted") and not scrolled and page.locator(".diag").count():
+                    page.locator(".diag").first.scroll_into_view_if_needed()  # show the diagnosis card
+                    scrolled = True
                 if not st.get("on") and st.get("phase", "").startswith(
                     ("bearing failed", "error", "stopped")
                 ):

@@ -301,8 +301,10 @@ export default function Scene({ state, machines, meta, view, reduced, hover, onH
         {alerting.map((m) => (
           <Label key={`alert-${m.id}`} at={pos[m.id].clone().setY(pos[m.id].y + TOP[m.shape] + 0.55)} occlude>
             <div className="alert-tag">
-              {m.name} · {(m.known_fault ?? m.registry?.fault ?? "fault not named yet").replace("_", " ")} ·{" "}
-              {daysWords(m)}
+              {m.name} ·{" "}
+              {m.fault_name?.en ??
+                (m.known_fault ?? m.registry?.fault ?? "fault not named yet").replace("_", " ")}{" "}
+              · {daysWords(m)}
             </div>
           </Label>
         ))}
