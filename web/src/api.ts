@@ -279,7 +279,6 @@ export interface State {
 export interface Factory {
   id: string;
   name: string;
-  name_local?: string | null;
   area: string;
   area_local: string;
   xy_km: [number, number];

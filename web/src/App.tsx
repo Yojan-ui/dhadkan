@@ -3,7 +3,6 @@ import { MechanicScreen } from "./screens/Mechanic";
 import { MillScreen } from "./screens/Mill";
 import { CommandCentre } from "./cc/CommandCentre";
 import { OwnerScreen } from "./screens/Owner";
-import { TwinScreen } from "./iso/TwinScreen";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { get, post, store, useConnected, useLive, useMeta, type Machine, type PastReading } from "./api";
 import type { View } from "./scene/CameraRig";
@@ -38,10 +37,8 @@ export default function App() {
   }
   if (view === "mechanic") return <MechanicScreen factory={q.get("f")} />;
   if (view === "mill") return <MillScreen />;
-  // the Digital Twin is the main screen; the command centre is at ?view=cc, the earlier cluster screen at ?view=cluster
-  const phoneWidth = window.matchMedia("(max-width: 767px)").matches;
-  if (view === "cc" && !phoneWidth) return <CommandCentre />;
-  if (view !== "cluster" && !phoneWidth) return <TwinScreen />;
+  // the command centre is the default; the earlier cluster screen stays at ?view=cluster
+  if (view !== "cluster" && !window.matchMedia("(max-width: 767px)").matches) return <CommandCentre />;
   return (
     <LazyMotion features={domAnimation} strict>
       <Main />

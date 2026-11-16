@@ -816,3 +816,30 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.cc-msgs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.cc-msgs li {
+  margin: 6px 0;
+  padding: 6px 8px;
+  border-left: 2px solid #7f8fa9;
+  background: rgba(255, 255, 255, 0.03);
+}
+.cc-msgs li.m-out {
+  border-color: #2fd4a3;
+}
+.cc-msgs li.m-in {
+  border-color: #3fa9f5;
+}
+.cc-msgs li.k-tool {
+  opacity: 0.75;
+}
+.cc-msgs p {
+  margin: 2px 0 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

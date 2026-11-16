@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { get, post } from "../api";
 import { HEALTH_WORD, healthClass, ts, type CCState, type Detail } from "./data";
+import { Messages } from "./Messages";
 import { Recs } from "./panels";
 import { Lines, Panel } from "./ui";
 
@@ -153,6 +154,7 @@ export function MachineDetail({
             .join("; ") || "still learning"}
         </div>
       </Panel>
+      <Messages id={id} version={s.version} />
     </div>
   );
 }
