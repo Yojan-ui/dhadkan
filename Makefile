@@ -18,7 +18,7 @@ data:                        ## DCASE 2020 Task 2 (test split + training subset)
 	$(PY) -m data.real
 	$(PY) -m data.download
 
-demo-data:                   ## only the clips the dashboard replays; Demo mode's IMS bearing ships in edge/models
+demo-data:                   ## only the clips the dashboard replays (198 MB, ~6 min on a 0.6 MB/s link); Demo mode needs none
 	$(PY) -m data.real demo
 	$(PY) -m data.download
 
