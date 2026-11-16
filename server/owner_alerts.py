@@ -260,6 +260,10 @@ class OwnerAlerts:
         mid = a["machine"]
         if choice in ("book", "later") and a["message_id"]:
             self.live.reply(a["message_id"], "1" if choice == "book" else "2")
+            if choice == "book":  # the owner said yes: their mechanic gets the job (refused without approval)
+                from . import fix
+
+                fix.send_job(self, a)
         elif choice == "details":
             self.notifier.send(machine=mid, factory=a["factory"], severity=a["severity"], to=a["to_phone"],
                                lang=a["lang"], body=self.details(mid, a["lang"]), kind="details", parent=a["id"])  # fmt: skip

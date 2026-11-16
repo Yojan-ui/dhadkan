@@ -1197,6 +1197,15 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
         card = live.alerts.card(mid, lang)
         return {"card": card, "text": live.alerts.text(mid, lang) if card else None}
 
+    @app.get("/api/forecast/parts")
+    def parts_forecast(days: float = 14.0) -> dict[str, Any]:
+        """Cluster parts forecast for dealers: counts of machines whose days-to-fault range reaches `days`."""
+        from . import fix
+
+        rows = fix.parts_forecast(live, days)
+        return {"horizon_days": days, "rows": rows, "text": fix.forecast_text(rows, days),
+                "stock_note": "dealer stock is mock data (data/sim/parts_mock.json)"}  # fmt: skip
+
     @app.post("/api/alerts/reply")
     def alert_reply(body: AlertReplyIn) -> dict[str, Any]:
         """The same path a WhatsApp reply takes (for testing without a public webhook)."""
