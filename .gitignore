@@ -51,3 +51,4 @@ runs/
 
 # per-clip summaries for edge/compare.py
 data/cache/
+data/demo_run/

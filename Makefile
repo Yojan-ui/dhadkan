@@ -5,7 +5,7 @@ PYTHON  ?= $(shell command -v python3.12 2>/dev/null || command -v python3 2>/de
 PORT    ?= 8600
 WEB_SRC := $(shell find web/src web/index.html web/public -type f 2>/dev/null) web/package.json web/vite.config.ts
 
-.PHONY: setup data demo-data train results demo serve dev test lint fmt clean
+.PHONY: setup data demo-data train results demo serve dev test lint fmt clean compare rul mill mill-pack
 
 setup:                       ## venv, Python and web dependencies
 	@$(PYTHON) -c 'import sys; sys.exit(0 if sys.version_info[:2] >= (3, 12) else "Python 3.12+ needed: make setup PYTHON=/path/to/python3.12")'
@@ -48,6 +48,18 @@ dev: web/node_modules        ## backend on $(PORT) + Vite dev server with hot re
 	@trap 'kill 0' INT TERM; \
 	$(PY) -m server.demo --port $(PORT) --no-replay --no-open & \
 	cd web && npx vite --port 5173 --open
+
+compare:                     ## choose the per-machine detector on selection units, report on held-out units
+	$(PY) -m edge.compare
+
+rul:                         ## time to maintenance threshold, leave one NASA IMS bearing out
+	$(PY) -m edge.rul
+
+mill:                        ## the flour-mill story headless (owner auto-approves): docs/runs/flourmill_<UTC>.json
+	$(PY) -m server.flourmill --auto
+
+mill-pack:                   ## rebuild edge/models/flourmill_pack.npz from MIMII DUE gearbox recordings
+	$(PY) -m server.flourmill --pack
 
 test:
 	$(PY) -m pytest -q

@@ -156,7 +156,7 @@ def assess(
         urgency = "measure_again"  # check the reading before sending anyone
 
     evidence = [f"{above} of the last {len(recent)} readings at or above its alarm level (median {med:.2f} x)",
-                *explain_text(explanation)]  # fmt: skip
+                *(explain_text(explanation) if above else [])]  # fmt: skip
     if rul and rul.get("status") == "estimate":
         evidence.append(f"Rising trend: maintenance threshold in {rul['low']:.1f}-{rul['high']:.1f} days "
                         f"(10-90% range; {rul['meaning']})")  # fmt: skip

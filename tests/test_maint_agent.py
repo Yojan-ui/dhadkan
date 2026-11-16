@@ -292,3 +292,16 @@ def test_memory_recurrence_and_failed_technician_is_not_sent_again(env):
     res = {x["name"]: x["result"] for x in s.steps(case["id"])}
     assert res["recall"]["recurrence_after_repair"] and "may not have held" in res["recall"]["note"]
     assert res["find_technician"]["technician"] != "T1" and "T1" in res["find_technician"]["excluded"]
+
+
+def test_late_approval_moves_the_visit_to_a_day_that_has_not_passed(env):
+    a, s, tr, clock = env["agent"], env["store"], env["transport"], env["clock"]
+    case = a.observe("chakki-1", health("inspect"))
+    a.tick()
+    clock.t += 3 * 86400  # the owner answers three days later
+    a.decide(f"{case['id']}:booking", "approved", "owner", "whatsapp", "late")
+    a.tick()
+    a.tick()
+    booked = [x for x in tr.sent if x["kind"] == "book_job"]
+    assert len(booked) == 1 and booked[0]["day"] >= datetime.fromtimestamp(clock.t).date().isoformat()
+    assert any(e["event"] == "replanned_visit_day" for e in s.audit(case["id"]))

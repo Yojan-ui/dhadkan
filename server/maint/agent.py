@@ -65,6 +65,7 @@ PLAN_MONITOR = ["recall", "notify_watch", "await_change"]
 PLAN_FIX = ["recall", "find_technician", "check_parts", "estimate_cost", "request_approval", "await_approval",
             "book_job", "await_repair", "request_post_repair_readings", "verify_repair"]  # fmt: skip
 GATED = {"book_job": "booking", "order_part": "purchase"}
+PRIORITY = {"notify_owner_urgent"}
 
 
 class ApprovalRequired(PermissionError):
@@ -128,6 +129,8 @@ class MaintenanceAgent:
         ctx["history"] = [*ctx["history"], self._snap(health, reading_ref)][-20:]
         ctx["none_streak"] = ctx.get("none_streak", 0) + 1 if urgency == "none" else 0
         fields: dict[str, Any] = {"context": ctx}
+        if health.get("severity") and health["severity"] != "none":
+            fields["severity"] = health["severity"]
         in_fix = "book_job" in case["plan"]
         if RANK[urgency] > RANK[case["urgency"]]:
             fields["urgency"] = urgency
@@ -163,6 +166,7 @@ class MaintenanceAgent:
         c = self.s.case(cid)
         self._skip_open_steps(cid)
         self.s.update_case(cid, c["version"], state="closed", closed=self.clock(), outcome=outcome)
+        self.s.expire_requests(cid)  # questions about a closed case are no longer asked
         self.b.set_hold(c["machine"], False)
         self.s.log("agent", "case_closed", cid, outcome=outcome, **detail)
         return self.s.case(cid)
@@ -248,7 +252,11 @@ class MaintenanceAgent:
             c = self.s.case(cid)
             if c["closed"]:
                 break
-            step = next((s for s in self.s.steps(cid) if s["status"] not in ("done", "skipped")), None)
+            open_steps = [s for s in self.s.steps(cid) if s["status"] not in ("done", "skipped")]
+            # telling the owner about an urgent change never waits behind another step
+            step = next(
+                (s for s in open_steps if s["name"] in PRIORITY), open_steps[0] if open_steps else None
+            )
             if step is None:
                 break
             if step["next_try"] > self.clock():
@@ -428,6 +436,12 @@ class MaintenanceAgent:
 
     def _step_book_job(self, c: dict[str, Any], st: dict[str, Any]) -> dict[str, Any]:
         ctx = c["context"]
+        today = datetime.fromtimestamp(self.clock()).date().isoformat()
+        if ctx["visit_day"] < today:  # the owner answered after the planned day: find a new day first
+            find = next(s for s in self.s.steps(c["id"]) if s["name"] == "find_technician")
+            self.s.set_step(c["id"], find["idx"], status="pending")
+            self.s.log("agent", "replanned_visit_day", c["id"], was=ctx["visit_day"], today=today)
+            raise Waiting(f"planned day {ctx['visit_day']} has passed; finding a new day")
         payload = {"technician": ctx["technician"], "machine": c["machine"], "day": ctx["visit_day"],
                    "work": "inspection" if not ctx.get("fault") else ctx["fault"]}  # fmt: skip
         try:

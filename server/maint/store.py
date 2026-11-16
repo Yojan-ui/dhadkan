@@ -253,6 +253,11 @@ class Store:
         self.db.commit()
         return {"applied": False, "status": "conflict", "was": a["status"]}
 
+    def expire_requests(self, case_id: str) -> None:
+        self.db.execute("UPDATE approvals SET status='expired', note='case closed' WHERE case_id=? AND status='requested'",
+                        (case_id,))  # fmt: skip
+        self.db.commit()
+
     def reset_conflict(self, approval_id: str) -> None:
         self.db.execute("UPDATE approvals SET status='requested', decided=NULL, decided_by=NULL, channel=NULL,"
                         " ref=NULL WHERE id=? AND status='conflict'", (approval_id,))  # fmt: skip

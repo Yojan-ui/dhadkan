@@ -1,0 +1,1052 @@
+{
+ "run_id": "20261116T130714Z",
+ "provenance": {
+  "readings": "RECORDED: MIMII DUE (DCASE 2021 Task 2 dev), gearbox/section_01",
+  "people_and_stock": "DEMO DATA (invented mill, owner, technicians; MOCK dealer stock)",
+  "simulated": "clock (3 h per reading), network cut, technician visit, post-repair readings (the unit's own held-out normal recordings; no real repair happened)"
+ },
+ "timeline": [
+  {
+   "i": 0,
+   "ts": "2026-11-16T06:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0000_0_g_10_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 1,
+   "ts": "2026-11-16T09:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0001_200_g_20_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 2,
+   "ts": "2026-11-16T12:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0002_50_g_10_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 3,
+   "ts": "2026-11-16T15:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0003_120_g_20_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 4,
+   "ts": "2026-11-16T18:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0004_200_g_20_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 5,
+   "ts": "2026-11-16T21:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0005_50_g_10_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 6,
+   "ts": "2026-11-17T00:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0006_100_g_10_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 7,
+   "ts": "2026-11-17T03:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0007_200_g_20_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 8,
+   "ts": "2026-11-17T06:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0008_200_g_20_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 9,
+   "ts": "2026-11-17T09:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0009_100_g_20_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 10,
+   "ts": "2026-11-17T12:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0010_0_g_20_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 11,
+   "ts": "2026-11-17T15:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0011_120_g_20_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 12,
+   "ts": "2026-11-17T18:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0012_0_g_10_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 13,
+   "ts": "2026-11-17T21:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0013_50_g_10_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 14,
+   "ts": "2026-11-18T00:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0014_50_g_20_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 15,
+   "ts": "2026-11-18T03:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0015_50_g_20_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 16,
+   "ts": "2026-11-18T06:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0016_200_g_20_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 17,
+   "ts": "2026-11-18T09:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0017_120_g_10_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 18,
+   "ts": "2026-11-18T12:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0018_100_g_10_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 19,
+   "ts": "2026-11-18T15:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0019_0_g_10_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 20,
+   "ts": "2026-11-18T18:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0020_0_g_10_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 21,
+   "ts": "2026-11-18T21:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0021_120_g_20_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 22,
+   "ts": "2026-11-19T00:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0022_200_g_10_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 23,
+   "ts": "2026-11-19T03:00",
+   "phase": "learning",
+   "clip": "section_01_source_train_normal_0023_120_g_10_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "learning",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 24,
+   "ts": "2026-11-19T06:00",
+   "phase": "normal",
+   "clip": "section_01_source_train_normal_0024_0_g_10_mm_2000_mV_none.wav",
+   "risk": null,
+   "state": "monitoring",
+   "clean": true,
+   "status": "learning",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 25,
+   "ts": "2026-11-19T09:00",
+   "phase": "normal",
+   "clip": "section_01_source_train_normal_0025_50_g_20_mm_2000_mV_none.wav",
+   "risk": 0.8066301688793112,
+   "state": "monitoring",
+   "clean": false,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 26,
+   "ts": "2026-11-19T12:00",
+   "phase": "normal",
+   "clip": "section_01_source_train_normal_0026_100_g_10_mm_2000_mV_none.wav",
+   "risk": -0.9463359683085592,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 27,
+   "ts": "2026-11-19T15:00",
+   "phase": "normal",
+   "clip": "section_01_source_train_normal_0027_0_g_10_mm_2000_mV_none.wav",
+   "risk": 0.4567191155700949,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 28,
+   "ts": "2026-11-19T18:00",
+   "phase": "normal",
+   "clip": "section_01_source_train_normal_0028_150_g_20_mm_2000_mV_none.wav",
+   "risk": 0.12704359575791388,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 29,
+   "ts": "2026-11-19T21:00",
+   "phase": "normal",
+   "clip": "section_01_source_train_normal_0029_150_g_20_mm_2000_mV_none.wav",
+   "risk": 0.011195160442082557,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 30,
+   "ts": "2026-11-20T00:00",
+   "phase": "normal",
+   "clip": "section_01_source_train_normal_0030_0_g_20_mm_2000_mV_none.wav",
+   "risk": -0.5857490508944823,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 31,
+   "ts": "2026-11-20T03:00",
+   "phase": "normal",
+   "clip": "section_01_source_train_normal_0031_0_g_20_mm_2000_mV_none.wav",
+   "risk": -0.6112087249879111,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 32,
+   "ts": "2026-11-20T06:00",
+   "phase": "normal",
+   "clip": "section_01_source_train_normal_0032_120_g_20_mm_2000_mV_none.wav",
+   "risk": -0.5559660381607759,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 33,
+   "ts": "2026-11-20T09:00",
+   "phase": "normal",
+   "clip": "section_01_source_train_normal_0033_120_g_10_mm_2000_mV_none.wav",
+   "risk": -0.7068464190316792,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 34,
+   "ts": "2026-11-20T12:00",
+   "phase": "normal",
+   "clip": "section_01_source_train_normal_0034_120_g_10_mm_2000_mV_none.wav",
+   "risk": -0.43194175045904476,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 35,
+   "ts": "2026-11-20T15:00",
+   "phase": "normal",
+   "clip": "section_01_source_train_normal_0035_200_g_20_mm_2000_mV_none.wav",
+   "risk": -0.02282489666302242,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 36,
+   "ts": "2026-11-20T18:00",
+   "phase": "fault",
+   "clip": "section_01_source_test_anomaly_0000.wav",
+   "risk": 0.7016740378728324,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 37,
+   "ts": "2026-11-20T21:00",
+   "phase": "fault",
+   "clip": "section_01_source_test_anomaly_0001.wav",
+   "risk": 0.31166068297306176,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 38,
+   "ts": "2026-11-21T00:00",
+   "phase": "fault",
+   "clip": "section_01_source_test_anomaly_0002.wav",
+   "risk": 0.0695326782832459,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": false,
+   "events_waiting": 1
+  },
+  {
+   "i": 39,
+   "ts": "2026-11-21T03:00",
+   "phase": "fault",
+   "clip": "section_01_source_test_anomaly_0003.wav",
+   "risk": 0.4770241965467514,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": false,
+   "events_waiting": 1
+  },
+  {
+   "i": 40,
+   "ts": "2026-11-21T06:00",
+   "phase": "fault",
+   "clip": "section_01_source_test_anomaly_0004.wav",
+   "risk": 1.4706264279780412,
+   "state": "monitoring",
+   "clean": false,
+   "status": "watch",
+   "urgency": "measure_again",
+   "online": false,
+   "events_waiting": 5
+  },
+  {
+   "i": 41,
+   "ts": "2026-11-21T09:00",
+   "phase": "fault",
+   "clip": "section_01_source_test_anomaly_0005.wav",
+   "risk": 2.752259679279832,
+   "state": "monitoring",
+   "clean": false,
+   "status": "repair_soon",
+   "urgency": "maintenance",
+   "online": false,
+   "events_waiting": 13
+  },
+  {
+   "i": 42,
+   "ts": "2026-11-21T12:00",
+   "phase": "fault",
+   "clip": "section_01_source_test_anomaly_0006.wav",
+   "risk": 3.153423290601221,
+   "state": "monitoring",
+   "clean": false,
+   "status": "repair_soon",
+   "urgency": "maintenance",
+   "online": false,
+   "events_waiting": 15
+  },
+  {
+   "i": 43,
+   "ts": "2026-11-21T15:00",
+   "phase": "fault",
+   "clip": "section_01_source_test_anomaly_0007.wav",
+   "risk": 3.5907847583726245,
+   "state": "monitoring",
+   "clean": false,
+   "status": "repair_soon",
+   "urgency": "maintenance",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 44,
+   "ts": "2026-11-21T18:00",
+   "phase": "fault",
+   "clip": "section_01_source_test_anomaly_0008.wav",
+   "risk": 2.861625390500129,
+   "state": "monitoring",
+   "clean": false,
+   "status": "repair_soon",
+   "urgency": "maintenance",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 45,
+   "ts": "2026-11-21T21:00",
+   "phase": "fault",
+   "clip": "section_01_source_test_anomaly_0009.wav",
+   "risk": 10.27610667775432,
+   "state": "monitoring",
+   "clean": false,
+   "status": "urgent",
+   "urgency": "urgent_owner_attention",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 46,
+   "ts": "2026-11-22T00:00",
+   "phase": "after_repair",
+   "clip": "section_01_source_test_normal_0000.wav",
+   "risk": -0.5809245879922973,
+   "state": "monitoring",
+   "clean": false,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 47,
+   "ts": "2026-11-22T03:00",
+   "phase": "after_repair",
+   "clip": "section_01_source_test_normal_0001.wav",
+   "risk": 0.16083872496631574,
+   "state": "monitoring",
+   "clean": false,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 48,
+   "ts": "2026-11-22T06:00",
+   "phase": "after_repair",
+   "clip": "section_01_source_test_normal_0002.wav",
+   "risk": -0.8069212937095074,
+   "state": "monitoring",
+   "clean": false,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 49,
+   "ts": "2026-11-22T09:00",
+   "phase": "after_repair",
+   "clip": "section_01_source_test_normal_0003.wav",
+   "risk": -0.6039353795498205,
+   "state": "monitoring",
+   "clean": false,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 50,
+   "ts": "2026-11-22T12:00",
+   "phase": "after_repair",
+   "clip": "section_01_source_test_normal_0004.wav",
+   "risk": -0.8581750257355915,
+   "state": "monitoring",
+   "clean": false,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 51,
+   "ts": "2026-11-22T15:00",
+   "phase": "after_repair",
+   "clip": "section_01_source_test_normal_0005.wav",
+   "risk": -0.35699252803792786,
+   "state": "monitoring",
+   "clean": false,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 52,
+   "ts": "2026-11-22T18:00",
+   "phase": "after_repair",
+   "clip": "section_01_source_test_normal_0006.wav",
+   "risk": 0.09604883028219056,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  },
+  {
+   "i": 53,
+   "ts": "2026-11-22T21:00",
+   "phase": "after_repair",
+   "clip": "section_01_source_test_normal_0007.wav",
+   "risk": -0.326289429669835,
+   "state": "monitoring",
+   "clean": true,
+   "status": "normal",
+   "urgency": "none",
+   "online": true,
+   "events_waiting": 0
+  }
+ ],
+ "case": {
+  "id": "chakki-1#1",
+  "state": "closed",
+  "urgency": "urgent_owner_attention",
+  "severity": "marked",
+  "outcome": "repair_fixed",
+  "opened": 1795221000.0,
+  "closed": 1795339800.0
+ },
+ "steps": [
+  {
+   "idx": 0,
+   "name": "recall",
+   "status": "done",
+   "attempts": 0,
+   "error": null,
+   "result": {
+    "earlier_cases": 0,
+    "earlier_outcomes": [],
+    "repairs": 0,
+    "technicians": {},
+    "recurrence_after_repair": false,
+    "baseline_versions": 1,
+    "baseline_v1_learned_from": 25
+   }
+  },
+  {
+   "idx": 1,
+   "name": "request_measurement",
+   "status": "skipped",
+   "attempts": 0,
+   "error": "superseded by a new plan",
+   "result": null
+  },
+  {
+   "idx": 2,
+   "name": "await_change",
+   "status": "skipped",
+   "attempts": 0,
+   "error": "superseded by a new plan",
+   "result": null
+  },
+  {
+   "idx": 3,
+   "name": "find_technician",
+   "status": "done",
+   "attempts": 0,
+   "error": null,
+   "result": {
+    "technician": "T1",
+    "name": "Ramesh (own mechanic)",
+    "day": "2026-11-21",
+    "why": "nearest who works that day",
+    "excluded": [],
+    "source": "DEMO DATA: invented technicians for the demonstration. Not real people, not real availability."
+   }
+  },
+  {
+   "idx": 4,
+   "name": "check_parts",
+   "status": "done",
+   "attempts": 0,
+   "error": null,
+   "result": {
+    "candidates": [
+     {
+      "fault": "bearing_wear",
+      "stock": [
+       {
+        "fault": "bearing",
+        "type": "gearbox",
+        "part": "Taper roller bearing 30206",
+        "dealer": "Chakan Industrial Stores (mock)",
+        "in_stock": false,
+        "lead_days": 3,
+        "source": "MOCK dealer stock (demo)"
+       }
+      ],
+      "order_needed": true
+     },
+     {
+      "fault": "misalignment",
+      "stock": "none listed",
+      "order_needed": false
+     },
+     {
+      "fault": "belt_slip",
+      "stock": "none listed",
+      "order_needed": false
+     }
+    ],
+    "note": "the inspection decides which part, if any, is needed"
+   }
+  },
+  {
+   "idx": 5,
+   "name": "estimate_cost",
+   "status": "done",
+   "attempts": 0,
+   "error": null,
+   "result": {
+    "inspection": {
+     "low_inr": 250,
+     "high_inr": 500,
+     "basis": "1-2 h at the assumed technician rate"
+    },
+    "if_found": [
+     {
+      "fault": "bearing_wear",
+      "low_inr": 315,
+      "high_inr": 680,
+      "part": "ball bearing 6205 (same number as the old one)",
+      "price_source": "https://www.moglix.com/bm3-25x52x15mm-chrome-steel-v2-quality-deep-groove-ball-bearing-6205-zz-pack-of-5/mp/msnrkrevpre89n",
+      "price_note": "Typical prices and warranty, confirm with dealer.",
+      "labour_rate_note": "technician rate is an assumption (data/sim/costs.json)"
+     },
+     {
+      "fault": "misalignment",
+      "low_inr": 13750,
+      "high_inr": 20750,
+      "part": "laser shaft alignment (and coupling rubber if worn)",
+      "price_source": "https://m.indiamart.com/vlengineering-chennai/laser-alignment-services.html",
+      "price_note": "Typical prices and warranty, confirm with dealer.",
+      "labour_rate_note": "technician rate is an assumption (data/sim/costs.json)"
+     },
+     {
+      "fault": "belt_slip",
+      "low_inr": 225,
+      "high_inr": 1050,
+      "part": "V-belt (same section and length)",
+      "price_source": "https://m.indiamart.com/impcat/v-belts.html",
+      "price_note": "Typical prices and warranty, confirm with dealer.",
+      "labour_rate_note": "technician rate is an assumption (data/sim/costs.json)"
+     }
+    ]
+   }
+  },
+  {
+   "idx": 6,
+   "name": "request_approval",
+   "status": "done",
+   "attempts": 0,
+   "error": null,
+   "result": {
+    "approval": "chakki-1#1:booking",
+    "summary": "Book Ramesh (own mechanic) on 2026-11-21 to inspect Chakki 1: about Rs 250-500 for the visit. If a part is needed: bearing wear Rs 315-680; misalignment Rs 13750-20750; belt slip Rs 225-1050 (typical, confirm with dealer)."
+   }
+  },
+  {
+   "idx": 7,
+   "name": "await_approval",
+   "status": "done",
+   "attempts": 0,
+   "error": null,
+   "result": {
+    "approved_by": "owner",
+    "channel": "auto-owner (headless demo)",
+    "ref": "auto-owner (headless demo)@41"
+   }
+  },
+  {
+   "idx": 8,
+   "name": "book_job",
+   "status": "done",
+   "attempts": 0,
+   "error": null,
+   "result": {
+    "job": {
+     "id": "book_job:chakki-1#1",
+     "dry_run": true
+    },
+    "technician": "T1",
+    "machine": "chakki-1",
+    "day": "2026-11-21",
+    "work": "inspection"
+   }
+  },
+  {
+   "idx": 9,
+   "name": "await_repair",
+   "status": "done",
+   "attempts": 0,
+   "error": null,
+   "result": {
+    "technician": "T1",
+    "work": "inspection; bearing replaced (simulated visit)",
+    "at": 1795285800.0
+   }
+  },
+  {
+   "idx": 10,
+   "name": "request_post_repair_readings",
+   "status": "done",
+   "attempts": 0,
+   "error": null,
+   "result": {
+    "asked": "post-repair readings"
+   }
+  },
+  {
+   "idx": 11,
+   "name": "verify_repair",
+   "status": "done",
+   "attempts": 0,
+   "error": null,
+   "result": {
+    "outcome": "fixed",
+    "before_median_risk": 3.008,
+    "after_median_risk": -0.592,
+    "after_readings": 6,
+    "words": {
+     "en": "Fixed",
+     "hi": "\u0920\u0940\u0915 \u0939\u094b \u0917\u092f\u093e",
+     "hi_latn": "Theek ho gaya",
+     "mr": "\u0926\u0941\u0930\u0941\u0938\u094d\u0924 \u091d\u093e\u0932\u0947",
+     "gu": "\u0aa0\u0ac0\u0a95 \u0aa5\u0a88 \u0a97\u0aaf\u0ac1\u0a82"
+    },
+    "rule": "fixed if after < 0.8; partly if it fell by >= 50% of the excess"
+   }
+  },
+  {
+   "idx": 12,
+   "name": "notify_owner_urgent",
+   "status": "done",
+   "attempts": 0,
+   "error": null,
+   "result": {
+    "asked_owner": "production decision (owner only; the agent cannot stop a machine)",
+    "approval": "chakki-1#1:production_stop"
+   }
+  }
+ ],
+ "approvals": [
+  {
+   "id": "chakki-1#1:booking",
+   "case_id": "chakki-1#1",
+   "kind": "booking",
+   "summary": "Book Ramesh (own mechanic) on 2026-11-21 to inspect Chakki 1: about Rs 250-500 for the visit. If a part is needed: bearing wear Rs 315-680; misalignment Rs 13750-20750; belt slip Rs 225-1050 (typical, confirm with dealer).",
+   "amount_low": 250,
+   "amount_high": 500,
+   "status": "approved",
+   "requested": 1795231800.0,
+   "decided": 1795231800.0,
+   "decided_by": "owner",
+   "channel": "auto-owner (headless demo)",
+   "ref": "auto-owner (headless demo)@41",
+   "note": null
+  },
+  {
+   "id": "chakki-1#1:production_stop",
+   "case_id": "chakki-1#1",
+   "kind": "production_stop",
+   "summary": "Chakki 1 changed a lot and keeps rising. Stopping it is your decision.",
+   "amount_low": null,
+   "amount_high": null,
+   "status": "expired",
+   "requested": 1795275000.0,
+   "decided": null,
+   "decided_by": null,
+   "channel": null,
+   "ref": null,
+   "note": "case closed"
+  }
+ ],
+ "repairs": [
+  {
+   "id": 1,
+   "machine": "chakki-1",
+   "case_id": "chakki-1#1",
+   "technician": "T1",
+   "work": "inspection; bearing replaced (simulated visit)",
+   "done": 1795285800.0,
+   "outcome": "fixed",
+   "before_median": 3.008,
+   "after_median": -0.592,
+   "against_version": 1
+  }
+ ],
+ "audit_ok": true,
+ "sync": {
+  "online": true,
+  "last_sync": "1795404600.0",
+  "last_error": "",
+  "events_waiting": 0,
+  "actions_waiting": 0,
+  "network": "online",
+  "cloud_events": 38
+ },
+ "messages": [
+  {
+   "kind": "notify",
+   "to": "owner",
+   "text": "Chakki 1 sounded different once. Please record it again for 60 s; nothing to do yet.",
+   "technician": null,
+   "day": null
+  },
+  {
+   "kind": "notify",
+   "to": "owner",
+   "text": "Book Ramesh (own mechanic) on 2026-11-21 to inspect Chakki 1: about Rs 250-500 for the visit. If a part is needed: bearing wear Rs 315-680; misalignment Rs 13750-20750; belt slip Rs 225-1050 (typical, confirm with dealer). Reply 1 to book, 2 for later.",
+   "technician": null,
+   "day": null
+  },
+  {
+   "kind": "book_job",
+   "to": null,
+   "text": null,
+   "technician": "T1",
+   "day": "2026-11-21"
+  },
+  {
+   "kind": "notify",
+   "to": "owner",
+   "text": "Booked Ramesh (own mechanic) for Chakki 1 on 2026-11-21.",
+   "technician": null,
+   "day": null
+  },
+  {
+   "kind": "notify",
+   "to": "owner",
+   "text": "Chakki 1 needs attention today: its sound changed a lot and keeps rising. Whether to stop it is your decision. Reply STOP-NOTED if you stop it.",
+   "technician": null,
+   "day": null
+  },
+  {
+   "kind": "notify",
+   "to": "owner",
+   "text": "Chakki 1 was repaired. Please record it for 60 s with the phone in the same place as always.",
+   "technician": null,
+   "day": null
+  },
+  {
+   "kind": "notify",
+   "to": "owner",
+   "text": "Chakki 1 after the repair: back to its original normal.",
+   "technician": null,
+   "day": null
+  }
+ ],
+ "owner": "auto-approved (headless run)"
+}
