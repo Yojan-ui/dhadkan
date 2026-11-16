@@ -159,6 +159,9 @@ class Live:
         """Per-slice view of the latest reading. `scored` reuses sim.step's results."""
         tick = self.c.tick_no()
         for mid, m in self.c.machines.items():
+            if self.c.operating(mid) != ("running", "ok") or not self.c.history(mid, 1):
+                self.cache.pop(mid, None)  # nothing live: never stream an old reading as if it were now
+                continue
             if scored and mid in scored:
                 audio, r = scored[mid]
             else:
@@ -302,6 +305,8 @@ class Live:
                             for h in hist
                         ],
                         "band_z": self.cache.get(mid, {}).get("band_z"),
+                        "operating": self._operating(mid, last),
+                        "maintenance": self._maintenance(mid),
                     }
                 )
             calls = [
@@ -558,6 +563,53 @@ class Live:
                 "generated": time.strftime("%Y-%m-%d %H:%M"),
                 "source": "node.db (readings, messages), registry.db, data/sim/costs.json",
             }
+
+    def _operating(self, mid: str, last: dict[str, Any] | None) -> dict[str, Any]:
+        """Running and sensor state for the twin. `running` is None when nothing is known (sensor lost)."""
+        run, sensor = self.c.operating(mid)
+        now = self.c.tick_no()
+        since = None if last is None else now - last["tick"]
+        if sensor == "lost":
+            sensor_status, running = "lost", None
+        elif last is None:
+            sensor_status, running = "none", None
+        else:
+            sensor_status, running = ("live" if since == 0 else "stale"), run == "running"
+        if run == "stopped" and sensor == "ok":
+            running = False
+        return {"running": running, "run": run, "sensor": sensor_status,
+                "last_ts": last["ts"] if last else None, "ticks_since": since,
+                "simulated": run != "running" or sensor != "ok"}  # fmt: skip
+
+    def _maintenance(self, mid: str) -> dict[str, Any]:
+        """Booked jobs and verified repairs for this machine (from the alert log and signed records)."""
+        from . import prove
+
+        jobs = [a for a in self.alerts.notifier.recent(50) if a["machine"] == mid and a["kind"] == "job"]
+        try:
+            recs = prove.records(self, mid)
+        except Exception:
+            recs = []
+        last = recs[-1]["record"] if recs else None
+        return {"job_booked": bool(jobs), "job_status": jobs[0]["status"] if jobs else None,
+                "last_repair": last and {"at": last.get("repaired_at"),
+                                         "outcome": (last.get("verification") or {}).get("outcome")}}  # fmt: skip
+
+    def set_operating(self, mid: str, run: str | None, sensor: str | None) -> dict[str, Any]:
+        if mid not in self.c.machines:
+            raise HTTPException(404, "unknown machine")
+        with self.lock:
+            try:
+                r, sn = self.c.set_operating(mid, run, sensor)
+            except ValueError as e:
+                raise HTTPException(422, str(e)) from e
+            if (r, sn) != ("running", "ok"):
+                self.cache.pop(mid, None)
+            self.event(
+                "operating", machine=mid, run=r, sensor=sn, simulated=True
+            )  # the change itself was simulated
+            self.version += 1
+            return {"machine": mid, "run": r, "sensor": sn, "simulated": (r, sn) != ("running", "ok")}
 
     def meta(self) -> dict[str, Any]:
         cfg = self.c.cfg
@@ -1004,6 +1056,12 @@ class AlertReplyIn(BaseModel):
     text: str
 
 
+class OperatingIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    run: str | None = None
+    sensor: str | None = None
+
+
 class LinkIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     up: bool
@@ -1067,6 +1125,11 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
     def publish() -> dict[str, Any]:
         busy()
         return live.publish()
+
+    @app.post("/api/machine/{mid}/operating")
+    def operating(mid: str, body: OperatingIn) -> dict[str, Any]:
+        """SIMULATED: stop/start a machine or drop/restore its sensor (demo controls, labelled on screen)."""
+        return live.set_operating(mid, body.run, body.sensor)
 
     @app.post("/api/link")
     def link(body: LinkIn) -> dict[str, Any]:

@@ -52,10 +52,12 @@ export interface Part {
 /** A pulley, disc or wheel that turns. `ratio` = its speed relative to the motor's. */
 export interface Spinner {
   p: [number, number, number];
-  axis: "x" | "z";
+  axis: "x" | "y" | "z";
   radius: number;
   width: number;
   ratio: number;
+  /** fan or impeller: a small hub and this many blades (a pulley has one spoke and a full disc) */
+  blades?: number;
 }
 /** A belt between two spinners of the same shape (indices into its spinner list). */
 export type Belt = [number, number];
@@ -96,7 +98,11 @@ export const SHAPES: Record<Shape, { parts: Part[]; spin: Spinner[]; belts: Belt
       { g: "cyl", p: [0.36, 1.05, 0], s: [0.25, 0.04, 0.25], c: "iron" },
       { g: "cyl", p: [0.36, 0.9, 0.09], s: [0.09, 0.03, 0.09], r: [H, 0, 0], c: "cream" }, // gauge
     ],
-    spin: [{ p: [0.06, 0.36, 0], axis: "x", radius: 0.13, width: 0.06, ratio: 1 }], // coupling
+    spin: [
+      { p: [0.06, 0.36, 0], axis: "x", radius: 0.13, width: 0.06, ratio: 1 }, // coupling
+      { p: [-0.755, 0.36, 0], axis: "x", radius: 0.17, width: 0.02, ratio: 1, blades: 7 }, // motor cooling fan
+      { p: [0.36, 0.38, 0.16], axis: "z", radius: 0.2, width: 0.025, ratio: 1, blades: 5 }, // impeller (shown)
+    ],
     belts: [],
   },
   motor: {
@@ -118,6 +124,8 @@ export const SHAPES: Record<Shape, { parts: Part[]; spin: Spinner[]; belts: Belt
     spin: [
       { p: [-0.38, 0.32, 0.34], axis: "z", radius: 0.09, width: 0.07, ratio: 1 },
       { p: [0.3, 0.7, 0.34], axis: "z", radius: 0.18, width: 0.07, ratio: 0.09 / 0.18 },
+      { p: [0.3, 0.7, -0.255], axis: "z", radius: 0.16, width: 0.02, ratio: 0.09 / 0.18, blades: 8 }, // blower wheel
+      { p: [-0.38, 0.32, -0.315], axis: "z", radius: 0.17, width: 0.02, ratio: 1, blades: 7 }, // motor fan
     ],
     belts: [[0, 1]],
   },
@@ -142,6 +150,7 @@ export const SHAPES: Record<Shape, { parts: Part[]; spin: Spinner[]; belts: Belt
       { p: [-0.79, 0.2, 0.36], axis: "x", radius: 0.07, width: 0.06, ratio: 1 },
       { p: [-0.79, 0.36, 0.06], axis: "x", radius: 0.22, width: 0.06, ratio: 0.07 / 0.22 }, // flywheel
       { p: [0.74, 0.36, 0.06], axis: "x", radius: 0.14, width: 0.04, ratio: 0.07 / 0.22 }, // gear wheel
+      { p: [-1.2, 0.2, 0.36], axis: "x", radius: 0.12, width: 0.02, ratio: 1, blades: 6 }, // motor fan
     ],
     belts: [[0, 1]],
   },
@@ -160,6 +169,8 @@ export const SHAPES: Record<Shape, { parts: Part[]; spin: Spinner[]; belts: Belt
     spin: [
       { p: [0.46, 0.2, -0.05], axis: "x", radius: 0.07, width: 0.07, ratio: 1 },
       { p: [0.44, 0.44, 0.02], axis: "x", radius: 0.2, width: 0.07, ratio: 0.07 / 0.2 },
+      { p: [1.04, 0.2, -0.05], axis: "x", radius: 0.13, width: 0.02, ratio: 1, blades: 6 }, // motor fan
+      { p: [0, 0.86, 0], axis: "y", radius: 0.27, width: 0.025, ratio: 0.07 / 0.2, blades: 3 }, // stone feeder arms
     ],
     belts: [[0, 1]],
   },
@@ -190,20 +201,44 @@ export function partMatrix(
 
 const ALIGN = {
   x: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -H),
+  y: new THREE.Quaternion(),
   z: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), H),
 };
-const AXIS = { x: new THREE.Vector3(1, 0, 0), z: new THREE.Vector3(0, 0, 1) };
-/** Matrices for a spinner's disc and its spoke at rotation `angle`. */
-export function spinMatrices(base: THREE.Vector3, s: Spinner, angle: number, offset: THREE.Vector3) {
-  const q = new THREE.Quaternion().setFromAxisAngle(AXIS[s.axis], angle).multiply(ALIGN[s.axis]);
-  const at = new THREE.Vector3(
-    base.x + s.p[0] + offset.x,
-    base.y + s.p[1] + offset.y,
-    base.z + s.p[2] + offset.z,
-  );
-  const disc = new THREE.Matrix4().compose(at, q, new THREE.Vector3(s.radius * 2, s.width, s.radius * 2));
-  const spoke = new THREE.Matrix4().compose(at, q, new THREE.Vector3(s.radius * 1.9, s.width + 0.012, 0.035));
-  return [disc, spoke];
+const AXIS = { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) };
+const _sq = new THREE.Quaternion();
+const _at = new THREE.Vector3();
+const _sc = new THREE.Vector3();
+/** A spinner's disc (or a fan's small hub) at rotation `angle`. */
+export function discMatrix(
+  base: THREE.Vector3,
+  s: Spinner,
+  angle: number,
+  offset: THREE.Vector3,
+  out: THREE.Matrix4,
+) {
+  _sq.setFromAxisAngle(AXIS[s.axis], angle).multiply(ALIGN[s.axis]);
+  _at.set(base.x + s.p[0] + offset.x, base.y + s.p[1] + offset.y, base.z + s.p[2] + offset.z);
+  const d = s.blades ? s.radius * 0.55 : s.radius * 2;
+  return out.compose(_at, _sq, _sc.set(d, s.width * (s.blades ? 2.2 : 1), d));
+}
+/** Blade (or the pulley's single spoke) number k at rotation `angle`. Blades are pitched like a fan's. */
+export function bladeMatrix(
+  base: THREE.Vector3,
+  s: Spinner,
+  angle: number,
+  k: number,
+  offset: THREE.Vector3,
+  out: THREE.Matrix4,
+) {
+  const n = s.blades ?? 1;
+  _sq.setFromAxisAngle(AXIS[s.axis], angle + (k * 2 * Math.PI) / n).multiply(ALIGN[s.axis]);
+  _at.set(base.x + s.p[0] + offset.x, base.y + s.p[1] + offset.y, base.z + s.p[2] + offset.z);
+  if (!s.blades) return out.compose(_at, _sq, _sc.set(s.radius * 1.9, s.width + 0.012, 0.035));
+  // one blade from the hub outwards: shift half its length along the blade, pitch it 25 degrees
+  const pitch = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.45);
+  const q = _sq.clone().multiply(pitch);
+  const along = new THREE.Vector3(s.radius * 0.5, 0, 0).applyQuaternion(_sq);
+  return out.compose(_at.add(along), q, _sc.set(s.radius * 0.9, s.width, s.radius * 0.42));
 }
 
 /** The two straight runs of a belt between spinners a and b (unit-box matrices) and its length. */

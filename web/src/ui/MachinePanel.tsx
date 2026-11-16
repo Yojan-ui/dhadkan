@@ -2,8 +2,8 @@
 // the 14-day trend, the countdown, and the numbers behind them.
 import { useEffect, useState } from "react";
 import type { Alert, Explanation, Factory, History, Machine, Message, Meta, Route } from "../api";
-import { store, useFrame } from "../api";
-import { fmtClock, mechanicLine, pct, SHAPE_WORD, sourceWord, STATUS_WORD } from "../theme";
+import { post, store, useFrame } from "../api";
+import { fmtClock, mechanicLine, pct, SHAPE_WORD, sourceWord, STATUS_WORD, twinWords } from "../theme";
 import { ApprovalCard } from "./ApprovalBar";
 import { DiagnosisBlock } from "./Diagnosis";
 import { HealthRing, Spectro2D } from "./bits";
@@ -87,6 +87,8 @@ export function MachinePanel({
           ✕
         </button>
       </header>
+
+      {!past && <OperatingBlock m={m} />}
 
       {!past && <ApprovalCard machine={m} messages={messages} factories={meta.factories} route={route} />}
 
@@ -206,5 +208,62 @@ export function MachinePanel({
         Savings report for {f.name} (PDF)
       </a>
     </aside>
+  );
+}
+
+/** Running and sensor state as the backend reports it, maintenance status, and the SIMULATE controls. */
+function OperatingBlock({ m }: { m: Machine }) {
+  const op = m.operating;
+  const mt = m.maintenance;
+  const [busy, setBusy] = useState(false);
+  if (!op) return null;
+  const run = op.running === false ? "Stopped" : op.running === null ? "Unknown (no signal)" : "Running";
+  const sensor =
+    op.sensor === "live"
+      ? "live, reading this cycle"
+      : op.sensor === "stale"
+        ? `no new reading since ${fmtClock(op.last_ts)}`
+        : op.sensor === "lost"
+          ? `signal lost; last reading ${fmtClock(op.last_ts)}`
+          : "no reading yet";
+  const set = (body: { run?: string; sensor?: string }) => {
+    setBusy(true);
+    post(`/api/machine/${m.id}/operating`, body).finally(() => setBusy(false));
+  };
+  return (
+    <section className="op-block small">
+      <div className="row between">
+        <b>Sensor and operation</b>
+        <span className="muted">{twinWords(m)}</span>
+      </div>
+      <div>
+        Machine: {run} · Sensor: {sensor}
+        {op.simulated && <span className="muted"> · SIMULATED state</span>}
+      </div>
+      {mt && (mt.job_booked || mt.last_repair) && (
+        <div className="muted">
+          {mt.job_booked && `Mechanic job ${mt.job_status ?? "sent"}. `}
+          {mt.last_repair &&
+            `Last repair ${fmtClock(mt.last_repair.at)}: ${mt.last_repair.outcome ?? "not verified yet"}.`}
+        </div>
+      )}
+      <div className="row gap">
+        <span className="muted">Simulate:</span>
+        <button
+          className="btn ghost"
+          disabled={busy}
+          onClick={() => set({ run: op.run === "stopped" ? "running" : "stopped" })}
+        >
+          {op.run === "stopped" ? "Start machine" : "Stop machine"}
+        </button>
+        <button
+          className="btn ghost"
+          disabled={busy}
+          onClick={() => set({ sensor: op.sensor === "lost" ? "ok" : "lost" })}
+        >
+          {op.sensor === "lost" ? "Restore sensor" : "Drop sensor"}
+        </button>
+      </div>
+    </section>
   );
 }

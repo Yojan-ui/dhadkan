@@ -52,6 +52,20 @@ export interface Machine {
   band_z: number[] | null;
   forecast: Forecast | null;
   rupees_at_risk: number;
+  /** running: false = confirmed stopped; null = unknown (sensor lost or no reading yet) */
+  operating?: {
+    running: boolean | null;
+    run: "running" | "stopped";
+    sensor: "live" | "stale" | "lost" | "none";
+    last_ts: string | null;
+    ticks_since: number | null;
+    simulated: boolean;
+  };
+  maintenance?: {
+    job_booked: boolean;
+    job_status: string | null;
+    last_repair: { at: string | null; outcome: string | null } | null;
+  };
 }
 export type ForecastStatus = "estimate" | "no_trend" | "too_few" | "at_fault_level" | "not_separable";
 export interface Forecast {

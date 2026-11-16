@@ -63,6 +63,7 @@ mill-pack:                   ## rebuild edge/models/flourmill_pack.npz from MIMI
 
 test:
 	$(PY) -m pytest -q
+	cd web && npm test --silent
 
 lint:                        ## zero warnings everywhere
 	$(PY) -m ruff check .

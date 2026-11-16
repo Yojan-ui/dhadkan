@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS readings (
   score REAL, threshold REAL, risk REAL, match_cos REAL, match_level REAL,
   match_fp INTEGER, embedding TEXT);
 CREATE TABLE IF NOT EXISTS state (machine TEXT PRIMARY KEY, mode TEXT, mix REAL);
+CREATE TABLE IF NOT EXISTS ticks (tick INTEGER PRIMARY KEY, ts TEXT);
 CREATE TABLE IF NOT EXISTS tool_calls (
   id INTEGER PRIMARY KEY, run_id TEXT, ts TEXT, actor TEXT, tool TEXT, input TEXT, output TEXT);
 CREATE TABLE IF NOT EXISTS messages (
@@ -61,6 +62,9 @@ class Cluster:
         self.db.executescript(SCHEMA)
         with contextlib.suppress(sqlite3.OperationalError):  # databases from before per-machine onset speed
             self.db.execute("ALTER TABLE state ADD COLUMN step REAL")
+        for col in ("run", "sensor"):  # SIMULATED operating / sensor state (the digital twin's demo controls)
+            with contextlib.suppress(sqlite3.OperationalError):
+                self.db.execute(f"ALTER TABLE state ADD COLUMN {col} TEXT")
         self.reg = registry.connect(registry_db)
         self.models = {}
         self.ims: dict[str, Any] = {}  # machine -> imsdemo.ImsSource while Demo mode runs
@@ -96,7 +100,9 @@ class Cluster:
 
     # -- state ------------------------------------------------------------
     def tick_no(self) -> int:
-        r = self.db.execute("SELECT MAX(tick) FROM readings").fetchone()[0]
+        r = self.db.execute(
+            "SELECT MAX(t) FROM (SELECT MAX(tick) AS t FROM readings UNION ALL SELECT MAX(tick) FROM ticks)"
+        ).fetchone()[0]
         return -1 if r is None else r
 
     def now(self, tick: int | None = None) -> datetime:
@@ -110,14 +116,38 @@ class Cluster:
 
     def set_mode(self, mid: str, mode: str, mix: float = 0.0, step: float = ONSET_STEP) -> None:
         """`step`: onset strength added per reading (SYNTHETIC onset only)."""
+        run, sensor = self.operating(mid)
         self.db.execute(
-            "INSERT OR REPLACE INTO state (machine, mode, mix, step) VALUES (?,?,?,?)", (mid, mode, mix, step)
+            "INSERT OR REPLACE INTO state (machine, mode, mix, step, run, sensor) VALUES (?,?,?,?,?,?)",
+            (mid, mode, mix, step, run, sensor),
         )
         self.db.commit()
 
+    def operating(self, mid: str) -> tuple[str, str]:
+        """(run, sensor): 'running'|'stopped' and 'ok'|'lost'. SIMULATED controls; default running and ok."""
+        r = self.db.execute("SELECT run, sensor FROM state WHERE machine=?", (mid,)).fetchone()
+        return ((r["run"] or "running"), (r["sensor"] or "ok")) if r else ("running", "ok")
+
+    def set_operating(self, mid: str, run: str | None = None, sensor: str | None = None) -> tuple[str, str]:
+        """A stopped machine and a machine whose sensor is lost both produce no reading; the difference is
+        what is known: stopped is confirmed (the owner or the machine's own quiet reading said so), a lost
+        sensor means nothing is known since the last reading."""
+        if run not in (None, "running", "stopped") or sensor not in (None, "ok", "lost"):
+            raise ValueError("run: running|stopped, sensor: ok|lost")
+        cur_run, cur_sensor = self.operating(mid)
+        mode, mix = self.mode(mid)
+        row = self.db.execute("SELECT step FROM state WHERE machine=?", (mid,)).fetchone()
+        self.db.execute(
+            "INSERT OR REPLACE INTO state (machine, mode, mix, step, run, sensor) VALUES (?,?,?,?,?,?)",
+            (mid, mode, mix, row["step"] if row else ONSET_STEP, run or cur_run, sensor or cur_sensor),
+        )
+        self.db.commit()
+        return self.operating(mid)
+
     def reset(self) -> None:
         self.db.executescript(
-            "DELETE FROM readings; DELETE FROM state; DELETE FROM tool_calls;" " DELETE FROM messages;"
+            "DELETE FROM readings; DELETE FROM state; DELETE FROM tool_calls; DELETE FROM messages;"
+            " DELETE FROM ticks;"
         )
         self.reg.executescript("DELETE FROM fingerprints; DELETE FROM weak_labels;")
         self.db.commit()
@@ -156,7 +186,9 @@ class Cluster:
         """Play and score one reading per machine. Returns {machine: (audio, score_audio result)}."""
         tick = self.tick_no() + 1
         ts = self.now(tick).isoformat(timespec="minutes")
-        modes = {mid: self.next_mode(mid) for mid in self.machines}
+        # a stopped machine makes no sound to score, and a lost sensor sends nothing
+        live = [mid for mid in self.machines if self.operating(mid) == ("running", "ok")]
+        modes = {mid: self.next_mode(mid) for mid in live}
 
         def play(mid: str) -> tuple[str, str, np.ndarray, dict[str, Any]]:
             audio, clip = self.audio(mid, tick, *modes[mid])
@@ -165,7 +197,13 @@ class Cluster:
             return mid, clip, audio, self.scorer(mid).score_audio(audio, self.machines[mid]["source"])
 
         out = {}
-        for mid, clip, audio, r in self._pool.map(play, self.machines):
+        self.db.execute(
+            "INSERT OR REPLACE INTO ticks VALUES (?,?)", (tick, ts)
+        )  # the clock moves even if all are quiet
+        if not live:
+            self.db.commit()
+            return {}
+        for mid, clip, audio, r in self._pool.map(play, live):
             m = self.machines[mid]
             mode, mix = modes[mid]
             em = self.model(m["type"])

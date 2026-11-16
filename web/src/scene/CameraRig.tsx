@@ -1,5 +1,6 @@
-// Camera: 800 ms eased flights between views, then a slow orbit (a gentle sway around the estate,
-// a full turn around a single machine). Any drag pauses it; it eases back after 8 s idle.
+// Camera: 800 ms eased flights between views, then a slow sway (around the estate, or a little either side
+// of a focused machine; the factory never spins). Left drag rotates, right drag pans, the wheel zooms; any
+// drag pauses the sway and it eases back to the framed view after 8 s idle.
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -9,9 +10,11 @@ const FLY_S = 0.8;
 const IDLE_S = 8;
 const SWAY = 0.22; // radians either side of the framed view
 const SWAY_PERIOD = 60; // seconds
-const ORBIT_SPEED = 0.12; // rad/s around a machine
+const MACHINE_SWAY = 0.35; // a focused machine is looked at from a gently changing angle, never spun around
+const MACHINE_PERIOD = 40;
 
-export type View = { kind: "cluster" } | { kind: "shed"; factory: string } | { kind: "machine"; id: string };
+export type View =
+  { kind: "cluster" } | { kind: "shed"; factory: string } | { kind: "machine"; id: string; close?: boolean };
 export interface Goal {
   pos: THREE.Vector3;
   target: THREE.Vector3;
@@ -64,7 +67,7 @@ export function CameraRig({ goal, view, reduced }: { goal: Goal; view: View; red
     if (!reduced) phase.current += dt;
     const angle =
       view.kind === "machine"
-        ? phase.current * ORBIT_SPEED
+        ? MACHINE_SWAY * Math.sin((phase.current / MACHINE_PERIOD) * 2 * Math.PI)
         : SWAY * Math.sin((phase.current / SWAY_PERIOD) * 2 * Math.PI);
     const off = goal.pos
       .clone()

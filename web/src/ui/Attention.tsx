@@ -1,6 +1,6 @@
 // Left column: every machine, the ones that need attention first. Click a row to fly to it.
 import type { Alert, Machine, Message, Meta, State } from "../api";
-import { inr } from "../theme";
+import { fmtClock, inr } from "../theme";
 import { HealthRing } from "./bits";
 import { alertWord } from "./Diagnosis";
 
@@ -17,6 +17,10 @@ export function shortReason(m: Machine) {
   const fault =
     m.fault_name?.en.toLowerCase() ?? (m.known_fault ? (FAULT[m.known_fault] ?? m.known_fault) : null);
   const pct = Math.round((m.risk3 ?? 0) * 100);
+  const op = m.operating;
+  const sim = op?.simulated ? " (simulated)" : "";
+  if (op?.running === false) return `Stopped${sim}`;
+  if (op?.sensor === "lost") return `No signal since ${fmtClock(op.last_ts)}${sim}`;
   switch (m.status) {
     case "alarm":
       return fault ? `Past its alarm, ${fault} sound` : `Past its alarm (${pct}%)`;
@@ -41,12 +45,12 @@ export function daysShort(m: Machine) {
   return "";
 }
 
+const offline = (m: Machine) => m.operating?.running === false || m.operating?.sensor === "lost";
+const rank = (m: Machine) => (offline(m) ? 1.5 : RANK[m.status]);
+
 export function sortByAttention(ms: Machine[]) {
   return [...ms].sort(
-    (a, b) =>
-      RANK[a.status] - RANK[b.status] ||
-      b.rupees_at_risk - a.rupees_at_risk ||
-      (b.risk3 ?? 0) - (a.risk3 ?? 0),
+    (a, b) => rank(a) - rank(b) || b.rupees_at_risk - a.rupees_at_risk || (b.risk3 ?? 0) - (a.risk3 ?? 0),
   );
 }
 
@@ -121,7 +125,8 @@ export function Attention({
   onHover: (id: string | null) => void;
 }) {
   const sorted = sortByAttention(machines);
-  const quiet = (m: Machine) => m.status === "ok" || m.status === "no_data" || m.status === "learning";
+  const quiet = (m: Machine) =>
+    !offline(m) && (m.status === "ok" || m.status === "no_data" || m.status === "learning");
   const need = sorted.filter((m) => !quiet(m));
   const fine = sorted.filter(quiet);
   const openFor = (id: string) => state.messages.find((x) => x.machine === id && x.approved === null);

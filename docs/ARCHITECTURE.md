@@ -91,6 +91,36 @@ Guardrails added in this pass (tested): `book_job` and `order_part` refuse witho
 approval of the right kind for the same case, checked when created and again when sent; questions
 expire when a case closes; a stop is only ever a question to the owner, whose answer is logged.
 
+## The 3D digital twin (web/src/scene/, 2026-11-16)
+
+Every 3D machine is keyed by the backend's machine id (`/api/state` → `machines[].id`) and drawn from
+these fields only:
+
+| visual | backend field | rule |
+|---|---|---|
+| ring colour | `status`, `operating` | green normal, amber watch, orange alert (alarm or registry match), dashed grey stopped / no signal / no reading, blue-grey learning (`theme.twinState`) |
+| ring fill | `risk3` | share of its own alarm level, on watch and alert |
+| ring pulse | state | faint breathing (normal), gentle wave (watch), stronger wave every 1.6 s (alert), none (offline) |
+| pulleys, fans, impellers, belts, mill feeder | `operating.running` | turn at the type's assumed nameplate rpm; a confirmed stop (`running: false`) spins them down over ~2 s; a lost sensor (`running: null`) keeps the last known state and the label says "no signal · last HH:MM" |
+| shake | live frame `risk` | only while running; no live frame for a stopped or silent machine |
+| sound ripples | live frame `energy` | only from live readings |
+| sensor LED | `operating.sensor`, `latest.tick` | green with a flash on each new reading; dim when nothing new (stopped); dark when lost |
+| gateway LED (per bay) | `link.up` | green; amber blinking while the link is down and readings wait in the outbox |
+| conveyor | `operating.running` of the bay's machines | runs while any machine in the bay runs |
+| labels | `name`, `twinWords` | risk as "0.89× alarm", never a health %; "simulated" when a demo control set the state |
+
+Stopped vs lost sensor: both produce no new reading (`server/sim.py` skips them), and the live 2 Hz frame
+stream drops them (`Live._analyse`), so no old reading is ever streamed as live. `POST
+/api/machine/{id}/operating` is the SIMULATED control behind the panel's *Simulate* buttons; every state it
+sets is flagged `simulated` until restored. There is no temperature sensor in Dhadkan, so none is shown.
+
+Camera: left drag rotates, right drag pans, the wheel zooms (OrbitControls with damping); click flies to a
+machine, double click flies closer, *Whole factory view* (or Esc) returns. A slow sway runs only after 8 s
+without input, and the factory never spins. Rendering: one instanced mesh per part type (76 draw calls,
+~73k triangles for 3 bays and 12 machines); `PerformanceMonitor` lowers the pixel ratio, then ambient
+occlusion, if the frame rate falls. Measured 54-57 fps on this Mac with and without a 4x CPU throttle
+(`?debug`); not measured on a low-end laptop.
+
 ## Data and state
 
 - **Committed:** trained `.tflite` models and per-machine thresholds (`edge/models/`), the IMS demo pack, every evaluation

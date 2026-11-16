@@ -129,3 +129,44 @@ export function useMedia(q: string) {
 }
 export const useReducedMotion = () => useMedia("(prefers-reduced-motion: reduce)");
 export const usePhone = () => useMedia("(max-width: 767px)");
+
+/** The digital twin's visual state, from the backend's status and operating state only. */
+export type Twin = "normal" | "watch" | "alert" | "offline" | "learning";
+export const TWIN_HEX: Record<Twin, string> = {
+  normal: "#3E9E6A", // subtle green
+  watch: "#E3A23B", // amber
+  alert: "#FE5101", // signal orange: needs attention
+  offline: "#7D8189", // grey
+  learning: "#5E7A96", // blue-grey: still learning its normal
+};
+export function twinState(m: Machine): Twin {
+  const op = m.operating;
+  if (op && (op.running === false || op.sensor === "lost")) return "offline";
+  if (m.status === "no_data" || !m.latest) return "offline";
+  if (m.status === "alarm" || m.status === "early_match") return "alert";
+  if (m.status === "watch") return "watch";
+  if (m.status === "learning") return "learning";
+  return "normal";
+}
+/** Is it turning? Only a confirmed stop stops the animation; an unknown state keeps the last known one. */
+export function isRunning(m: Machine): boolean {
+  return m.operating?.running !== false;
+}
+/** Short words for the twin's labels (never a health %: risk is shown against its own alarm level). */
+export function twinWords(m: Machine): string {
+  const op = m.operating;
+  if (op?.running === false) return "stopped";
+  if (op?.sensor === "lost") return `no signal · last ${fmtClock(op.last_ts, false)}`;
+  if (m.status === "no_data" || !m.latest) return "no reading yet";
+  if (m.status === "learning")
+    return m.learning ? `learning · day ${m.learning.day}/${m.learning.of}` : "learning";
+  const r = m.risk3 ?? m.latest.risk;
+  const x = `${r.toFixed(2)}× alarm`;
+  if (m.status === "alarm") return `alert · ${x}`;
+  if (m.status === "early_match") return "matches a known fault";
+  if (m.status === "watch") return `watch · ${x}`;
+  return `normal · ${x}`;
+}
+export function twinRGB(m: Machine): [number, number, number] {
+  return hex(TWIN_HEX[twinState(m)]) as [number, number, number];
+}

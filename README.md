@@ -215,6 +215,10 @@ The summary below is written by `python -m edge.results` from the records in `do
   recorded story (RESULTS.md 5). Its technicians are demo data and its stock is mock; a real factory
   replaces `data/demo/technicians.json`. Post-repair readings in the story are normal recordings of
   the same unit, not a real repair.
+- **The 3D twin's stopped / no-signal states are demo controls.** Dhadkan's sensors report readings, not
+  power state: in the cluster, "stopped" and "sensor lost" are set with the panel's *Simulate* buttons and
+  labelled simulated. A real install would mark a machine stopped from its own quiet readings
+  (`edge/baseline.py` "not running") or the owner's word. Frame rate was measured on one Mac only.
 - **ESP32 node untested on hardware.** `hardware/esp32_vibration` is written; the server side is
   tested with a simulated device only.
 - **The agent cannot control a machine.** No tool stops, slows or switches one; paid actions need the

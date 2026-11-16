@@ -5,7 +5,7 @@ import { OwnerScreen } from "./screens/Owner";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { get, post, store, useConnected, useLive, useMeta, type Machine, type PastReading } from "./api";
 import type { View } from "./scene/CameraRig";
-import { fmtClock, fmtT, inr, usePhone, useReducedMotion } from "./theme";
+import { fmtClock, fmtT, inr, twinState, usePhone, useReducedMotion } from "./theme";
 import { ApprovalBar } from "./ui/ApprovalBar";
 import { Attention } from "./ui/Attention";
 import { DemoMode } from "./ui/DemoMode";
@@ -332,10 +332,13 @@ function TopBar({
   drawer: DrawerName;
   toggle: (d: DrawerName) => void;
 }) {
-  const ms = state.machines.filter((m) => m.status !== "no_data");
-  const ok = ms.filter((m) => m.status === "ok").length;
-  const watch = ms.filter((m) => m.status === "watch").length;
-  const alert = ms.filter((m) => m.status === "alarm" || m.status === "early_match").length;
+  const tw = state.machines.map(twinState);
+  const ok = tw.filter((t) => t === "normal").length;
+  const watch = tw.filter((t) => t === "watch").length;
+  const alert = tw.filter((t) => t === "alert").length;
+  const offline = state.machines.filter(
+    (m) => m.operating?.running === false || m.operating?.sensor === "lost",
+  ).length;
   const rupees = state.machines.reduce((a, m) => a + m.rupees_at_risk, 0);
   const leg = state.route?.legs[0];
   const legMachine = leg && state.machines.find((m) => m.id === leg.machine);
@@ -370,6 +373,12 @@ function TopBar({
             <span className={`kpi-num mono ${alert ? "accent" : ""}`}>{alert}</span>
             <span className="kpi-label">alert</span>
           </div>
+          {offline > 0 && (
+            <div className="kpi">
+              <span className="kpi-num mono muted">{offline}</span>
+              <span className="kpi-label">stopped / no signal</span>
+            </div>
+          )}
           {!phone && (
             <>
               <div className="kpi">

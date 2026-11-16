@@ -1,16 +1,18 @@
-// The estate in 3D. Warm hemisphere light + one key light with soft shadows, faint fog over a
-// charcoal ground, ambient occlusion (N8AO) and a pulsing outline on alerting machines.
+// The estate in 3D: the factory's digital twin. Warm hemisphere light + one key light with soft shadows,
+// faint fog, ambient occlusion (N8AO), a pulsing outline on alerting machines, status rings, sensor nodes,
+// conveyors and labels, all driven by /api/state (machine ids are the backend's).
 // Fills the centre column; labels are DOM, clipped to this column, and fade when hidden behind a shed.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, PerformanceMonitor } from "@react-three/drei";
 import { EffectComposer, N8AO, Outline, Selection, ToneMapping } from "@react-three/postprocessing";
 import { ToneMappingMode } from "postprocessing";
 import * as THREE from "three";
 import type { Machine, Meta, State } from "../api";
-import { C, inr } from "../theme";
+import { C, inr, twinState, twinWords } from "../theme";
 import { CameraRig, type Goal, type View } from "./CameraRig";
 import { ArcLabels, Contagion, useArcs } from "./Contagion";
+import { Conveyors } from "./Conveyors";
 import { useKeyed } from "./fx";
 import { Decor } from "./Decor";
 import { Ground } from "./Ground";
@@ -19,6 +21,7 @@ import { SHED, TOP, estateExtent, machinePositions, shedCenter } from "./layout"
 import { Machines } from "./Machines";
 import { Rings } from "./Rings";
 import { RouteLabels, RouteMesh, useRoute } from "./Route";
+import { Sensors } from "./Sensors";
 
 interface Props {
   state: State;
@@ -34,7 +37,7 @@ interface Props {
 const BG = "#121417";
 const DIR = new THREE.Vector3(0, 0.95, 1).normalize(); // square on from the road side, ~43 deg down; the sway adds the angle
 const FOV = 28;
-const FILL = 0.8; // the estate fills about 80% of the view
+const FILL = 0.94; // the estate fills most of the view
 
 /** Camera distance and target that frame a box (x/z extent, 0..height) at FILL of the view. */
 function frame(minX: number, maxX: number, minZ: number, maxZ: number, height: number, aspect: number): Goal {
@@ -59,7 +62,7 @@ function frame(minX: number, maxX: number, minZ: number, maxZ: number, height: n
     .multiplyScalar((r0 + r1) / 2)
     .addScaledVector(fwd, (u0 + u1) / 2 / fwd.dot(up))
     .setY(0.6)
-    .add(new THREE.Vector3(0, 0, 0.9)); // sit the sheds at the visual centre, not low
+    .add(new THREE.Vector3(0, 0, -0.5)); // the sheds sit in the middle of the view, the road below them
   const tv = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
   const dist = Math.max((u1 - u0) / 2 / tv, (r1 - r0) / 2 / (tv * aspect)) / FILL;
   return { target, pos: target.clone().addScaledVector(DIR, dist) };
@@ -69,8 +72,8 @@ function goalFor(view: View, meta: Meta, pos: Record<string, THREE.Vector3>, asp
   const n = meta.factories.length;
   if (view.kind === "machine" && pos[view.id]) {
     const p = pos[view.id];
-    const target = p.clone().add(new THREE.Vector3(1.1, 0.85, 0));
-    return { target, pos: target.clone().addScaledVector(DIR, 9.5) };
+    const target = p.clone().add(new THREE.Vector3(view.close ? 0.2 : 1.1, view.close ? 0.55 : 0.85, 0));
+    return { target, pos: target.clone().addScaledVector(DIR, view.close ? 4.6 : 9.5) }; // double click: closer
   }
   if (view.kind === "shed") {
     const i = meta.factories.findIndex((f) => f.id === view.factory);
@@ -197,18 +200,30 @@ export default function Scene({ state, machines, meta, view, reduced, hover, onH
   const alerting = machines.filter((m) => (m.status === "alarm" || m.status === "early_match") && pos[m.id]);
 
   const pick = (id: string) => onView({ kind: "machine", id });
+  // lower-end laptops: drop the pixel ratio first, then ambient occlusion, if the frame rate falls
+  const [dpr, setDpr] = useState(1.75);
+  const [lowFx, setLowFx] = useState(false);
 
   return (
     <div className="scene" ref={wrap}>
       <Canvas
         shadows="percentage"
         flat
-        dpr={[1, 1.75]}
+        dpr={dpr}
         gl={{ antialias: false, powerPreference: "high-performance" }}
         camera={{ fov: FOV, near: 0.5, far: 200, position: goal.pos.toArray() }}
         onPointerMissed={() => onHover(null)}
         style={{ background: BG }}
       >
+        <PerformanceMonitor
+          onDecline={() => (dpr > 1 ? setDpr(1) : setLowFx(true))}
+          onIncline={() => setDpr(1.75)}
+          flipflops={3}
+          onFallback={() => {
+            setDpr(1);
+            setLowFx(true);
+          }}
+        />
         <color attach="background" args={[BG]} />
         <fog attach="fog" args={[BG, 32, 85]} />
         <hemisphereLight args={["#ffe4c8", "#332d27", 1.6]} />
@@ -246,10 +261,11 @@ export default function Scene({ state, machines, meta, view, reduced, hover, onH
             roofs={view.kind === "cluster"}
             onHover={onHover}
             onPick={pick}
+            onInspect={(id) => onView({ kind: "machine", id, close: true })}
           />
           {!noPost && (
             <EffectComposer multisampling={4} autoClear={false}>
-              <N8AO halfRes aoRadius={1} intensity={1.6} distanceFalloff={0.7} color="black" />
+              <N8AO halfRes aoRadius={1} intensity={lowFx ? 0 : 1.6} distanceFalloff={0.7} color="black" />
               <Outline
                 blur
                 edgeStrength={6}
@@ -263,6 +279,14 @@ export default function Scene({ state, machines, meta, view, reduced, hover, onH
           )}
         </Selection>
         <Rings machines={machines} pos={pos} reduced={reduced} />
+        <Conveyors factories={factories} machines={machines} reduced={reduced} />
+        <Sensors
+          machines={machines}
+          factories={factories}
+          pos={pos}
+          linkUp={state.link.up}
+          reduced={reduced}
+        />
         <AlertLights machines={machines} pos={pos} reduced={reduced} />
         <group visible={!inMachine}>
           <Contagion arcs={arcs} machines={machines} pos={pos} reduced={reduced} />
@@ -271,7 +295,8 @@ export default function Scene({ state, machines, meta, view, reduced, hover, onH
 
         <OrbitControls
           makeDefault
-          enableDamping={false}
+          enableDamping
+          dampingFactor={0.12}
           maxPolarAngle={1.3}
           minDistance={3}
           maxDistance={90}
@@ -304,12 +329,46 @@ export default function Scene({ state, machines, meta, view, reduced, hover, onH
               {m.name} ·{" "}
               {m.fault_name?.en ??
                 (m.known_fault ?? m.registry?.fault ?? "fault not named yet").replace("_", " ")}{" "}
-              · {daysWords(m)}
+              · {daysWords(m)} · {twinWords(m).replace("alert · ", "")}
             </div>
           </Label>
         ))}
+        {machines.map((m) => {
+          const p = pos[m.id];
+          if (!p) return null;
+          const st = twinState(m);
+          const inShed = view.kind === "shed" && view.factory === m.factory;
+          const focus = m.id === selected || m.id === hover;
+          const show = focus || inShed || (view.kind === "cluster" && (st === "watch" || st === "offline"));
+          if (!show || alerting.some((a) => a.id === m.id)) return null; // alerting machines have their own tag
+          return (
+            <Label
+              key={`tag-${m.id}`}
+              at={p.clone().setY(p.y + TOP[m.shape] + 0.3)}
+              occlude={!focus && st === "normal"}
+            >
+              <div className={`mtag mtag-${st} ${focus ? "mtag-focus" : ""}`}>
+                <b>{m.name}</b> · {twinWords(m)}
+                {m.operating?.simulated && <span className="mtag-sim"> · simulated</span>}
+              </div>
+            </Label>
+          );
+        })}
         {!inMachine && <ArcLabels arcs={arcs} machines={machines} pos={pos} reduced={reduced} />}
         {!inMachine && plan && <RouteLabels plan={plan} reduced={reduced} />}
+      </div>
+      {view.kind !== "cluster" && (
+        <button className="btn scene-reset" onClick={() => onView({ kind: "cluster" })} title="Esc">
+          Whole factory view
+        </button>
+      )}
+      <div className="twin-legend small" aria-label="ring colours">
+        <span className="tl tl-normal">normal</span>
+        <span className="tl tl-watch">watch</span>
+        <span className="tl tl-alert">alert</span>
+        <span className="tl tl-offline">stopped / no signal</span>
+        <span className="tl tl-learning">learning</span>
+        <span className="muted">drag rotate · right-drag pan · scroll zoom · double-click inspect</span>
       </div>
       {debug && <div ref={statsEl} className="stats mono" data-testid="stats" />}
     </div>

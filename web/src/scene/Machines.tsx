@@ -1,13 +1,16 @@
 // The estate as a handful of instanced meshes: machine parts (box / cylinder / cone), shed
 // structure, turning pulleys and spokes, belts, and an invisible hit box per machine.
-// Machines shake with the live anomaly score of the 1 s window under the play cursor; pulleys
-// turn at the machine type's ASSUMED nameplate speed (meta.nominal_rpm), scaled down to read on screen.
+// Machines shake with the live anomaly score of the 1 s window under the play cursor; pulleys, fans,
+// impellers and belts turn at the machine type's ASSUMED nameplate speed (meta.nominal_rpm), scaled down to
+// read on screen. A machine the backend reports as STOPPED spins down and stays still; a lost sensor keeps
+// its last known state (the label says so).
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Select } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { store, type Factory, type Machine } from "../api";
+import { isRunning } from "../theme";
 import { useKeyed } from "./fx";
 import { occluders } from "./labels";
 import {
@@ -16,9 +19,10 @@ import {
   SHAPES,
   SHED,
   beltRuns,
+  bladeMatrix,
+  discMatrix,
   partMatrix,
   shedCenter,
-  spinMatrices,
   type Geo,
   type Paint,
   type Part,
@@ -51,6 +55,7 @@ function shedParts(fi: number, n: number): Inst[] {
   const c = shedCenter(fi, n);
   const { w, d, wall, roof } = SHED;
   const out: Inst[] = [];
+  let overhead = false; // parts hidden with the roof when the camera is inside a bay
   const box = (
     p: [number, number, number],
     s: [number, number, number],
@@ -63,7 +68,7 @@ function shedParts(fi: number, n: number): Inst[] {
       part: { g: "box", p, s, r, c: "iron" },
       base: c,
       color: new THREE.Color(col),
-      roof: p[1] >= roof - 0.01,
+      roof: overhead || p[1] >= roof - 0.01,
     });
   box([0, 0.06, 0], [w, 0.12, d], SHED_COLORS.floor);
   box([0, 0.12 + wall / 2, -d / 2], [w, wall, 0.12], SHED_COLORS.wall);
@@ -83,6 +88,24 @@ function shedParts(fi: number, n: number): Inst[] {
     box([x, roof + rise / 2, -half / 2], [0.08, 0.08, len], SHED_COLORS.truss, [tilt, 0, 0]);
     box([x, roof + rise / 2, half / 2], [0.08, 0.08, len], SHED_COLORS.truss, [-tilt, 0, 0]);
   }
+  // steel: crane runway beams on the long walls, a crane bridge with its hoist, a cable tray and an
+  // electrical panel on the back wall, and walkway markings on the floor (static scenery, no data)
+  const rail = roof - 0.32;
+  overhead = true;
+  for (const z of [-d / 2 + 0.12, d / 2 - 0.12]) {
+    box([0, rail, z], [w - 0.1, 0.14, 0.1], SHED_COLORS.truss);
+    box([0, rail + 0.08, z], [w - 0.1, 0.02, 0.16], SHED_COLORS.truss);
+  }
+  const cx = w / 2 - 0.35; // crane parked at the end of the bay, out of the line of sight
+  box([cx, rail + 0.13, 0], [0.12, 0.12, d - 0.2], "#5A4E2C"); // crane bridge (muted yellow)
+  box([cx, rail - 0.02, 0.2], [0.22, 0.14, 0.2], "#4B4F55"); // hoist
+  box([cx, rail - 0.45, 0.2], [0.012, 0.7, 0.012], "#2A2C30"); // hoist rope
+  box([cx, rail - 0.82, 0.2], [0.08, 0.06, 0.05], "#4B4F55"); // hook block
+  box([0, roof - 0.62, -d / 2 + 0.12], [w - 0.4, 0.04, 0.22], "#3C4046"); // cable tray
+  overhead = false;
+  box([-w / 2 + 0.12, 0.62, -0.2], [0.08, 0.7, 0.42], "#2F3237"); // electrical panel on the side wall
+  box([-w / 2 + 0.17, 0.78, -0.2], [0.012, 0.08, 0.3], "#55595F");
+  for (const z of [-0.42, 0.5]) box([0, 0.125, z], [w - 0.5, 0.004, 0.035], "#6E6233"); // walkway between the machine rows
   return out;
 }
 
@@ -112,6 +135,7 @@ interface Props {
   roofs: boolean;
   onHover: (id: string | null) => void;
   onPick: (id: string) => void;
+  onInspect: (id: string) => void;
 }
 
 export function Machines({
@@ -125,6 +149,7 @@ export function Machines({
   roofs,
   onHover,
   onPick,
+  onInspect,
 }: Props) {
   const box = useRef<THREE.InstancedMesh>(null);
   const cyl = useRef<THREE.InstancedMesh>(null);
@@ -160,6 +185,9 @@ export function Machines({
         ? SHAPES[m.shape].spin.map((s) => ({ mi, fi: fIndex[m.factory] ?? 0, s, base: pos[m.id], m }))
         : [],
     ),
+  );
+  const bladeList = useKeyed(shapeKey, () =>
+    spinners.flatMap((it, si) => Array.from({ length: it.s.blades ?? 1 }, (_, k) => ({ si, k }))),
   );
   const beltList = useKeyed(shapeKey, () =>
     machines.flatMap((m, mi) =>
@@ -240,6 +268,7 @@ export function Machines({
   const off = useMemo(() => new THREE.Vector3(), []);
   const tmp = useMemo(() => new THREE.Matrix4(), []);
   const angle = useRef<number[]>([]);
+  const speed = useRef<number[]>([]); // 0 stopped .. 1 running, eased
   useFrame(({ clock }, dt) => {
     const t = clock.elapsedTime;
     if (born.current === null) born.current = t;
@@ -248,11 +277,15 @@ export function Machines({
       reduced ? 0 : -RISE_DEPTH * (1 - easeOut((t - t0 - fi * STAGGER_S) / RISE_S));
     const entering = !reduced && t - t0 < RISE_S + STAGGER_S * factories.length + 0.1;
     const k = 1 - Math.exp(-dt * 10);
+    const coast = 1 - Math.exp(-dt * 1.4); // a motor spins down (and up) over about two seconds
     const amp = machines.map((m, i) => {
-      const target = store.frame[m.id]?.risk ?? 0;
+      const run = isRunning(m) ? 1 : 0;
+      speed.current[i] = (speed.current[i] ?? run) + (run - (speed.current[i] ?? run)) * coast;
+      const target = store.frame[m.id]?.risk ?? 0; // live only: a stopped or silent machine has no frame
       live.current[i] = (live.current[i] ?? 0) + (target - (live.current[i] ?? 0)) * k;
       // tiny jitter when healthy, a visible shake as the 1 s score passes ~0.8 of its alarm level
-      return reduced ? 0 : 0.003 + 0.05 * Math.min(1.2, Math.max(0, live.current[i] - 0.75));
+      const a = 0.003 + 0.05 * Math.min(1.2, Math.max(0, live.current[i] - 0.75));
+      return reduced ? 0 : a * speed.current[i];
     });
     const shake = (mi: number, fi: number) => {
       const a = amp[mi];
@@ -282,13 +315,16 @@ export function Machines({
       sp = spokes.current;
     if (d && sp) {
       spinners.forEach((it, i) => {
-        const w = ((rpm[it.m.type] ?? 0) / 60) * 2 * Math.PI * VIS_SPEED * it.s.ratio;
+        const w = ((rpm[it.m.type] ?? 0) / 60) * 2 * Math.PI * VIS_SPEED * it.s.ratio * speed.current[it.mi];
         angle.current[i] = ((angle.current[i] ?? 0) + (reduced ? 0 : w * dt)) % (Math.PI * 2);
-        const [disc, spoke] = spinMatrices(it.base, it.s, angle.current[i], shake(it.mi, it.fi));
-        d.setMatrixAt(i, disc);
-        sp.setMatrixAt(i, spoke);
+        d.setMatrixAt(i, discMatrix(it.base, it.s, angle.current[i], shake(it.mi, it.fi), tmp));
       });
-      d.count = sp.count = spinners.length;
+      bladeList.forEach(({ si, k }, j) => {
+        const it = spinners[si];
+        sp.setMatrixAt(j, bladeMatrix(it.base, it.s, angle.current[si], k, shake(it.mi, it.fi), tmp));
+      });
+      d.count = spinners.length;
+      sp.count = bladeList.length;
       d.instanceMatrix.needsUpdate = sp.instanceMatrix.needsUpdate = true;
     }
     const b = belts.current;
@@ -298,7 +334,8 @@ export function Machines({
       const scale = new THREE.Vector3();
       beltList.forEach((it, i) => {
         const runs = beltRuns(it.base, it.a, it.b, shake(it.mi, it.fi));
-        const surface = ((rpm[it.m.type] ?? 0) / 60) * 2 * Math.PI * VIS_SPEED * it.a.radius; // belt speed on screen
+        const surface =
+          ((rpm[it.m.type] ?? 0) / 60) * 2 * Math.PI * VIS_SPEED * it.a.radius * speed.current[it.mi]; // belt speed on screen
         runs.forEach((mtx, j) => {
           b.setMatrixAt(i * 2 + j, mtx);
           lenA.setX(i * 2 + j, scale.setFromMatrixScale(mtx).x);
@@ -341,7 +378,8 @@ export function Machines({
       />
       <instancedMesh
         ref={spokes}
-        args={[GEOS.box, spokeMat, Math.max(1, spinners.length)]}
+        args={[GEOS.box, spokeMat, Math.max(1, bladeList.length)]}
+        castShadow
         frustumCulled={false}
       />
       <instancedMesh
@@ -360,6 +398,10 @@ export function Machines({
         onClick={(e) => {
           e.stopPropagation();
           if (e.instanceId != null) onPick(machines[e.instanceId].id);
+        }}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          if (e.instanceId != null) onInspect(machines[e.instanceId].id);
         }}
       >
         <meshBasicMaterial visible={false} />
