@@ -1,0 +1,11 @@
+{
+  "name": "dhadkan",
+  "private": true,
+  "description": "Dhadkan: npm run demo starts the backend and the web app with the NASA IMS bearing replay and the agent",
+  "scripts": {
+    "demo": "make web/dist/index.html && .venv/bin/python -m server.demo --ims",
+    "setup": "make setup",
+    "test": "make test",
+    "lint": "make lint"
+  }
+}

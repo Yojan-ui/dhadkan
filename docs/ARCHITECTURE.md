@@ -178,3 +178,13 @@ flowchart LR
 4. Prices, parts and warranty come from `faults.yaml` with sources, marked "typical, confirm with dealer". Claude never
    writes a number on the card.
 5. Keys only in `.env`; the recorder and rehearsals can force a dry run (`DHADKAN_DRY_RUN=1`).
+
+## Digital Twin main screen and the owner's agent (added)
+
+- `web/src/iso/`: the isometric main screen (React Three Fiber, orthographic camera) and its HUD panels.
+  `server/twin.py` (`/api/twin`) computes what the panels show from the live readings: status counts,
+  anomaly score per shift, risk ranking, focus trend, ₹ at risk, health share and the agent checklist.
+- `server/owner_agent.py`: the owner's conversational agent (observe → diagnose → plan → ask owner → act →
+  verify) with ten strict tools over the existing tested code. Claude Fable 5.2 tool use when keyed,
+  rules otherwise. Chat and voice notes go through `/api/agent/chat` and `/api/agent/voice`. It books
+  nothing itself: paid steps wait for the owner's reply (server/fix.py), and no tool can stop a machine.

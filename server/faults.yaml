@@ -119,7 +119,7 @@ faults:
     what: {en: "The motor and machine shafts are out of line.", hi: "मोटर और मशीन का शाफ़्ट एक सीध में नहीं है।", mr: "मोटर आणि मशीनचा शाफ्ट एका रेषेत नाही.", hi_latn: "Motor aur machine ka shaft ek seedh mein nahi hai.", gu: "મોટર અને મશીનનો શાફ્ટ એક લાઇનમાં નથી."}
     repairable: {answer: true, why: "Realigning the shafts fixes it; a worn coupling element is a cheap part."}
     fix:
-      part: {en: "laser shaft alignment (and coupling rubber if worn)", hi: "लेज़र शाफ़्ट अलाइनमेंट", mr: "लेझर शाफ्ट अलाइनमेंट", hi_latn: "laser shaft alignment", gu: "લેસર શાફ્ટ એલાઇનમેન્ટ"}
+      part: {en: "laser shaft alignment (and coupling rubber if worn)", hi: "धुरी (शाफ़्ट) का लेज़र अलाइनमेंट", mr: "लेझर शाफ्ट अलाइनमेंट", hi_latn: "dhuri (shaft) ka laser alignment", gu: "લેસર શાફ્ટ એલાઇનમેન્ટ"}
       price_inr: [13500, 20000]
       price_unit: "per job or day (laser); a dial-gauge job costs less, no published figure found"
       price_source: indiamart_alignment
@@ -157,7 +157,7 @@ faults:
     what: {en: "The belt is loose or worn and slipping on the pulley.", hi: "बेल्ट ढीला या घिसा है और पुली पर फिसल रहा है।", mr: "बेल्ट सैल किंवा झिजलेला आहे आणि पुलीवर घसरत आहे.", hi_latn: "Belt dheela ya ghisa hai aur pulley par phisal raha hai.", gu: "બેલ્ટ ઢીલો કે ઘસાયેલો છે અને પુલી પર લપસે છે."}
     repairable: {answer: true, why: "A new belt at the right tension fixes it."}
     fix:
-      part: {en: "V-belt (same section and length)", hi: "वी-बेल्ट (वही साइज़)", mr: "व्ही-बेल्ट (तोच साइज)", hi_latn: "V-belt (wahi size)", gu: "વી-બેલ્ટ (એ જ સાઇઝ)"}
+      part: {en: "V-belt (same section and length)", hi: "वी-बेल्ट / पट्टा (वही साइज़)", mr: "व्ही-बेल्ट (तोच साइज)", hi_latn: "V-belt / patta (wahi size)", gu: "વી-બેલ્ટ (એ જ સાઇઝ)"}
       price_inr: [100, 800]
       price_unit: "per belt"
       price_source: vbelt_listings

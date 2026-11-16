@@ -22,8 +22,8 @@ TEMPLATES = {
 DIGEST_TEMPLATE = "daily_digest"
 # Reply buttons (WhatsApp allows 3, at most 20 characters each); ids 1/2/3 = book / later / details.
 BUTTONS = {
-    "hi": ["मिस्त्री बुलाओ", "कल", "पूरी जानकारी"],
-    "hi_latn": ["Mechanic bulao", "Kal", "Details"],
+    "hi": ["मिस्त्री बुलाओ", "बाद में", "पूरी जानकारी"],
+    "hi_latn": ["Mechanic bulao", "Baad mein", "Details"],
     "mr": ["मिस्त्री बोलवा", "उद्या", "माहिती"],
     "gu": ["મિસ્ત્રી બોલાવો", "કાલે", "માહિતી"],
     "en": ["Send mechanic", "Later", "Details"],

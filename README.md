@@ -14,6 +14,35 @@ NASA IMS test rig, not a simulation. Regenerate the GIF with `python -m tools.de
 
 Built for Tech4Bharat problem statement 4.3 (machine failure prediction for small factories).
 
+## Digital Twin (main screen) and the owner's agent
+
+```bash
+npm run demo      # backend + web app; the NASA IMS bearing run-to-failure plays as Loom 1 and the agent acts
+```
+
+![Digital Twin at the alarm: Loom 1 lit red, the agent has observed, diagnosed, planned and asked the owner](docs/screenshots/digital-twin/2-alarm-agent.png)
+
+- **Isometric factory floor** (React Three Fiber, orthographic camera at 45° / 35°): three bays of
+  machines on pallets, overhead rails, robot arms, cabins, workers, lane markings and flow lines. Each
+  machine has a status beacon (teal OK, amber watch, red-orange alert, which pulses and lights the
+  machine). Scroll to zoom, drag to pan. Click a machine for its side panel: health ring, live
+  spectrogram, before/now sound, 14-day trend, diagnosis and the Haan/Nahi approval.
+- **HUD panels, all from the live readings** (`/api/twin`): status chips, anomaly score per shift,
+  machines by risk, live spectrum and spectrogram, focus-machine trend, ₹ at risk in the next 2 days
+  (7-segment readout), overall health gauge, actions and the agent's checklist.
+- **The owner's agent** ([server/owner_agent.py](server/owner_agent.py)) runs observe → diagnose → plan →
+  ask owner → act → verify with ten tools: get_machine_health, get_spectrogram, diagnose_fault,
+  find_local_mechanic, check_part_stock, estimate_cost_inr, schedule_repair, send_whatsapp,
+  verify_repair, log_warranty_claim.
+  - It uses Claude Fable 5.2 (tool use) when `ANTHROPIC_API_KEY` is set, and rules otherwise or offline.
+  - It acts on an alarm by itself.
+  - Anything that costs money waits for the owner's "1 = Haan" on WhatsApp. No tool can stop a machine.
+- **Agent chat** (bottom dock): ask by typing or by voice note, in Hindi, Marathi, Gujarati, Tamil,
+  Kannada, Telugu, English or Hinglish ("Loom 4 ki awaaz kyun badal gayi?"). It replies in the same
+  language and shows its tool steps. Amounts are in ₹ lakh/crore and times in IST.
+- Other screens: `?view=cc` (command centre), `?view=cluster` (earlier 3D estate), `?view=owner`,
+  `?view=mechanic`, `?view=mill`. More screenshots: [docs/screenshots/digital-twin/](docs/screenshots/digital-twin/).
+
 The owner receives:
 
 > बंद करने का सोचिए · लूम 1 – मोटर का बेयरिंग घिस रहा है। 2 दिन से आवाज़ बढ़ रही है। अभी ठीक हो सकता है:

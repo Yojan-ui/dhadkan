@@ -29,8 +29,8 @@ Languages to submit for each template: `hi`, `mr`, `gu`, `en`. Hindi in Roman sc
 
 | language | button 1 (book) | button 2 (later) | button 3 (details) |
 |---|---|---|---|
-| hi | मिस्त्री बुलाओ | कल | पूरी जानकारी |
-| hi (Roman, under en) | Mechanic bulao | Kal | Details |
+| hi | मिस्त्री बुलाओ | बाद में | पूरी जानकारी |
+| hi (Roman, under en) | Mechanic bulao | Baad mein | Details |
 | mr | मिस्त्री बोलवा | उद्या | माहिती |
 | gu | મિસ્ત્રી બોલાવો | કાલે | માહિતી |
 | en | Send mechanic | Later | Details |

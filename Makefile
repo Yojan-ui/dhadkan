@@ -5,7 +5,7 @@ PYTHON  ?= $(shell command -v python3.12 2>/dev/null || command -v python3 2>/de
 PORT    ?= 8600
 WEB_SRC := $(shell find web/src web/index.html web/public -type f 2>/dev/null) web/package.json web/vite.config.ts
 
-.PHONY: setup data demo-data train results demo serve dev test lint fmt clean compare rul mill mill-pack
+.PHONY: setup data demo-data train results demo demo-ims serve dev test lint fmt clean compare rul mill mill-pack
 
 setup:                       ## venv, Python and web dependencies
 	@$(PYTHON) -c 'import sys; sys.exit(0 if sys.version_info[:2] >= (3, 12) else "Python 3.12+ needed: make setup PYTHON=/path/to/python3.12")'
@@ -40,6 +40,9 @@ web/dist/index.html: web/node_modules $(WEB_SRC)
 
 demo: web/dist/index.html    ## backend + web app + demo replay, opens the browser
 	$(PY) -m server.demo --port $(PORT)
+
+demo-ims: web/dist/index.html  ## Digital Twin + NASA IMS bearing failure + agent (what npm run demo runs)
+	$(PY) -m server.demo --port $(PORT) --ims
 
 serve: web/dist/index.html   ## same, without starting the replay
 	$(PY) -m server.demo --port $(PORT) --no-replay

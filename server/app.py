@@ -133,6 +133,7 @@ class Live:
         self.outbox = Outbox(Path(node_db or NODE_DB).with_name("outbox.db"), self._send)
         self.alerts = OwnerAlerts(self, node_db)
         self.demo: dict[str, Any] = {"on": False, "phase": "off"}
+        self.last_agent: dict[str, Any] | None = None  # the owner agent's last run (timeline, checklist)
         self._ims_saved: dict[str, Any] | None = None
         self.cache = {}  # machine -> analysis of its latest reading
         self._readings: dict[tuple[str, int], dict[str, Any]] = {}  # rebuilt past readings (LRU-ish)
@@ -906,6 +907,9 @@ class Live:
                     if first_alarm:
                         self.demo.update(phase="alert", alerted=True, first_classified=guess, alarm_at=k)
                         await asyncio.to_thread(self.run_agent, "rules")
+                        from . import owner_agent  # the owner's agent acts on the alarm by itself
+
+                        await asyncio.to_thread(owner_agent.on_alarm, self, mid)
                 await asyncio.sleep(max(0.0, tick_s - (time.monotonic() - t0)))
             self.demo["phase"] = "bearing failed (end of IMS test 2)"
         except asyncio.CancelledError:
@@ -1350,6 +1354,45 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
         if factory not in live.c.factories:
             raise HTTPException(404)
         return prove.mechanic_stats(live, factory)
+
+    @app.get("/api/twin")
+    def twin(focus: str | None = None) -> dict[str, Any]:
+        """Everything the Digital Twin HUD panels show, from the live readings."""
+        from . import twin as twin_mod
+
+        with live.lock:
+            return twin_mod.summary(live, focus)
+
+    class ChatIn(BaseModel):
+        model_config = ConfigDict(extra="forbid")
+        text: str = Field(min_length=1, max_length=600)
+        factory: str | None = Field(default=None, max_length=4)
+        lang: str | None = Field(default=None, pattern="^(en|hi|mr|gu|ta|kn|te|hi_latn)$")
+
+    @app.post("/api/agent/chat")
+    async def agent_chat(body: ChatIn) -> dict[str, Any]:
+        """The owner's question in their language -> the agent's reply and its tool timeline."""
+        from . import owner_agent
+
+        return await asyncio.to_thread(owner_agent.chat, live, body.text, body.factory, body.lang)
+
+    @app.post("/api/agent/voice")
+    async def agent_voice(
+        request: Request, factory: str | None = None, lang: str | None = None
+    ) -> dict[str, Any]:
+        """A voice note (raw audio body): local Whisper -> the same agent. lang = Whisper's language hint."""
+        from . import folk, owner_agent
+
+        raw = await request.body()
+        if not raw or len(raw) > 8_000_000:
+            raise HTTPException(400, "send 1 byte to 8 MB of audio")
+        ALERT_DIR.mkdir(parents=True, exist_ok=True)
+        path = ALERT_DIR / f"agent_voice_{int(time.time() * 1000)}.audio"
+        path.write_bytes(raw)
+        hint = lang if lang in ("hi", "mr", "gu", "ta", "kn", "te", "en") else None
+        text, heard = await asyncio.to_thread(folk.transcribe, str(path), hint)
+        out = await asyncio.to_thread(owner_agent.chat, live, text, factory, None)
+        return {**out, "heard": text, "whisper_language": heard}
 
     @app.get("/api/forecast/parts")
     def parts_forecast(days: float = 14.0) -> dict[str, Any]:

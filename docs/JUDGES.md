@@ -6,7 +6,8 @@ survey ([source](https://www.technicaltextiles.in/?p=29103)), about six per unit
 to hear failures coming, tells the owner on WhatsApp in their language, gets the right repair done,
 and proves it worked. **Only the owner decides; no code path can stop a machine.**
 
-**Run it (fresh clone):** `make setup && make demo-data && make demo`, then **Demo mode**. Phone
+**Run it (fresh clone):** `make setup && make demo-data && npm run demo`: the Digital Twin opens, the
+real NASA bearing failure plays as Loom 1, and the agent acts at the alarm. Phone
 screens: `?view=owner&f=A&lang=hi` and `?view=mechanic&f=A`. If the internet fails, see
 [DEMO_SCRIPT.md](DEMO_SCRIPT.md). How the parts fit together: [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -23,7 +24,19 @@ screens: `?view=owner&f=A&lang=hi` and `?view=mechanic&f=A`. If the internet fai
 | Production-stop decisions stay with the owner | no tool can stop a machine; paid actions refuse to run without an approved approval (checked again at send time) | [tests/test_maint_agent.py](../tests/test_maint_agent.py), [tests/test_guardrails.py](../tests/test_guardrails.py) |
 | Simulated or recorded signals | the flour-mill story replays real MIMII DUE recordings; everything simulated is labelled on screen | [server/flourmill.py](../server/flourmill.py), `?view=mill` |
 
-**The command centre (default page):** Settings → Demo scenario → *Start fault* on C-F2, then *DEMO · play
+**The Digital Twin (main screen) and the owner's agent:**
+
+| what | where | screenshot |
+|---|---|---|
+| Isometric factory floor, status beacons, HUD panels from live data (`/api/twin`) | [web/src/iso/](../web/src/iso/), [server/twin.py](../server/twin.py) | [healthy](screenshots/digital-twin/1-healthy.png), [at the alarm](screenshots/digital-twin/2-alarm-agent.png) |
+| Machine side panel: health ring, live spectrogram, before/now, 14-day trend, diagnosis, Haan/Nahi | [web/src/iso/TwinScreen.tsx](../web/src/iso/TwinScreen.tsx) | [machine](screenshots/digital-twin/3-machine.png) |
+| Agent: observe → diagnose → plan → ask owner → act → verify; 10 tools; Claude Fable 5.2 or offline rules; acts on an alarm by itself; money waits for "1 = Haan" | [server/owner_agent.py](../server/owner_agent.py), [tests/test_owner_agent.py](../tests/test_owner_agent.py) | [agent chat](screenshots/digital-twin/4-agent.png) |
+| Chat by text or voice in hi, mr, gu, ta, kn, te, en, Hinglish; replies in kind; ₹ lakh/crore, IST | `/api/agent/chat`, `/api/agent/voice` | |
+
+The agent has **not** been run against the Claude API (no key here). Every screenshot comes from the
+offline rules path, and the screen says which engine answered.
+
+**The command centre (`?view=cc`):** Settings → Demo scenario → *Start fault* on C-F2, then *DEMO · play
 readings*. Watch the agents board (AI Agents), approve on the recommendation, report the repair on the
 machine, and read the verification on Maintenance Jobs. Tests: tests/test_command_centre.py.
 
