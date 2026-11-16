@@ -108,7 +108,9 @@ def test_card_money_comes_from_the_knowledge_base_and_profile():
     assert c["fix"]["total_inr"] == [part["price_inr"][0] + part["labour_hours"][0] * rate,
                                      part["price_inr"][1] + part["labour_hours"][1] * rate]  # fmt: skip
     assert c["if_ignored"]["repair_inr"] == 2 * kb["faults"]["motor_winding"]["fix"]["price_inr_per_hp"]
-    assert c["money"]["p_fault_within_wait"] == pytest.approx(2 / 6, abs=0.01)  # crossings 4 and 6 are within 7 days
+    assert c["money"]["p_fault_within_wait"] == pytest.approx(
+        2 / 6, abs=0.01
+    )  # crossings 4 and 6 are within 7 days
     assert c["severity"]["level"] == "repair_soon" and c["days"] == 6
 
 
