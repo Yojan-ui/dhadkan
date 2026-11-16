@@ -937,6 +937,9 @@ class Live:
             self.demo["phase"] = "stopped"
             raise
         except Exception as e:
+            import traceback
+
+            traceback.print_exc()  # the phase shows only the message; the log keeps where it happened
             self.demo["phase"] = f"error: {e}"
             raise
         finally:
