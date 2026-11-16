@@ -1,0 +1,250 @@
+# Fault knowledge base for diagnosis cards and owner alerts. Edited by people, read by server/diagnosis.py.
+# Every price, labour time and warranty here is TYPICAL, NOT A QUOTE: confirm with your dealer or mechanic.
+# A value with `source: null` has no published figure behind it; it is our assumption and says so.
+version: 1
+disclaimer:
+  en: "Typical prices and warranty, confirm with dealer."
+  hi: "अनुमानित दाम और वारंटी, डीलर से पक्का करें।"
+  mr: "अंदाजे किंमत आणि वॉरंटी, डीलरकडून खात्री करा."
+
+sources:
+  moglix_6205:
+    title: "Moglix listings for 6205-ZZ deep groove ball bearings (BM3 pack of 5: Rs 324; CNA pack of 10: Rs 1,779)"
+    url: "https://www.moglix.com/bm3-25x52x15mm-chrome-steel-v2-quality-deep-groove-ball-bearing-6205-zz-pack-of-5/mp/msnrkrevpre89n"
+    also: "https://www.moglix.com/cna-25x52x15mm-deep-groove-ball-bearing-6205-zz-pack-of-10/mp/msnz526zo2em9x"
+    accessed: "2026-11-16"
+    supports: "6205-type bearing about Rs 65 to Rs 180 per piece, incl. taxes"
+  cwru_bearing:
+    title: "CWRU Bearing Data Center: bearing information (6205-2RS JEM SKF defect frequencies)"
+    url: "https://engineering.case.edu/bearingdatacenter/bearing-information"
+    accessed: "2026-11-16"
+    supports: "6205 defect frequencies as multiples of running speed: inner 5.4152, outer 3.5848, ball 4.7135"
+  indiamart_rewind:
+    title: "M. A. Electricals on IndiaMART: electrical motor winding Rs 1,000 per HP"
+    url: "https://m.indiamart.com/ma-electricals/winding-services.html"
+    accessed: "2026-11-16"
+    supports: "rewinding about Rs 1,000 per HP (a single vendor's listing)"
+  bhel_rewind_2018:
+    title: "BHEL price bid (2018): 3-phase squirrel-cage motor rewinding by HP band"
+    url: "https://tenders.bhel.com/sites/default/files/nit_t24_2018_price-bid-1527916550.pdf"
+    accessed: "2026-11-16"
+    supports: "about Rs 980 (<1 HP) to Rs 4,410 (20-40 HP) per motor, 2018 rates"
+  synchronics_warranty:
+    title: "Synchronics (Vadodara) warranty policy for repaired motors"
+    url: "https://synchronics.co.in/warranty-policy/"
+    accessed: "2026-11-16"
+    supports: "6-month warranty on parts and labour; void with wrong supply voltage, single-phasing, phase reversal, wrong frequency, or mechanical damage"
+  indiamart_balancing:
+    title: "IndiaMART dynamic balancing listings (impeller Rs 500 to Rs 5,000 per piece; on-site fan balancing Rs 8,500)"
+    url: "https://m.indiamart.com/star-balancing/dynamic-balancing-services.html"
+    also: "https://m.indiamart.com/avibalancingindustries/onsite-balancing-services.html"
+    accessed: "2026-11-16"
+    supports: "rotor or impeller balancing about Rs 500 to Rs 8,500"
+  indiamart_seal:
+    title: "IndiaMART / Dial4Trade 25 mm pump mechanical seal listings"
+    url: "https://m.indiamart.com/egsealstradingco"
+    also: "https://www.dial4trade.com/pune/pump-seals.htm"
+    accessed: "2026-11-16"
+    supports: "25 mm mechanical seal about Rs 610 to Rs 4,500"
+  vbelt_listings:
+    title: "IndiaMART V-belt listings and Industrybuying Gemini B-section belts"
+    url: "https://m.indiamart.com/impcat/v-belts.html"
+    also: "https://industrybuying.com/timing-v-belts-gemini-FAM191163"
+    accessed: "2026-11-16"
+    supports: "B-section V-belt mostly Rs 100 to Rs 800"
+  indiamart_alignment:
+    title: "IndiaMART laser shaft alignment listings (Rs 13,500 per piece; Rs 20,000 per day)"
+    url: "https://m.indiamart.com/vlengineering-chennai/laser-alignment-services.html"
+    also: "https://m.indiamart.com/spectransys/alignment-service.html"
+    accessed: "2026-11-16"
+    supports: "laser shaft alignment about Rs 13,500 to Rs 20,000 per job or day"
+  skf_causes:
+    title: "Reliamag summary of SKF bearing-failure training: premature failures by cause"
+    url: "https://reliamag.com/guides/bearing-failure-cause-statistics/"
+    accessed: "2026-11-16"
+    supports: "premature bearing failures: lubrication 36%, fatigue 34%, mounting and handling 16%, contamination 14% (secondary source)"
+  fluidlife_skf:
+    title: "Fluidlife, citing SKF Bearing Damage and Failure Analysis"
+    url: "https://www.fluidlife.com/?p=15167"
+    accessed: "2026-11-16"
+    supports: "overloading, misalignment, improper mounting and contamination as bearing failure causes"
+
+# How a reading becomes a severity (server/diagnosis.py, tests/test_diagnosis.py).
+severity:
+  order: [watch, repair_soon, stop_now, replace]
+  labels:
+    watch: {en: "Watch", hi: "नज़र रखें", mr: "लक्ष ठेवा"}
+    repair_soon: {en: "Repair soon", hi: "जल्द ठीक कराएँ", mr: "लवकर दुरुस्त करा"}
+    stop_now: {en: "Stop now", hi: "अभी बंद करें", mr: "आत्ताच बंद करा"}
+    replace: {en: "Beyond repair (replace)", hi: "मरम्मत से बाहर, बदलें", mr: "दुरुस्तीपलीकडे, बदला"}
+  rules:
+    stop_now_within_days: 2      # the low end of the days-to-fault range is this close, or it already sounds faulty
+    repair_soon_within_days: 14  # alarm, registry match, or the low end of the range within this
+    replace_after_days_at_fault: 3  # sounding like the recorded fault for this long: the part has likely run to destruction
+  note: "Thresholds are our choice, not a standard. The agent never stops a machine; the owner decides."
+
+faults:
+  bearing_wear:
+    name: {en: "motor bearing wear", hi: "मोटर बेयरिंग घिसना", mr: "मोटर बेअरिंग झिजणे"}
+    what: {en: "The ball bearing in the motor is wearing out.", hi: "मोटर का बेयरिंग घिस रहा है।", mr: "मोटरचे बेअरिंग झिजत आहे."}
+    repairable:
+      answer: true
+      why: "A bearing is a wear part. A new one restores the motor if the shaft and housing are not damaged."
+      not_when: "the shaft or the bearing housing is scored or worn oval"
+    fix:
+      part: {en: "ball bearing 6205 (same number as the old one)", hi: "बेयरिंग 6205 (पुराने जैसा नंबर)", mr: "बेअरिंग 6205 (जुन्यासारखा नंबर)"}
+      price_inr: [65, 180]
+      price_unit: "per bearing; a motor usually has two"
+      price_source: moglix_6205
+      labour_hours: [1, 2]
+      labour_source: null
+      technician: {en: "motor mechanic (fitter)", hi: "मोटर मिस्त्री", mr: "मोटर मिस्त्री"}
+    misuse:
+      - {en: "no greasing, or the wrong grease", source: skf_causes}
+      - {en: "dust or water getting in", source: skf_causes}
+      - {en: "hammering the bearing on during fitting", source: skf_causes}
+      - {en: "overloading the machine", source: fluidlife_skf}
+      - {en: "belt or coupling out of line", source: fluidlife_skf}
+    warranty:
+      period: null
+      note: "No published figure found for a fitted bearing. Ask the dealer what they give."
+      voided_by: [{en: "running without grease", source: null}, {en: "overload or misalignment after fitting", source: null}]
+    if_ignored:
+      what: {en: "the motor can burn", hi: "मोटर जल सकती है", mr: "मोटर जळू शकते"}
+      cost_basis: rewind
+  misalignment:
+    name: {en: "shaft misalignment", hi: "शाफ़्ट का टेढ़ापन", mr: "शाफ्ट चुकीच्या रेषेत"}
+    what: {en: "The motor and machine shafts are out of line.", hi: "मोटर और मशीन का शाफ़्ट एक सीध में नहीं है।", mr: "मोटर आणि मशीनचा शाफ्ट एका रेषेत नाही."}
+    repairable: {answer: true, why: "Realigning the shafts fixes it; a worn coupling element is a cheap part."}
+    fix:
+      part: {en: "laser shaft alignment (and coupling rubber if worn)", hi: "लेज़र शाफ़्ट अलाइनमेंट", mr: "लेझर शाफ्ट अलाइनमेंट"}
+      price_inr: [13500, 20000]
+      price_unit: "per job or day (laser); a dial-gauge job costs less, no published figure found"
+      price_source: indiamart_alignment
+      labour_hours: [1, 3]
+      labour_source: null
+      technician: {en: "alignment technician", hi: "अलाइनमेंट मिस्त्री", mr: "अलाइनमेंट मिस्त्री"}
+    misuse:
+      - {en: "refitting the motor without checking alignment", source: fluidlife_skf}
+      - {en: "loose or settling base bolts", source: null}
+    warranty: {period: null, note: "Ask the service provider.", voided_by: []}
+    if_ignored:
+      what: {en: "bearings and coupling wear out fast", hi: "बेयरिंग और कपलिंग जल्दी घिसेंगे", mr: "बेअरिंग आणि कपलिंग लवकर झिजतील"}
+      cost_basis: bearing
+  imbalance:
+    name: {en: "imbalance", hi: "असंतुलन", mr: "असंतुलन"}
+    what: {en: "The rotating part (fan, impeller or roller) is heavier on one side.", hi: "घूमने वाला हिस्सा (पंखा, इम्पेलर या रोलर) एक तरफ़ भारी हो गया है।", mr: "फिरणारा भाग (पंखा, इम्पेलर किंवा रोलर) एका बाजूला जड झाला आहे."}
+    repairable: {answer: true, why: "Cleaning off build-up and dynamic balancing fixes it.", not_when: "a blade or vane is cracked"}
+    fix:
+      part: {en: "dynamic balancing of the fan / impeller", hi: "पंखे / इम्पेलर की डायनामिक बैलेंसिंग", mr: "पंखा / इम्पेलरचे डायनॅमिक बॅलन्सिंग"}
+      price_inr: [500, 8500]
+      price_unit: "per rotor; on-site costs more"
+      price_source: indiamart_balancing
+      labour_hours: [2, 6]
+      labour_source: null
+      technician: {en: "balancing shop", hi: "बैलेंसिंग वर्कशॉप", mr: "बॅलन्सिंग वर्कशॉप"}
+    misuse:
+      - {en: "dust or material building up on the fan", source: null}
+      - {en: "a bent or repaired blade", source: null}
+    warranty: {period: null, note: "Ask the service provider.", voided_by: []}
+    if_ignored:
+      what: {en: "bearings fail and the fan can crack", hi: "बेयरिंग खराब होंगे, पंखा टूट सकता है", mr: "बेअरिंग खराब होतील, पंखा तुटू शकतो"}
+      cost_basis: bearing
+  belt_slip:
+    name: {en: "belt slip", hi: "बेल्ट फिसलना", mr: "बेल्ट घसरणे"}
+    what: {en: "The belt is loose or worn and slipping on the pulley.", hi: "बेल्ट ढीला या घिसा है और पुली पर फिसल रहा है।", mr: "बेल्ट सैल किंवा झिजलेला आहे आणि पुलीवर घसरत आहे."}
+    repairable: {answer: true, why: "A new belt at the right tension fixes it."}
+    fix:
+      part: {en: "V-belt (same section and length)", hi: "वी-बेल्ट (वही साइज़)", mr: "व्ही-बेल्ट (तोच साइज)"}
+      price_inr: [100, 800]
+      price_unit: "per belt"
+      price_source: vbelt_listings
+      labour_hours: [0.5, 1]
+      labour_source: null
+      technician: {en: "fitter", hi: "फिटर", mr: "फिटर"}
+    misuse:
+      - {en: "wrong belt tension (too loose or too tight)", source: null}
+      - {en: "oil or grease on the belt", source: null}
+      - {en: "mixing old and new belts on one drive", source: null}
+    warranty: {period: null, note: "Ask the dealer.", voided_by: []}
+    if_ignored:
+      what: {en: "the belt snaps and the machine stops", hi: "बेल्ट टूटेगा, मशीन रुकेगी", mr: "बेल्ट तुटेल, मशीन थांबेल"}
+      cost_basis: part
+  cavitation:
+    name: {en: "pump cavitation / blocked suction", hi: "पंप में हवा / सक्शन जाम", mr: "पंपात हवा / सक्शन अडकले"}
+    what: {en: "The pump is not getting enough water at its inlet; bubbles form and burst inside it.", hi: "पंप के इनलेट पर पूरा पानी नहीं आ रहा; अंदर बुलबुले बनकर फट रहे हैं।", mr: "पंपाच्या इनलेटला पुरेसे पाणी येत नाही; आत बुडबुडे तयार होऊन फुटत आहेत."}
+    repairable: {answer: true, why: "Clearing the suction and fixing air leaks stops it; a leaking seal is replaceable.", not_when: "the impeller is badly pitted"}
+    fix:
+      part: {en: "clean strainer / foot valve; mechanical seal if leaking", hi: "स्ट्रेनर / फुट वाल्व साफ़; लीक हो तो मैकेनिकल सील", mr: "स्ट्रेनर / फूट व्हॉल्व्ह साफ; गळत असल्यास मेकॅनिकल सील"}
+      price_inr: [610, 4500]
+      price_unit: "mechanical seal, 25 mm; cleaning is labour only"
+      price_source: indiamart_seal
+      labour_hours: [1, 3]
+      labour_source: null
+      technician: {en: "pump mechanic", hi: "पंप मिस्त्री", mr: "पंप मिस्त्री"}
+    misuse:
+      - {en: "running the pump dry or with a low water level", source: null}
+      - {en: "a choked strainer or foot valve", source: null}
+      - {en: "air leaking into the suction pipe", source: null}
+    warranty: {period: null, note: "Ask the dealer.", voided_by: [{en: "running dry", source: null}]}
+    if_ignored:
+      what: {en: "the impeller pits and the seal fails", hi: "इम्पेलर खराब होगा, सील टूटेगी", mr: "इम्पेलर खराब होईल, सील तुटेल"}
+      cost_basis: part
+  motor_winding:
+    name: {en: "motor winding fault", hi: "मोटर वाइंडिंग खराबी", mr: "मोटर वाइंडिंग बिघाड"}
+    what: {en: "The motor's copper winding is overheating or its insulation is breaking down.", hi: "मोटर की वाइंडिंग गरम हो रही है या उसका इंसुलेशन खराब हो रहा है।", mr: "मोटरची वाइंडिंग गरम होत आहे किंवा तिचे इन्सुलेशन खराब होत आहे."}
+    repairable: {answer: true, why: "A burnt winding can be rewound.", not_when: "the stator core is damaged; then replace the motor"}
+    fix:
+      part: {en: "motor rewinding", hi: "मोटर रिवाइंडिंग", mr: "मोटर रिवाइंडिंग"}
+      price_inr_per_hp: 1000
+      price_unit: "per HP of the motor"
+      price_source: indiamart_rewind
+      also_source: bhel_rewind_2018
+      labour_hours: [8, 24]
+      labour_source: null
+      technician: {en: "motor rewinding shop", hi: "मोटर रिवाइंडिंग की दुकान", mr: "मोटर रिवाइंडिंगचे दुकान"}
+    misuse:
+      - {en: "voltage fluctuation, low or high supply voltage", source: synchronics_warranty}
+      - {en: "single-phasing (one phase missing)", source: synchronics_warranty}
+      - {en: "overloading the machine", source: null}
+    warranty:
+      period: "6 months on a rewind (one vendor's published policy)"
+      source: synchronics_warranty
+      voided_by:
+        - {en: "running on wrong or fluctuating supply voltage", source: synchronics_warranty}
+        - {en: "single-phasing or phase reversal", source: synchronics_warranty}
+        - {en: "mechanical damage after repair", source: synchronics_warranty}
+    if_ignored:
+      what: {en: "the motor burns out", hi: "मोटर जल जाएगी", mr: "मोटर जळून जाईल"}
+      cost_basis: rewind
+  looseness:
+    name: {en: "looseness", hi: "ढीलापन", mr: "सैलपणा"}
+    what: {en: "Bolts or mounts are loose; the machine rocks on its base.", hi: "बोल्ट या माउंट ढीले हैं; मशीन अपने बेस पर हिल रही है।", mr: "बोल्ट किंवा माउंट सैल आहेत; मशीन आपल्या बेसवर हलत आहे."}
+    repairable: {answer: true, why: "Tightening bolts and replacing cracked mounts fixes it.", not_when: "the base frame is cracked"}
+    fix:
+      part: {en: "tighten base bolts, new mounts or shims", hi: "बेस बोल्ट कसना, नए माउंट", mr: "बेस बोल्ट घट्ट करणे, नवे माउंट"}
+      price_inr: null
+      price_unit: "no published figure found; mostly labour"
+      price_source: null
+      labour_hours: [0.5, 2]
+      labour_source: null
+      technician: {en: "fitter", hi: "फिटर", mr: "फिटर"}
+    misuse:
+      - {en: "vibration working bolts loose over time", source: null}
+      - {en: "a weak or uneven floor", source: null}
+    warranty: {period: null, note: "Ask the service provider.", voided_by: []}
+    if_ignored:
+      what: {en: "bearings wear and the base can crack", hi: "बेयरिंग घिसेंगे, बेस टूट सकता है", mr: "बेअरिंग झिजतील, बेस तुटू शकतो"}
+      cost_basis: bearing
+
+# Which detector output names which fault.
+naming:
+  owner_word:        # lexicon.json fault -> fault here
+    bearing: bearing_wear
+    imbalance: imbalance
+    loose_belt: belt_slip
+    clog: cavitation   # for pumps a blocked suction; the card says "blocked suction"
+  cwru_classifier:   # edge/faulttype.py class -> fault here (a vibration sensor is needed)
+    inner_race: bearing_wear
+    outer_race: bearing_wear
+    ball: bearing_wear

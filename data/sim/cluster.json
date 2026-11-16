@@ -31,7 +31,11 @@
    "owner": "Sunil Shinde",
    "language": "hi",
    "phone": "+91-90000-00001",
-   "area_local": "भोसरी"
+   "area_local": "भोसरी",
+   "supervisor": {
+    "name": "Supervisor (demo)",
+    "phone": null
+   }
   },
   {
    "id": "B",
@@ -44,7 +48,11 @@
    "owner": "Rakesh Gupta",
    "language": "mr",
    "phone": "+91-90000-00002",
-   "area_local": "चाकण"
+   "area_local": "चाकण",
+   "supervisor": {
+    "name": "Supervisor (demo)",
+    "phone": null
+   }
   },
   {
    "id": "C",
@@ -57,7 +65,11 @@
    "owner": "Salma Ansari",
    "language": "hi",
    "phone": "+91-90000-00003",
-   "area_local": "तळेगाव"
+   "area_local": "तळेगाव",
+   "supervisor": {
+    "name": "Supervisor (demo)",
+    "phone": null
+   }
   }
  ],
  "machines": [
@@ -68,7 +80,8 @@
    "name_local": "पंप 1",
    "type": "pump",
    "source": "pump/id_00",
-   "shape": "pump"
+   "shape": "pump",
+   "motor_hp": 5
   },
   {
    "id": "A-P2",
@@ -77,7 +90,8 @@
    "name_local": "पंप 2",
    "type": "pump",
    "source": "pump/id_02",
-   "shape": "pump"
+   "shape": "pump",
+   "motor_hp": 5
   },
   {
    "id": "A-F1",
@@ -86,7 +100,8 @@
    "name_local": "ब्लोअर 1",
    "type": "fan",
    "source": "fan/id_00",
-   "shape": "motor"
+   "shape": "motor",
+   "motor_hp": 3
   },
   {
    "id": "A-G1",
@@ -95,7 +110,8 @@
    "name_local": "लूम 1",
    "type": "gearbox",
    "source": "gearbox/section_00",
-   "shape": "loom"
+   "shape": "loom",
+   "motor_hp": 2
   },
   {
    "id": "B-P1",
@@ -104,7 +120,8 @@
    "name_local": "पंप 1",
    "type": "pump",
    "source": "pump/id_02",
-   "shape": "pump"
+   "shape": "pump",
+   "motor_hp": 5
   },
   {
    "id": "B-P2",
@@ -113,7 +130,8 @@
    "name_local": "पंप 2",
    "type": "pump",
    "source": "pump/id_00",
-   "shape": "pump"
+   "shape": "pump",
+   "motor_hp": 5
   },
   {
    "id": "B-F1",
@@ -122,7 +140,8 @@
    "name_local": "ब्लोअर 1",
    "type": "fan",
    "source": "fan/id_00",
-   "shape": "motor"
+   "shape": "motor",
+   "motor_hp": 3
   },
   {
    "id": "B-G1",
@@ -131,7 +150,8 @@
    "name_local": "लूम 1",
    "type": "gearbox",
    "source": "gearbox/section_01",
-   "shape": "loom"
+   "shape": "loom",
+   "motor_hp": 2
   },
   {
    "id": "C-P1",
@@ -140,7 +160,8 @@
    "name_local": "पंप 1",
    "type": "pump",
    "source": "pump/id_00",
-   "shape": "pump"
+   "shape": "pump",
+   "motor_hp": 5
   },
   {
    "id": "C-F1",
@@ -149,7 +170,8 @@
    "name_local": "ब्लोअर 1",
    "type": "fan",
    "source": "fan/id_02",
-   "shape": "motor"
+   "shape": "motor",
+   "motor_hp": 3
   },
   {
    "id": "C-F2",
@@ -158,7 +180,8 @@
    "name_local": "ब्लोअर 2",
    "type": "fan",
    "source": "fan/id_02",
-   "shape": "motor"
+   "shape": "motor",
+   "motor_hp": 3
   },
   {
    "id": "C-G1",
@@ -167,7 +190,8 @@
    "name_local": "आटा चक्की 1",
    "type": "gearbox",
    "source": "gearbox/section_02",
-   "shape": "mill"
+   "shape": "mill",
+   "motor_hp": 10
   }
  ],
  "nominal_rpm": {
@@ -175,5 +199,6 @@
   "fan": 960,
   "gearbox": 1440
  },
- "_rpm_note": "ASSUMED nameplate motor speeds, used only to turn the belts and pulleys in the 3D view. MIMII gives no speed for its machines; nothing is computed from these."
+ "_rpm_note": "ASSUMED nameplate motor speeds, used only to turn the belts and pulleys in the 3D view. MIMII gives no speed for its machines; nothing is computed from these.",
+ "_hp_note": "motor_hp per machine is an ASSUMPTION (typical small-factory motors); it sizes the rewinding cost in diagnosis cards."
 }

@@ -1,9 +1,21 @@
 {
  "_note": "ASSUMPTIONS for the demo, not measurements or quotes. A real factory enters its own numbers here. Used for rupees at risk (scheduling) and the savings report.",
  "currency": "INR",
- "unplanned_downtime_hours": {"pump": 16, "fan": 12, "gearbox": 24},
- "output_per_hour_inr": {"A": 6000, "B": 8000, "C": 5000},
- "workers_idle": {"pump": 4, "fan": 3, "gearbox": 6},
+ "unplanned_downtime_hours": {
+  "pump": 16,
+  "fan": 12,
+  "gearbox": 24
+ },
+ "output_per_hour_inr": {
+  "A": 6000,
+  "B": 8000,
+  "C": 5000
+ },
+ "workers_idle": {
+  "pump": 4,
+  "fan": 3,
+  "gearbox": 6
+ },
  "wage_per_hour_inr": 90,
  "emergency_part_markup": 0.35,
  "_explain": {
@@ -11,6 +23,8 @@
   "output_per_hour_inr": "contribution lost per hour the factory's line is stopped",
   "workers_idle": "workers paid but idle while this machine is down",
   "wage_per_hour_inr": "wage per worker-hour",
-  "emergency_part_markup": "extra paid for parts bought the same day vs planned (parts prices from parts_mock.json, also MOCK)"
- }
+  "emergency_part_markup": "extra paid for parts bought the same day vs planned (parts prices from parts_mock.json, also MOCK)",
+  "technician_rate_inr_per_hour": "labour rate of a local mechanic or fitter (assumption, no published figure used)"
+ },
+ "technician_rate_inr_per_hour": 250
 }

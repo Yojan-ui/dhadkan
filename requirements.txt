@@ -14,3 +14,4 @@ anthropic==2.8.0
 faster-whisper==1.2.1
 remotezip==0.12.6
 reportlab==5.1.0
+PyYAML==6.0.3
