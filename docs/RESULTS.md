@@ -47,6 +47,47 @@ target domain):
 Alarm level per machine = 95th percentile of its 10 held-out normal training clips, so about 1 in
 20 healthy readings crosses it by design.
 
+## 1b. Against a loudness (RMS) threshold, and what it costs to run
+
+Record: `docs/runs/listen_20261116T111559Z.json`. RMS baseline: each clip's log10 RMS against the machine's own normal
+clips (median, MAD, two-sided), on the same test clips as section 1. AUC % / pAUC %.
+
+| machine unit | autoencoder AUC | autoencoder pAUC | RMS AUC | RMS pAUC | better |
+|---|---|---|---|---|---|
+| fan/id_00 | 51.3 | 49.5 | 91.2 | 83.5 | RMS |
+| fan/id_02 | 59.9 | 52.6 | 95.3 | 91.2 | RMS |
+| fan/id_04 | 47.8 | 51.4 | 90.0 | 85.7 | RMS |
+| fan/id_06 | 62.3 | 51.5 | 100.0 | 100.0 | RMS |
+| pump/id_00 | 61.4 | 54.4 | 90.1 | 82.7 | RMS |
+| pump/id_02 | 47.4 | 49.7 | 86.7 | 75.1 | RMS |
+| pump/id_04 | 84.9 | 69.2 | 71.6 | 63.5 | autoencoder |
+| pump/id_06 | 61.2 | 52.0 | 71.5 | 72.8 | RMS |
+| slider/id_00 | 94.7 | 76.3 | 100.0 | 100.0 | RMS |
+| slider/id_02 | 71.7 | 55.0 | 89.9 | 79.1 | RMS |
+| slider/id_04 | 83.4 | 66.3 | 86.6 | 83.9 | RMS |
+| slider/id_06 | 63.3 | 51.6 | 42.2 | 48.7 | autoencoder |
+| valve/id_00 | 50.5 | 50.3 | 100.0 | 100.0 | RMS |
+| valve/id_02 | 59.3 | 51.4 | 91.6 | 83.6 | RMS |
+| valve/id_04 | 57.9 | 51.8 | 77.1 | 74.5 | RMS |
+| valve/id_06 | 48.9 | 48.8 | 35.8 | 49.3 | autoencoder |
+| gearbox/section_00 | 57.0 | 52.6 | 51.0 | 52.6 | autoencoder |
+| gearbox/section_01 | 74.8 | 59.2 | 99.8 | 98.7 | RMS |
+| gearbox/section_02 | 63.5 | 47.4 | 72.2 | 72.4 | RMS |
+
+**The loudness threshold has the higher AUC on 15 of 19 units.**
+
+Edge cost of the exported .tflite on arm64 (Darwin, laptop CPU, not a phone):
+
+| type | size | ms / 1.06 s window (1 thread) | ms / 10 s reading (log-mel + model, 4 threads) |
+|---|---|---|---|
+| fan | 255 KB | 3.335 | 63.0 |
+| pump | 255 KB | 3.328 | 63.1 |
+| slider | 256 KB | 3.341 | 63.7 |
+| valve | 255 KB | 3.335 | 63.9 |
+| gearbox | 256 KB | 3.317 | 63.9 |
+
+Battery: not measured (not measurable without the Android app (not built); laptop CPU timings only).
+
 ## 2. Fault type (CWRU-trained classifier)
 
 Record: `docs/runs/faulttype_20261116T060823Z.json`. Labels from CWRU's own file listing; 48 recordings,
@@ -101,6 +142,12 @@ These notes are written by hand. Every number they refer to is in the generated 
   Valve faults are short clicks, and averaging reconstruction error over a 10 s clip washes them out.
 - **Below the DCASE baseline on most IDs.** The baseline trained on every normal clip; we used the
   first 100 per ID (download bandwidth). We did not tune the scoring on the test split to close the gap.
+- **A plain loudness threshold beats our autoencoder on most units** (section 1b). Each clip's
+  loudness against the machine's own normal separates faults better than reconstruction error on
+  the official split. Part of this may be a recording artifact (faulty clips recorded at different
+  levels), and in a real shed loudness also moves with background noise (the noisy-shed flag in
+  edge/adapt.py exists for that). We have not switched detectors: any combination chosen now would
+  be tuned on the test split we already looked at. It needs fresh data, from field recordings.
 - **Consequence on the dashboard.** A machine's countdown only appears when its recorded faults score
   above its alarm level. On these models that holds for only two of the 19 units, and for none of the
   units the scripted MIMII story replays (blowers on fan id_00, pumps on id_00/id_02, gearbox drives).

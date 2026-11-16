@@ -8,6 +8,7 @@ from server.sim import Cluster
 CFG = {
     "start": "2026-11-09T06:00:00",
     "tick_hours": 8,
+    "learning_days": 0,  # these tests are about the status logic, not the learning period
     "road_kmph": 20,
     "technician": {"name": "Ramesh (mistri)", "name_local": "रमेश", "xy_km": [0, 0], "hours_per_day": 7},
     "service_hours": {"pump": 1.0, "fan": 0.75, "gearbox": 1.5},
@@ -167,3 +168,16 @@ def test_single_stray_match_is_not_early(cluster):
     cluster.db.commit()
     r = {x["machine_id"]: x for x in agent.Tools(cluster, "t", "t").get_risk_ranking()}
     assert r["B-P2"]["status"] == "ok"
+
+
+def test_new_machine_learns_before_it_can_alarm(tmp_path):
+    """A machine raises no alarm and gets no rupees at risk while it is still learning its normal."""
+    import copy
+
+    from server import agent
+
+    c = Cluster(tmp_path / "l.db", tmp_path / "lr.db", cluster={**copy.deepcopy(CFG), "learning_days": 7})
+    c.step()
+    rows = agent.Tools(c, "view", "test").get_risk_ranking()
+    assert rows and all(r["status"] == "learning" and r["rupees_at_risk"] == 0 for r in rows)
+    assert rows[0]["learning"] == {"day": 1, "of": 7}

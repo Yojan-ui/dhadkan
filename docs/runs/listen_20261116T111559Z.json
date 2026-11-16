@@ -1,0 +1,193 @@
+{
+ "run_id": "20261116T111559Z",
+ "device": {
+  "machine": "arm64",
+  "processor": "arm",
+  "system": "Darwin",
+  "python": "3.12.16"
+ },
+ "battery": null,
+ "battery_reason": "not measurable without the Android app (not built); laptop CPU timings only",
+ "rms_baseline": {
+  "fan": {
+   "fan/id_00": {
+    "auc": 0.911965601965602,
+    "pauc": 0.8352515194620458,
+    "n_normal": 100,
+    "n_anomalous": 407,
+    "n_reference": 100
+   },
+   "fan/id_02": {
+    "auc": 0.9532033426183844,
+    "pauc": 0.9118897522357425,
+    "n_normal": 100,
+    "n_anomalous": 359,
+    "n_reference": 100
+   },
+   "fan/id_04": {
+    "auc": 0.9003160919540231,
+    "pauc": 0.8566243194192378,
+    "n_normal": 100,
+    "n_anomalous": 348,
+    "n_reference": 100
+   },
+   "fan/id_06": {
+    "auc": 1.0,
+    "pauc": 1.0,
+    "n_normal": 100,
+    "n_anomalous": 361,
+    "n_reference": 100
+   }
+  },
+  "pump": {
+   "pump/id_00": {
+    "auc": 0.9013286713286713,
+    "pauc": 0.8270150901729849,
+    "n_normal": 100,
+    "n_anomalous": 143,
+    "n_reference": 100
+   },
+   "pump/id_02": {
+    "auc": 0.8671171171171171,
+    "pauc": 0.7510668563300142,
+    "n_normal": 100,
+    "n_anomalous": 111,
+    "n_reference": 100
+   },
+   "pump/id_04": {
+    "auc": 0.7161,
+    "pauc": 0.6352631578947369,
+    "n_normal": 100,
+    "n_anomalous": 100,
+    "n_reference": 100
+   },
+   "pump/id_06": {
+    "auc": 0.7150000000000001,
+    "pauc": 0.7275541795665634,
+    "n_normal": 100,
+    "n_anomalous": 102,
+    "n_reference": 100
+   }
+  },
+  "slider": {
+   "slider/id_00": {
+    "auc": 1.0,
+    "pauc": 1.0,
+    "n_normal": 100,
+    "n_anomalous": 356,
+    "n_reference": 100
+   },
+   "slider/id_02": {
+    "auc": 0.8988014981273408,
+    "pauc": 0.7908535383402326,
+    "n_normal": 100,
+    "n_anomalous": 267,
+    "n_reference": 100
+   },
+   "slider/id_04": {
+    "auc": 0.8661235955056179,
+    "pauc": 0.8388527498521585,
+    "n_normal": 100,
+    "n_anomalous": 178,
+    "n_reference": 100
+   },
+   "slider/id_06": {
+    "auc": 0.4220224719101124,
+    "pauc": 0.4872856298048492,
+    "n_normal": 100,
+    "n_anomalous": 89,
+    "n_reference": 100
+   }
+  },
+  "valve": {
+   "valve/id_00": {
+    "auc": 1.0,
+    "pauc": 1.0,
+    "n_normal": 100,
+    "n_anomalous": 119,
+    "n_reference": 100
+   },
+   "valve/id_02": {
+    "auc": 0.9160833333333334,
+    "pauc": 0.8364035087719297,
+    "n_normal": 100,
+    "n_anomalous": 120,
+    "n_reference": 100
+   },
+   "valve/id_04": {
+    "auc": 0.7710000000000001,
+    "pauc": 0.7451754385964913,
+    "n_normal": 100,
+    "n_anomalous": 120,
+    "n_reference": 100
+   },
+   "valve/id_06": {
+    "auc": 0.35774999999999996,
+    "pauc": 0.49298245614035086,
+    "n_normal": 100,
+    "n_anomalous": 120,
+    "n_reference": 100
+   }
+  },
+  "gearbox": {
+   "gearbox/section_00": {
+    "auc": 0.51,
+    "pauc": 0.5263157894736842,
+    "n_normal": 20,
+    "n_anomalous": 20,
+    "n_reference": 60
+   },
+   "gearbox/section_01": {
+    "auc": 0.9974999999999999,
+    "pauc": 0.986842105263158,
+    "n_normal": 20,
+    "n_anomalous": 20,
+    "n_reference": 60
+   },
+   "gearbox/section_02": {
+    "auc": 0.7225,
+    "pauc": 0.7236842105263157,
+    "n_normal": 20,
+    "n_anomalous": 20,
+    "n_reference": 60
+   }
+  }
+ },
+ "edge": {
+  "fan": {
+   "size_bytes": 261576,
+   "ms_per_window_1_threads": 3.335,
+   "ms_per_window_4_threads": 3.276,
+   "ms_per_10s_reading_4_threads": 63.0,
+   "windows_per_reading": 19
+  },
+  "pump": {
+   "size_bytes": 261496,
+   "ms_per_window_1_threads": 3.328,
+   "ms_per_window_4_threads": 3.301,
+   "ms_per_10s_reading_4_threads": 63.1,
+   "windows_per_reading": 19
+  },
+  "slider": {
+   "size_bytes": 261640,
+   "ms_per_window_1_threads": 3.341,
+   "ms_per_window_4_threads": 3.303,
+   "ms_per_10s_reading_4_threads": 63.7,
+   "windows_per_reading": 19
+  },
+  "valve": {
+   "size_bytes": 261592,
+   "ms_per_window_1_threads": 3.335,
+   "ms_per_window_4_threads": 3.309,
+   "ms_per_10s_reading_4_threads": 63.9,
+   "windows_per_reading": 19
+  },
+  "gearbox": {
+   "size_bytes": 261664,
+   "ms_per_window_1_threads": 3.317,
+   "ms_per_window_4_threads": 3.297,
+   "ms_per_10s_reading_4_threads": 63.9,
+   "windows_per_reading": 19
+  }
+ }
+}

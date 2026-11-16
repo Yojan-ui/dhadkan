@@ -4,7 +4,7 @@ import { inr } from "../theme";
 import { HealthRing } from "./bits";
 import { alertWord } from "./Diagnosis";
 
-const RANK: Record<string, number> = { alarm: 0, early_match: 0, watch: 1, ok: 2, no_data: 3 };
+const RANK: Record<string, number> = { alarm: 0, early_match: 0, watch: 1, ok: 2, learning: 2, no_data: 3 };
 const FAULT: Record<string, string> = {
   bearing: "bearing",
   imbalance: "imbalance",
@@ -24,6 +24,8 @@ export function shortReason(m: Machine) {
       return `Sounds like ${m.registry?.from_area ?? "another shed"}'s ${(m.registry?.fault ?? "fault").replace("_", " ")} fault`;
     case "watch":
       return m.days_rising > 1 ? `Near its alarm, worse ${m.days_rising} days` : `Near its alarm (${pct}%)`;
+    case "learning":
+      return `Learning its normal · day ${m.learning?.day ?? "?"} of ${m.learning?.of ?? "?"}`;
     case "no_data":
       return "No reading yet";
     default:
@@ -119,8 +121,9 @@ export function Attention({
   onHover: (id: string | null) => void;
 }) {
   const sorted = sortByAttention(machines);
-  const need = sorted.filter((m) => m.status !== "ok" && m.status !== "no_data");
-  const fine = sorted.filter((m) => m.status === "ok" || m.status === "no_data");
+  const quiet = (m: Machine) => m.status === "ok" || m.status === "no_data" || m.status === "learning";
+  const need = sorted.filter((m) => !quiet(m));
+  const fine = sorted.filter(quiet);
   const openFor = (id: string) => state.messages.find((x) => x.machine === id && x.approved === null);
   const row = (m: Machine) => (
     <Row

@@ -186,6 +186,13 @@ def summary(ev: dict[str, Any] | None, ft: dict[str, Any] | None, ims: dict[str,
             b = BASELINE_AVG[mtype]
             rows.append(f"| {mtype}: fault vs normal sound (DCASE 2020 official test split) "
                         f"| AUC {pct(auc)}% · pAUC {pct(pauc)}% | DCASE baseline {b[0]}% · {b[1]}% |")  # fmt: skip
+    ls, _ = newest("listen")
+    if ls and ev:
+        pairs = [(ev["types"][t]["per_unit"].get(u), m) for t, us in ls["rms_baseline"].items() if t in ev["types"]
+                 for u, m in us.items()]  # fmt: skip
+        pairs = [(a, m) for a, m in pairs if a and m]
+        rms_wins = sum(m["auc"] > a["auc"] for a, m in pairs)
+        rows.append(f"| loudness (RMS) threshold vs our autoencoder, same test clips | RMS has the higher AUC on {rms_wins} of {len(pairs)} units | failure case |")  # fmt: skip
     gb = ((ev or {}).get("types", {}).get("gearbox") or {}).get("conditions", {})
     if gb.get("source"):
         rows.append(f"| gearbox (MIMII DUE, source domain) | AUC {pct(gb['source']['auc'])}% · pAUC {pct(gb['source']['pauc'])}% | – |")  # fmt: skip
@@ -225,6 +232,39 @@ def fill_markers(path: Path, lines: list[str]) -> None:
     path.write_text(head + start + "\n" + "\n".join([*lines, "", note]) + "\n" + end + tail, encoding="utf-8")
 
 
+def listen_section(ls: dict[str, Any], path: Path, ev: dict[str, Any] | None) -> list[str]:
+    out = [
+        "## 1b. Against a loudness (RMS) threshold, and what it costs to run",
+        "",
+        f"Record: `docs/runs/{path.name}`. RMS baseline: each clip's log10 RMS against the machine's own normal",
+        "clips (median, MAD, two-sided), on the same test clips as section 1. AUC % / pAUC %.",
+        "",
+        "| machine unit | autoencoder AUC | autoencoder pAUC | RMS AUC | RMS pAUC | better |",
+        "|---|---|---|---|---|---|",
+    ]
+    wins = total = 0
+    for mtype, units in ls["rms_baseline"].items():
+        for unit, m in sorted(units.items()):
+            a = ((ev or {}).get("types", {}).get(mtype, {}).get("per_unit", {}) or {}).get(unit)
+            if not m or not a:
+                continue
+            total += 1
+            better = "autoencoder" if a["auc"] > m["auc"] else "RMS"
+            wins += better == "RMS"
+            out.append(
+                f"| {unit} | {pct(a['auc'])} | {pct(a['pauc'])} | {pct(m['auc'])} | {pct(m['pauc'])} | {better} |"
+            )
+    out += ["", f"**The loudness threshold has the higher AUC on {wins} of {total} units.**", "",
+            f"Edge cost of the exported .tflite on {ls['device']['machine']} ({ls['device']['system']}, laptop CPU, not a phone):", "",
+            "| type | size | ms / 1.06 s window (1 thread) | ms / 10 s reading (log-mel + model, 4 threads) |", "|---|---|---|---|"]  # fmt: skip
+    for mtype, e in ls["edge"].items():
+        out.append(
+            f"| {mtype} | {e['size_bytes'] / 1024:.0f} KB | {e['ms_per_window_1_threads']} | {e['ms_per_10s_reading_4_threads']} |"
+        )
+    out += ["", f"Battery: not measured ({ls['battery_reason']}).", ""]
+    return out
+
+
 def main() -> None:
     ev, evp = newest("eval")
     ft, ftp = newest("faulttype")
@@ -238,6 +278,9 @@ def main() -> None:
     ]
     if ev and evp:
         lines += anomaly_section(ev, evp)
+    ls, lsp = newest("listen")
+    if ls and lsp:
+        lines += listen_section(ls, lsp, ev)
     if ft and ftp:
         lines += classifier_section(ft, ftp)
     if ims and imsp:

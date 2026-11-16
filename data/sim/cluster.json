@@ -200,5 +200,7 @@
   "gearbox": 1440
  },
  "_rpm_note": "ASSUMED nameplate motor speeds, used only to turn the belts and pulleys in the 3D view. MIMII gives no speed for its machines; nothing is computed from these.",
- "_hp_note": "motor_hp per machine is an ASSUMPTION (typical small-factory motors); it sizes the rewinding cost in diagnosis cards."
+ "_hp_note": "motor_hp per machine is an ASSUMPTION (typical small-factory motors); it sizes the rewinding cost in diagnosis cards.",
+ "learning_days": 7,
+ "_learning_note": "ASSUMPTION: days a newly installed machine only learns its normal and raises no alarm (spec: 3-7 days). Demo mode's NASA IMS bearing learns in the IMS learning window instead (first 10% of its run, 0.7 days), because the whole test lasted 7 days."
 }

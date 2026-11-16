@@ -15,6 +15,8 @@ from collections import defaultdict
 from datetime import timedelta
 from typing import Any
 
+from edge import adapt
+
 from . import alerts, costs, forecast, registry, route
 from .config import PARTS
 from .sim import Cluster
@@ -136,6 +138,12 @@ class Tools:
                 continue
             risk, matched, status = status_of(hist[-3:])
             latest = hist[-1]
+            learning = None  # a newly installed machine learns its normal first and raises no alarm
+            if not m["source"].startswith("ims/"):  # Demo mode's bearing learned in the IMS learning window
+                days = (latest["tick"] - hist[0]["tick"] + 1) * self.c.cfg["tick_hours"] / 24
+                learning = adapt.learning_progress(days, self.c.cfg.get("learning_days", adapt.LEARNING_DAYS))
+            if learning:
+                status = "learning"
 
             fp = None
             if latest["match_fp"] is not None:
@@ -165,7 +173,8 @@ class Tools:
                     "status": status,
                     "known_fault": known,
                     "days_to_fault_level": {k: est.get(k) for k in ("status", "low", "mid", "high", "level")},
-                    "rupees_at_risk": round(p_soon * cost["breakdown_cost_inr"]),
+                    "rupees_at_risk": 0 if learning else round(p_soon * cost["breakdown_cost_inr"]),
+                    "learning": learning,
                     "registry": (
                         None
                         if fp is None

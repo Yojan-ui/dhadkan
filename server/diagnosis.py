@@ -80,6 +80,8 @@ def validate(kb: dict[str, Any]) -> None:
 
 def severity(status: str, est: dict[str, Any] | None, days_at_fault: float = 0.0) -> str | None:
     """Map the anomaly status and the days-to-fault-level estimate to a severity (None = no card)."""
+    if status == "learning":  # still learning this machine's normal: nothing to diagnose yet
+        return None
     r = load()["severity"]["rules"]
     est = est or {}
     if est.get("status") == "at_fault_level" and days_at_fault >= r["replace_after_days_at_fault"]:

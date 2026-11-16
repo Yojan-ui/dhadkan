@@ -267,6 +267,7 @@ class Live:
                         "status": r.get("status", "no_data"),
                         "days_rising": r.get("days_rising", 0),
                         "known_fault": r.get("known_fault"),
+                        "learning": r.get("learning"),
                         "fault_name": self._fault_name(mid, r.get("known_fault")),
                         "registry": r.get("registry"),
                         "forecast": self._forecast(mid, hist),

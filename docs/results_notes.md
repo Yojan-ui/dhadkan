@@ -12,6 +12,12 @@ These notes are written by hand. Every number they refer to is in the generated 
   Valve faults are short clicks, and averaging reconstruction error over a 10 s clip washes them out.
 - **Below the DCASE baseline on most IDs.** The baseline trained on every normal clip; we used the
   first 100 per ID (download bandwidth). We did not tune the scoring on the test split to close the gap.
+- **A plain loudness threshold beats our autoencoder on most units** (section 1b). Each clip's
+  loudness against the machine's own normal separates faults better than reconstruction error on
+  the official split. Part of this may be a recording artifact (faulty clips recorded at different
+  levels), and in a real shed loudness also moves with background noise (the noisy-shed flag in
+  edge/adapt.py exists for that). We have not switched detectors: any combination chosen now would
+  be tuned on the test split we already looked at. It needs fresh data, from field recordings.
 - **Consequence on the dashboard.** A machine's countdown only appears when its recorded faults score
   above its alarm level. On these models that holds for only two of the 19 units, and for none of the
   units the scripted MIMII story replays (blowers on fan id_00, pumps on id_00/id_02, gearbox drives).

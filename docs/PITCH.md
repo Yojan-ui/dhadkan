@@ -83,6 +83,7 @@ pretend a message went out. Show the built message in the Log drawer instead.
 | pump: fault vs normal sound (DCASE 2020 official test split) | AUC 63.7% · pAUC 56.3% | DCASE baseline 72.89% · 59.99% |
 | slider: fault vs normal sound (DCASE 2020 official test split) | AUC 78.3% · pAUC 62.3% | DCASE baseline 84.76% · 66.53% |
 | valve: fault vs normal sound (DCASE 2020 official test split) | AUC 54.1% · pAUC 50.6% | DCASE baseline 66.28% · 50.98% |
+| loudness (RMS) threshold vs our autoencoder, same test clips | RMS has the higher AUC on 15 of 19 units | failure case |
 | gearbox (MIMII DUE, source domain) | AUC 65.9% · pAUC 50.4% | – |
 | fault type, CWRU bearing load never seen in training | accuracy 93.0% (mean of 4 loads) | 4 classes |
 | fault type, CWRU fault size never seen (0.028 in) | accuracy 48.0% | failure case |

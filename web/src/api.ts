@@ -4,7 +4,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 
 export type Shape = "pump" | "motor" | "loom" | "mill";
-export type Status = "ok" | "watch" | "alarm" | "early_match" | "no_data";
+export type Status = "ok" | "watch" | "alarm" | "early_match" | "learning" | "no_data";
 
 export interface Registry {
   cosine: number;
@@ -42,6 +42,8 @@ export interface Machine {
   status: Status;
   days_rising: number;
   known_fault: string | null;
+  /** learning this machine's normal (no alarms yet): day k of n */
+  learning?: { day: number; of: number } | null;
   /** the fault the diagnosis card names (CWRU classifier first, then the owner's word) */
   fault_name?: { en: string; hi: string; mr: string } | null;
   registry: Registry | null;
