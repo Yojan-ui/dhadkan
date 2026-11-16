@@ -91,7 +91,9 @@ def test_details_then_book_and_no_machine_is_touched(world):
     raw, headers = signed(wa_reply(OWNER_A, "3"))
     handled = client.post("/webhooks/whatsapp", content=raw, headers=headers).json()["handled"]
     assert handled[0]["choice"] == "details"
-    assert rec.sent[-1]["to"] == OWNER_A and "Repairable:" in rec.sent[-1]["text"]
+    assert (
+        rec.sent[-1]["to"] == OWNER_A and "मरम्मत हो सकती है:" in rec.sent[-1]["text"]
+    )  # labels in the owner's language
     assert next(m for m in live.messages() if m["machine"] == "A-G1")["approved"] is None
     raw, headers = signed(wa_reply(OWNER_A, "1"))
     assert (

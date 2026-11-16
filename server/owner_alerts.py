@@ -19,6 +19,24 @@ if TYPE_CHECKING:
 ALERT_DIR = DATA / "alerts"
 
 
+# Labels of the "3 = details" reply. Misuse causes, warranty notes and the repairable reason exist in
+# English only in server/faults.yaml, so those stay English.
+DETAIL_LABELS = {
+    "en": {"repairable": "Repairable", "yes": "yes", "no": "no", "fix": "Fix", "incl_labour": "incl. labour",
+           "caused_by": "Usually caused by", "warranty": "Warranty", "ask_dealer": "ask the dealer",
+           "money": "Fix now ~₹{lo}-{hi} (with planned downtime). Wait {d} days: {p}% chance of a breakdown costing ~₹{cost}."},
+    "hi": {"repairable": "मरम्मत हो सकती है", "yes": "हाँ", "no": "नहीं", "fix": "इलाज", "incl_labour": "मज़दूरी सहित",
+           "caused_by": "आम कारण", "warranty": "वारंटी", "ask_dealer": "डीलर से पूछें",
+           "money": "अभी ठीक कराएँ ~₹{lo}-{hi} (तय बंदी सहित)। {d} दिन रुकें तो: {p}% संभावना ब्रेकडाउन की, खर्च ~₹{cost}।"},
+    "mr": {"repairable": "दुरुस्ती होऊ शकते", "yes": "हो", "no": "नाही", "fix": "उपाय", "incl_labour": "मजुरीसह",
+           "caused_by": "नेहमीची कारणे", "warranty": "वॉरंटी", "ask_dealer": "डीलरला विचारा",
+           "money": "आत्ता दुरुस्ती ~₹{lo}-{hi} (ठरवलेल्या बंदीसह). {d} दिवस थांबलात तर: {p}% शक्यता ब्रेकडाउनची, खर्च ~₹{cost}."},
+    "hi_latn": {"repairable": "Marammat ho sakti hai", "yes": "haan", "no": "nahi", "fix": "Ilaaj", "incl_labour": "mazdoori sahit",
+                "caused_by": "Aam kaaran", "warranty": "Warranty", "ask_dealer": "dealer se poochhein",
+                "money": "Abhi theek karayein ~₹{lo}-{hi} (tay bandi sahit). {d} din rukein to: {p}% sambhavna breakdown ki, kharcha ~₹{cost}."},
+}  # fmt: skip
+
+
 class OwnerAlerts:
     def __init__(
         self, live: "Live", node_db: Path | None = None, providers: tuple[Any, Any] | None = None
@@ -35,6 +53,15 @@ class OwnerAlerts:
     @property
     def provider(self) -> str:
         return str(self.notifier.wa.name)
+
+    def owner_lang(self, mid: str) -> str:
+        """WhatsApp language: Demo mode's choice, else DHADKAN_LANG_<factory> (e.g. hi_latn), else the factory's."""
+        f = self.live.c.machines[mid]["factory"]
+        return (
+            self.lang_override.get(mid)
+            or env.get(f"DHADKAN_LANG_{f}")
+            or self.live.c.factories[f]["language"]
+        )
 
     def contact(self, factory: str, role: str = "owner", machine: str | None = None) -> str | None:
         if role == "owner" and machine in self.contact_override:
@@ -79,23 +106,24 @@ class OwnerAlerts:
         return diagnosis.message(c, name, c.get("days_rising", 0), lang)
 
     def details(self, mid: str, lang: str) -> str:
-        """Reply '3': the whole card, in the owner's language where the knowledge base has it."""
+        """Reply '3': the whole card in the owner's language (labels too; misuse causes are English-only)."""
         c = self.card(mid, lang)
         if c is None or c.get("fault") is None:
             return self.text(mid, lang) or ""
-        en = lang if lang in ("hi", "mr", "en") else "en"
+        lg = lang if lang in DETAIL_LABELS else "en"
+        L = DETAIL_LABELS[lg]
+        fx, money = c["fix"], c["money"]
         lines = [
-            f"{c['severity']['label'][en]} · {c['what'][en]}",
-            f"Repairable: {'yes' if c['repairable']['answer'] else 'no'}. {c['repairable']['why']}",
-            f"Fix: {c['fix']['part'][en]}; ~₹{c['fix']['total_inr'][0]:,}-{c['fix']['total_inr'][1]:,} incl. labour;"
-            f" {c['fix']['technician'][en]}.",
-            "Usually caused by: " + "; ".join(x["en"] for x in c["misuse"]) + ".",
-            "Warranty: " + (c["warranty"].get("period") or c["warranty"].get("note", "ask the dealer")),
-            f"Fix now ~₹{c['money']['fix_now_inr'][0]:,}-{c['money']['fix_now_inr'][1]:,} (with planned downtime). "
-            f"Wait {c['money']['wait_days']} days: {round(c['money']['p_fault_within_wait'] * 100)}% chance of a "
-            f"breakdown costing ~₹{c['money']['breakdown_inr']:,}.",
-            c["disclaimer"][en],
-        ]
+            f"{c['severity']['label'][lg]} · {c['what'][lg]}",
+            f"{L['repairable']}: {L['yes'] if c['repairable']['answer'] else L['no']}. {c['repairable']['why']}",
+            f"{L['fix']}: {fx['part'][lg]}; ~₹{fx['total_inr'][0]:,}-{fx['total_inr'][1]:,} {L['incl_labour']};"
+            f" {fx['technician'][lg]}.",
+            f"{L['caused_by']}: " + "; ".join(x["en"] for x in c["misuse"]) + ".",
+            f"{L['warranty']}: " + (c["warranty"].get("period") or c["warranty"].get("note", L["ask_dealer"])),
+            L["money"].format(lo=f"{money['fix_now_inr'][0]:,}", hi=f"{money['fix_now_inr'][1]:,}", d=money["wait_days"],
+                              p=round(money["p_fault_within_wait"] * 100), cost=f"{money['breakdown_inr']:,}"),
+            c["disclaimer"][lg],
+        ]  # fmt: skip
         return "\n".join(lines)
 
     # -- media ----------------------------------------------------------------
@@ -129,8 +157,7 @@ class OwnerAlerts:
         self, mid: str, message_id: int | None = None, to: str | None = None, lang: str | None = None
     ) -> dict[str, Any] | None:
         m = self.live.c.machines[mid]
-        f = self.live.c.factories[m["factory"]]
-        lang = lang or self.lang_override.get(mid) or f["language"]
+        lang = lang or self.owner_lang(mid)
         c = self.card(mid, lang)
         if c is None:
             return None
@@ -171,8 +198,11 @@ class OwnerAlerts:
             return self.contact(factory, "supervisor"), self.live.c.factories[factory]["language"]
 
         def text(row: Any) -> str:
-            lang = self.live.c.factories[row["factory"]]["language"]
+            lang = (
+                row["lang"] or self.live.c.factories[row["factory"]]["language"]
+            )  # same language as the alert
             head = {"hi": "मालिक ने 2 घंटे में जवाब नहीं दिया। ", "mr": "मालकांनी 2 तासांत उत्तर दिले नाही. ",
+                    "hi_latn": "Maalik ne 2 ghante mein jawab nahi diya. ",
                     "en": "The owner has not replied in 2 hours. "}.get(lang, "")  # fmt: skip
             return head + row["body"]
 

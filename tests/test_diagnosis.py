@@ -139,3 +139,15 @@ def test_healthy_machine_gets_no_card():
         d.card({**MACHINE, "status": "ok", "forecast": {"status": "no_trend"}}, "A", "bearing_wear", 2, 1.5)
         is None
     )
+
+
+def test_roman_hindi_alert_matches_the_brief_style():
+    m = {"id": "A-G1", "type": "gearbox", "status": "alarm", "days_at_fault": 0,
+         "forecast": {"status": "estimate", "low": 3, "mid": 5, "high": 9, "crossings": [3, 5, 9]}}  # fmt: skip
+    c = d.card(m, "A", "bearing_wear", 2, 1.5, "hi_latn")
+    text = d.message(c, "Loom 1", 3, "hi_latn")
+    assert (
+        text.startswith("⚠ ") and "bearing ghis raha hai" in text and "3 din se aawaz badh rahi hai" in text
+    )
+    assert "Reply 1 = mistri bulao, 2 = baad mein, 3 = poori jaankari" in text
+    assert all(ord(ch) < 0x900 or ord(ch) > 0x97F for ch in text)  # no Devanagari
