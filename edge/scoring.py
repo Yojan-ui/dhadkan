@@ -32,9 +32,21 @@ def auc(y_true: ArrayLike, scores: ArrayLike) -> float:
 
 
 def pauc(y_true: ArrayLike, scores: ArrayLike, max_fpr: float = PAUC_MAX_FPR) -> float:
-    """Partial AUC over FPR in [0, max_fpr], normalised to [0, 1] by max_fpr.
+    """pAUC exactly as the official DCASE 2020 Task 2 baseline computes it, so it compares with the
+    published baseline numbers: `metrics.roc_auc_score(y_true, y_pred, max_fpr=param["max_fpr"])` in
+    01_test.py of github.com/y-kawagu/dcase2020_task2_baseline. That is sklearn's McClish-standardised
+    partial AUC: 0.5 = chance, 1.0 = perfect. The raw area is `pauc_raw`.
+    """
+    y = np.asarray(y_true).astype(bool)
+    if y.all() or not y.any():
+        raise ValueError("need both normal and anomalous scores")
+    return float(roc_auc_score(y, np.asarray(scores, dtype=float), max_fpr=max_fpr))
 
-    This is the DCASE 2020-2021 definition (not sklearn's McClish-corrected one).
+
+def pauc_raw(y_true: ArrayLike, scores: ArrayLike, max_fpr: float = PAUC_MAX_FPR) -> float:
+    """Raw partial AUC over FPR in [0, max_fpr], divided by max_fpr (chance = max_fpr / 2).
+
+    The formula on the DCASE task page; NOT what the baseline code reports (see `pauc`).
     """
     y = np.asarray(y_true).astype(bool)
     s = np.asarray(scores, dtype=float)

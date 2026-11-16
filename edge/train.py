@@ -67,7 +67,8 @@ def _metrics(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
     n_norm, n_anom = y.count(0), y.count(1)
     if not n_norm or not n_anom:
         return None
-    return {"auc": scoring.auc(y, s), "pauc": scoring.pauc(y, s), "n_normal": n_norm, "n_anomalous": n_anom}
+    return {"auc": scoring.auc(y, s), "pauc": scoring.pauc(y, s), "pauc_raw": scoring.pauc_raw(y, s),
+            "n_normal": n_norm, "n_anomalous": n_anom}  # fmt: skip
 
 
 def _alarm_rates(rows: list[dict[str, Any]], thr_by_unit: dict[str, float]) -> dict[str, float | None]:
@@ -310,6 +311,7 @@ def main() -> None:
             "threshold_quantile": THRESHOLD_QUANTILE,
             "match_quantile": MATCH_QUANTILE,
             "pauc_max_fpr": PAUC_MAX_FPR,
+            "pauc_definition": "sklearn roc_auc_score(max_fpr) = McClish, as the DCASE 2020 baseline code",
             "onset_mix": list(ONSET_MIX),
         },
         "types": {},

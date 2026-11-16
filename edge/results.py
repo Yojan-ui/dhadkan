@@ -66,7 +66,9 @@ def anomaly_section(ev: dict[str, Any], path: Path) -> list[str]:
         "windows; AUC and pAUC (FPR <= 0.1) per machine ID on the **official DCASE 2020 Task 2",
         "development test split** (every test clip). Training used the first "
         f"{ev.get('train_per_id', 'N')} normal clips per ID of the official train split, minus 10 held out for the alarm level;",
-        "the DCASE baseline trained on all of them. Numbers are AUC % / pAUC %.",
+        "the DCASE baseline trained on all of them. Numbers are AUC % / pAUC %. pAUC is computed exactly as",
+        "the baseline code does (`sklearn.metrics.roc_auc_score(..., max_fpr=0.1)`, McClish-standardised:",
+        "50 = chance), so the columns compare like with like; the raw partial area is in the record as `pauc_raw`.",
         "",
         "| machine | ID | Dhadkan AUC | Dhadkan pAUC | baseline AUC | baseline pAUC |",
         "|---|---|---|---|---|---|",
