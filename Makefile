@@ -1,12 +1,16 @@
-# Dhadkan. `make demo` is all you need after `make setup` (and the data + models, see README).
+# Dhadkan. From a fresh clone: make setup && make demo-data && make demo
 PY      ?= .venv/bin/python
+# Python 3.12 builds the venv (TensorFlow wheels); override with make setup PYTHON=/path/to/python3.12
+PYTHON  ?= $(shell command -v python3.12 2>/dev/null || command -v python3 2>/dev/null)
 PORT    ?= 8600
 WEB_SRC := $(shell find web/src web/index.html web/public -type f 2>/dev/null) web/package.json web/vite.config.ts
 
 .PHONY: setup data demo-data train results demo serve dev test lint fmt clean
 
 setup:                       ## venv, Python and web dependencies
-	python3.12 -m venv .venv
+	@$(PYTHON) -c 'import sys; sys.exit(0 if sys.version_info[:2] >= (3, 12) else "Python 3.12+ needed: make setup PYTHON=/path/to/python3.12")'
+	@$(PYTHON) -c 'import sys; v = sys.version_info[:2]; v != (3, 12) and print(f"note: Python {v[0]}.{v[1]}; tested on 3.12")'
+	$(PYTHON) -m venv .venv
 	$(PY) -m pip install -q -r requirements.txt -r requirements-dev.txt
 	cd web && npm ci
 
