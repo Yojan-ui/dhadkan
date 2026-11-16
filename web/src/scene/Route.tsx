@@ -114,7 +114,7 @@ export function RouteLabels({ plan, reduced }: { plan: RoutePlan; reduced: boole
                   ? s.point
                       .clone()
                       .setY(0.05)
-                      .setZ(s.point.z + 1.5)
+                      .add(new THREE.Vector3(1.6, 0, 1.5))
                   : s.point.clone().setY(0.35)
               }
             >

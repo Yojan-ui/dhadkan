@@ -1079,3 +1079,24 @@ kbd {
   color: var(--muted);
   margin-right: 2px;
 }
+
+/* phone top bar: numbers on one row, controls on the next */
+.is-phone .top {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+.is-phone .brand .mono {
+  display: none;
+}
+.is-phone .kpis {
+  gap: 18px;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+.is-phone .kpi-num {
+  font-size: 20px;
+}
+.is-phone .controls {
+  width: 100%;
+  justify-content: space-between;
+}

@@ -59,26 +59,34 @@ The registry API on its own: `uvicorn server.registry_api:create_app --factory -
 **First it records 14 days** (about 8 s): 42 readings per machine, each a real 10 s MIMII clip scored
 by the exported `.tflite` model, on a simulated clock (one reading every 8 h). From day 6, factory A's
 blower (A-F1) develops a *synthetic* fault: its abnormal recording mixed into its normal one, 3%
-stronger every reading. **Then it plays live**, one reading every 10 s, streamed at 2 Hz:
+stronger every reading. **Then it plays live**, one reading every 10 s, streamed at 2 Hz.
 
-1. **0:00** 3 sheds, 12 machines. Each machine shakes with its live window score, its floor ring fills
-   clockwise toward its own alarm level (grey, amber near, orange at alarm or on a registry match),
-   ripples rise with the clip's loudness, and each shed shows the rupees at risk in its machines.
+The screen has a top bar of big numbers (machines OK / watch / alert, rupees at risk in the next 2
+days, the technician's next stop), a **Needs attention** list on the left (sorted by status, rupees
+at risk and risk; click a row to fly to the machine), the 3D estate in the middle, and a right column
+that slides in with the selected machine or a drawer. Nothing is drawn over the scene.
+
+1. **0:00** 3 sheds in a row on one estate road, 12 machines. Each machine shakes with its live window
+   score and ripples with the clip's loudness. Only machines near or at alarm get a glowing ring
+   (amber near, orange at alarm or on a registry match); alerting machines also get a pulsing outline,
+   a soft orange light and a label (name · fault · days to fault level).
 2. **0:40** A-F1 becomes the recorded faulty machine itself: the simulated breakdown.
 3. **0:50** the owner's Hindi voice note ("ब्लोअर में खट-खट की आवाज़ आ रही है") is transcribed by
    local Whisper; "khat-khat" maps to *bearing* through the lexicon (weak label).
 4. **1:10** the fingerprint is published. Arcs go from A-F1 to every blower in the other sheds,
    labelled with the registry's real cosine against each machine's flag level. B-F1 (same blower
    model) then gets a *synthetic* fault onset.
-5. When B-F1 matches in 2 of its last 3 readings, its arc is redrawn and its ring pulses, the rules
-   agent plans the technician's day by rupees at risk, and the route draws itself with arrival times.
-6. The bottom bar shows the owner's SMS (Marathi for factory B, Hindi for A) with an English line
-   under it. **हो / Ho** books the visit and the technician marker drives the route.
+5. When B-F1 matches in 2 of its last 3 readings, a dashed arc joins it to A-F1 and stays while the
+   match holds, the rules agent plans the technician's day by rupees at risk, and the route draws
+   itself on the road with numbered stops and arrival times.
+6. Click B-F1 in the list: the right column opens with the owner's SMS (Marathi for factory B, Hindi
+   for A) and an English line under it. **हो / Ho** books the visit and the technician's van drives
+   the route.
 
-Click a shed (or press 1-3), then a machine:
+The right column for a machine (click a row, or a machine in the scene):
 
 - **Time machine.** A slider over the machine's last 14 days (arrow keys, Space to play). The 3D
-  machine's shake, its ring, the waterfall and every number rewind together to the chosen reading.
+  machine's shake, its ring, the spectrogram and every number rewind together to the chosen reading.
   The strip marks the **first warning** (first reading at alarm or registry match) and **breaks
   down** (the first reading that is the recorded faulty machine itself). What the owner said and what
   the registry matched later are hidden when you look at a day before they happened.
@@ -87,17 +95,23 @@ Click a shed (or press 1-3), then a machine:
   normal reading, a plain word for the pitch, a mechanic's rule of thumb (`server/sound_words.json`),
   and **Before / Now** 3-second clips of the same stretch.
 - **Days to fault level.** A range ("likely 2.6-6.5 days") with a projected band: see below.
-- **Play live sound / Play normal reference** (a held-out normal clip of the same unit), a 3D
-  waterfall of the reading, and the model's measured AUC for that machine type.
+- **Live sound**: a scrolling spectrogram (the band that changed in orange), **Play live** and
+  **Normal reference** (a held-out normal clip of the same unit), and the model's measured AUC for
+  that machine type.
 
-**Savings report (PDF)** in the breadcrumb (or the phone list) gives the factory owner one page:
+**Savings report (PDF)** (foot of the left list, the machine panel, or the phone list) gives the factory owner one page:
 downtime avoided, emergency part markup avoided, idle wages saved, the visits it counts, what is at
 risk now, and every assumption. It says on the page that the data is simulated and the costs are
 assumptions. **Operator** has every step as a button, including **Run (Claude)** when
 `ANTHROPIC_API_KEY` is set and the shed's signal switch; **Evaluation** shows the scores below;
-**Log** lists every agent tool call; **?** lists the keyboard shortcuts. Under 768 px wide the page
-is a 2D list with the same rings and never loads three.js. With `prefers-reduced-motion`, nothing
-shakes, ripples or tweens; every other transition is 300 ms or less, easing out.
+**Log** lists every agent tool call; **?** explains the scene and lists the keyboard shortcuts.
+Under 768 px wide the page is a 2D list with the same rings and never loads three.js. Camera moves
+ease over 800 ms, then the view sways slowly (paused while you drag); the sheds rise in on load,
+120 ms apart. With `prefers-reduced-motion`, nothing shakes, ripples, sways or tweens.
+
+The estate is a schematic: the sheds stand side by side, while travel times use their real
+distances. Belts and pulleys turn at **assumed** nameplate speeds (`nominal_rpm` in
+`data/sim/cluster.json`), slowed down to be visible; MIMII gives no machine speeds.
 
 ### What the replay showed (one logged run, not a statistic)
 
@@ -175,7 +189,8 @@ server/      API, registry and agent
   explain.py    which band changed, by how much, in words; 3 s before/now clips (sound_words.json)
   report.py     the owner's one-page savings PDF
   story.py      runs the replay script without waiting and logs it (docs/runs/story_*.json)
-web/         React + Vite + TypeScript, react-three-fiber (instanced meshes, ~10-14 draw calls)
+web/         React + Vite + TypeScript, react-three-fiber + postprocessing (N8AO, outline); ~26 draw calls
+             for the scene, ~65 per frame with the effect passes
 data/        download.py (Zenodo range requests), sim/ (cluster, cost assumptions, mock parts, voice notes), raw/ (ignored)
 docs/        DEMO.md, screenshots/ (before, after), media/, runs/ (every evaluation, ASR and story record cited here)
 tests/       pytest
