@@ -48,3 +48,6 @@ keys/
 data/labels/
 data/factories/
 runs/
+
+# per-clip summaries for edge/compare.py
+data/cache/
