@@ -102,9 +102,13 @@ def send(to: str, text: str, media_urls: list[str] | None = None) -> dict[str, A
     try:
         msg = _client(env.get("TWILIO_SID") or "", env.get("TWILIO_TOKEN") or "").messages.create(**kw)
     except Exception as e:
-        if content and getattr(e, "code", None) == NEEDS_TEMPLATE:
+        if getattr(e, "code", None) != NEEDS_TEMPLATE:
+            raise
+        if content:
             return _template(to, text)
-        raise
+        with _lock:  # no template: it goes out as the reply the next time this person writes
+            _pending.setdefault(to, []).append(text[:LIMIT])
+        return {"sid": None, "status": "queued_for_reply"}
     return {"sid": msg.sid, "status": msg.status}
 
 

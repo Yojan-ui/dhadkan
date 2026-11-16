@@ -183,14 +183,23 @@ def test_agent_refuses_invented_numbers_and_templates_fill_the_gap():
 
 
 @needs_ims
-def test_reply_to_a_template_gets_the_queued_full_alert_as_twiml(world, monkeypatch):
+def test_any_message_gets_the_current_alert_as_twiml_and_1_books(world, monkeypatch):
     from server import whatsapp
 
-    whatsapp._pending.clear()
-    whatsapp._pending["whatsapp:+919876500007"] = ["[Owner] Loom 4 full alert 1 Mechanic bulao"]
-    r = post(world[1], {"From": "whatsapp:+919876500007", "Body": "ok"})
-    assert r.status_code == 200 and "<Message>[Owner] Loom 4 full alert 1 Mechanic bulao</Message>" in r.text
-    assert whatsapp.take_pending("whatsapp:+919876500007") == []
+    for k, v in {"TWILIO_SID": "AC1", "TWILIO_WA_FROM": "whatsapp:+17372508034"}.items():
+        monkeypatch.setenv(k, v)
+    monkeypatch.setenv("DHADKAN_DRY_RUN", "0")
+    monkeypatch.setattr(
+        whatsapp, "_client", lambda *a: pytest.fail("a reply must go back as TwiML, not the API")
+    )
+    whatsapp._pending["whatsapp:+919876500007"] = ["stale queued message"]
+    r = post(world[1], {"From": "whatsapp:+919876500007", "Body": "hi"})
+    assert r.status_code == 200 and "stale" not in r.text
+    assert "Loom 4 (Shed A)" in r.text and wa_agent.OPTIONS in r.text and r.text.count("<Message>") == 1
+    r = post(world[1], {"From": "whatsapp:+919876500007", "Body": "1"})
+    assert (
+        "[Mechanic]" in r.text and "[Dealer]" in r.text
+    )  # booked: mechanic + dealer go back in the same reply
 
 
 @needs_ims

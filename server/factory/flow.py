@@ -429,7 +429,7 @@ class Flow:
         choice = parse_choice(text or "")
         if t is not None and choice:
             return self._answer(t, choice)
-        return self._ask_agent(mid, text or "")
+        return self.send_current(mid)
 
     def _close(self, tid: int) -> None:
         self.live.c.db.execute("UPDATE wa_threads SET answered=1 WHERE id=?", (tid,))
@@ -552,6 +552,24 @@ class Flow:
             return text
         except Exception as e:
             return f"(could not transcribe: {type(e).__name__})"
+
+    def send_current(self, mid: str) -> dict[str, Any]:
+        """Any other message from the owner: the machine's current alert, with 1/2/3 when a decision is due."""
+        st = (self.alerted(mid) or {}).get("level") or self.stage_of(mid)
+        if st in ("repair_soon", "stop_now", "replace"):
+            with self.lock:  # this message carries the decision now
+                self.live.c.db.execute("UPDATE wa_threads SET answered=1 WHERE machine=? AND role='owner' AND "
+                                       "expects='decision' AND answered=0", (mid,))  # fmt: skip
+                self.live.c.db.commit()
+            self.send(
+                mid, "owner", self.template(mid, "owner", st), stage=st, by="current", expects="decision"
+            )
+            return {"choice": "current_alert", "stage": st}
+        d = self.display(mid)
+        text = (self.template(mid, "owner", st) if st == "watch"
+                else f"[Owner] {d['name']} ({d['shed']}): abhi sab theek chal raha hai. Kuch badla to yahin batayenge.")  # fmt: skip
+        self.send(mid, "owner", text, stage=st, by="current")
+        return {"choice": "current_status", "stage": st}
 
     def _ask_agent(self, mid: str, text: str) -> dict[str, Any]:
         from .. import owner_agent
