@@ -54,6 +54,43 @@ flowchart LR
 | Setup | `server/onboard.py`, `data/presets.yaml` | WhatsApp onboarding, presets, factory profile, baseline clips | |
 | Demo | `server/sim.py`, `server/imsdemo.py`, `server/agent.py`, `server/route.py` | 3 simulated factories replaying real recordings; Demo mode (NASA IMS); route planning | |
 
+## Per-machine learning and the maintenance agent (PS 4.3 pass, 2026-11-16)
+
+```mermaid
+flowchart LR
+  subgraph Node["Factory node (phone / shed PC): works offline"]
+    DEV["phone mic / ESP32 vibration /<br/>upload / simulated<br/>server/ingest.py"] --> SUM["reading summary + quality<br/>edge/summary.py"]
+    SUM --> BL["this machine's baseline<br/>learning, versions, drift guard<br/>edge/baseline.py"]
+    BL --> DET["detector chosen on selection units<br/>edge/detectors.py, edge/compare.py"]
+    DET --> HE["health: status, urgency, confidence,<br/>time to threshold<br/>server/health.py, edge/rul.py"]
+    HE --> AG["maintenance agent<br/>case, plan, approvals, audit<br/>server/maint/agent.py"]
+    AG --> TL["technicians, parts, cited costs<br/>server/maint/tools.py"]
+    AG --> Q["action queue (sent once)"]
+  end
+  Q -->|"when online"| CL["cloud: audit replica,<br/>owner replies (WhatsApp)<br/>server/maint/sync.py"]
+  CL -->|"decisions"| AG
+  AG --> UI["?view=mill<br/>web/src/screens/Mill.tsx"]
+```
+
+| module | does |
+|---|---|
+| `edge/summary.py` | one reading → 254 numbers (loudness, mel band statistics, MFCC) + quality (clipped, dropout, too short); never audio |
+| `edge/detectors.py` | RMS, spectral shape, transient, MFCC-Mahalanobis, Isolation Forest, calibrated autoencoder; each fitted on one machine's normal readings, out-of-fold calibrated; explanation of what changed |
+| `edge/compare.py` | chooses the detector on selection units, reports on held-out units |
+| `edge/baseline.py` | per machine: learning period, baseline versions, readings never learned (high, during a case, after a restart, off, unusable), small drift adapts only if clear anomalies stay flagged, large drift needs the owner |
+| `edge/rul.py` | time to the maintenance threshold with a calibrated range; explicit insufficient-data, no-trend and at-threshold states; IMS leave-one-out evaluation |
+| `server/health.py` | readings → status, urgency (monitor, measure again, inspect, maintenance, urgent owner attention), confidence with named reasons, plain-word evidence, next check |
+| `server/maint/store.py` | the agent's memory: machines, cases, steps, idempotent actions, approvals, repairs, hash-chained audit |
+| `server/maint/agent.py` | one case per anomaly; steps persisted (restart resumes); gated paid actions; recovery from network, provider, technician and crash failures; verification against baseline v1 |
+| `server/maint/sync.py` | idempotent push of the audit chain (tampering refused), pull of the owner's WhatsApp decisions, first-decision-wins conflicts asked again |
+| `server/maint/evaluate.py` | 200 randomised fault-injection runs of the workflow |
+| `server/flourmill.py`, `server/mill_api.py` | the end-to-end story on recorded readings; `/api/mill/*` |
+| `server/ingest.py`, `hardware/`, `tools/sim_device.py` | device readings labelled live / upload / simulated, idempotent per device sequence number |
+
+Guardrails added in this pass (tested): `book_job` and `order_part` refuse without an approved
+approval of the right kind for the same case, checked when created and again when sent; questions
+expire when a case closes; a stop is only ever a question to the owner, whose answer is logged.
+
 ## Data and state
 
 - **Committed:** trained `.tflite` models and per-machine thresholds (`edge/models/`), the IMS demo pack, every evaluation

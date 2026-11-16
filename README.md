@@ -108,6 +108,15 @@ make demo      # web app + API on :8600, opens the browser
 Trained models and evaluation records are committed, so `make setup && make demo` runs without
 `make data` and `make train`, except the audio and vibration replay, which reads the raw files.
 
+**The flour-mill story (PS 4.3, start here):** `make serve`, then open
+`http://127.0.0.1:8600/?view=mill`. One chakki learns its own normal for 3 days, runs normally, then
+real recorded fault sounds arrive while the network is cut. Dhadkan detects the change, explains it,
+opens a case, finds a technician, cites typical costs and asks the owner. Nothing is booked until the
+owner says yes. After the visit it checks the machine against its original normal. Readings are real
+MIMII DUE gearbox recordings; the mill, people, stock, clock, network cut and repair are labelled demo
+or simulated. Headless: `make mill`. Device readings (phone, ESP32 vibration node, uploads):
+`/api/ingest`, try `python -m tools.sim_device --vibration --fault-after 30`.
+
 **Demo mode** (button in the top bar):
 1. It replays NASA IMS test 2, bearing 1 as Loom 1's motor bearing. That bearing failed on the outer
    race in February 2004 after about 7 days.
@@ -196,8 +205,20 @@ The summary below is written by `python -m edge.results` from the records in `do
 - **Claude's diagnosis is not evaluated:** `scripts/eval_understand.py` needs an API key.
 - **No field recordings and no owner interviews yet.** Every factory, owner and phone number in the
   demo is invented. `scripts/score_recording.py` and docs/FIELD_NOTES.md are ready for the first visit.
-- **The agent** has four tools: risk ranking, route, owner message and parts quote. None can control
-  a machine (`tests/test_guardrails.py`).
+- **The detector is the machine's own loudness.** Chosen on selection units and reported on held-out
+  units (RESULTS.md 1c): held-out AUC 0.72, false alarms 4.9%, and two held-out units at or below chance.
+  Loudness also moves with phone placement and shed noise; after a change of speed or load (gearbox
+  target domain) false alarms reach 40% and 60% on two of three sections. A recalibration needs the owner's approval for that reason.
+- **Time to threshold is rough.** On NASA IMS, errors are a week or more and the 80% range holds the
+  truth 57-89% of the time (RESULTS.md 3b). It is a maintenance planning range, never a failure date.
+- **The agent is evaluated on synthetic machines** (200 fault-injection runs, RESULTS.md 6) and one
+  recorded story (RESULTS.md 5). Its technicians are demo data and its stock is mock; a real factory
+  replaces `data/demo/technicians.json`. Post-repair readings in the story are normal recordings of
+  the same unit, not a real repair.
+- **ESP32 node untested on hardware.** `hardware/esp32_vibration` is written; the server side is
+  tested with a simulated device only.
+- **The agent cannot control a machine.** No tool stops, slows or switches one; paid actions need the
+  owner's approval for that case (`tests/test_maint_agent.py`, `tests/test_guardrails.py`).
 
 ## What is in here
 

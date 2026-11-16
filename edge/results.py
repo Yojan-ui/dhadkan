@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from . import results_more
 from .config import ROOT, RUNS
 
 # DCASE 2020 Task 2 baseline on the development test split (AUC %, pAUC % with p = 0.1), from
@@ -299,12 +300,15 @@ def main() -> None:
     ls, lsp = newest("listen")
     if ls and lsp:
         lines += listen_section(ls, lsp, ev)
+    lines += results_more.detectors_section()
     if ft and ftp:
         lines += classifier_section(ft, ftp)
     if ims and imsp:
         lines += ims_section(ims, imsp)
+    lines += results_more.rul_section()
     un, unp = newest("understand")
     lines += understand_section(un, unp)
+    lines += results_more.mill_section() + results_more.agent_section() + results_more.bench_section()
     lines += (
         (ROOT / "docs" / "results_notes.md").read_text().splitlines()
         if (ROOT / "docs" / "results_notes.md").exists()

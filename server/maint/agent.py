@@ -186,6 +186,9 @@ class MaintenanceAgent:
             return prev["result"]
         if prev and prev["status"] == "failed":
             raise Unavailable(prev["error"])
+        if prev and prev["status"] == "held":  # approved again: release it
+            self.s.set_action(idem, status="queued", next_try=0, error=None)
+            prev = self.s.action(idem)
         if prev is None:
             self.s.put_action(idem, cid, kind, payload)
             self.s.log("agent", "action_created", cid, kind=kind, purpose=purpose)
@@ -193,9 +196,17 @@ class MaintenanceAgent:
             raise Waiting(f"{kind} queued, retry at {prev['next_try']:.0f}")
         return self._send(idem)
 
+    def _approved(self, cid: str, kind: str) -> list[dict[str, Any]]:
+        return [a for a in self.s.approvals(cid, status="approved") if a["kind"] == GATED[kind]]
+
     def _send(self, idem: str) -> dict[str, Any]:
         a = self.s.action(idem)
         assert a is not None
+        if a["kind"] in GATED and not self._approved(a["case_id"], a["kind"]):
+            # checked again at send time: an approval can change while an action waits in the queue
+            self.s.set_action(idem, status="held", error="approval no longer valid")
+            self.s.log("agent", "blocked_without_approval", a["case_id"], kind=a["kind"], at="send")
+            raise ApprovalRequired(f"{a['kind']} held: the owner's approval is no longer valid")
         try:
             result = self.t.transport.call(a["kind"], a["payload"], idem)
         except ToolError as e:
@@ -223,7 +234,7 @@ class MaintenanceAgent:
             try:
                 self._send(a["idem"])
                 sent += 1
-            except (Waiting, Unavailable):
+            except (Waiting, Unavailable, ApprovalRequired):
                 waiting += 1
         return {"sent": sent, "waiting": waiting}
 
@@ -269,6 +280,13 @@ class MaintenanceAgent:
                 if now["status"] == "running":  # a step that re-planned (skipped itself) stays skipped
                     self.s.set_step(cid, step["idx"], status="waiting", error=str(w))
                     break
+                continue
+            except ApprovalRequired as e:
+                # the approval changed after it was checked (a conflicting answer arrived): ask again
+                wait = next((s for s in self.s.steps(cid) if s["name"] == "await_approval"), None)
+                if wait is not None:
+                    self.s.set_step(cid, wait["idx"], status="pending")
+                self.s.set_step(cid, step["idx"], status="waiting", error=str(e))
                 continue
             except ToolError as e:
                 n = step["attempts"] + 1

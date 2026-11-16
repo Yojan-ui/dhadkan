@@ -88,6 +88,63 @@ Edge cost of the exported .tflite on arm64 (Darwin, laptop CPU, not a phone):
 
 Battery: not measured (not measurable without the Android app (not built); laptop CPU timings only).
 
+## 1c. Machine-specific detectors: chosen on selection units, reported on held-out units
+
+Record: `docs/runs/compare_20261116T124439Z.json` (code sha256 74beef840b0b). Every detector is fitted on ONE
+machine's normal clips only (train + val), calibrated out-of-fold on them; the alarm is that machine's own
+95th percentile. The candidate is chosen by mean pAUC on the SELECTION units (pump/id_00, pump/id_02, fan/id_00, fan/id_02, valve/id_00, valve/id_02, slider/id_00, slider/id_02, gearbox/section_00, gearbox/section_01) and then reported on the HELD-OUT units (pump/id_04, pump/id_06, fan/id_04, fan/id_06, valve/id_04, valve/id_06, slider/id_04, slider/id_06, gearbox/section_02), which played no part in the choice.
+Precision depends on how many faulty clips a test set has (DCASE has about as many as normal ones);
+the false-alarm rate (FAR, share of normal test clips at or above the alarm) does not.
+
+**Chosen: `rms`.** No fusion beat it on the selection units, so none is used.
+
+| candidate | sel AUC | sel pAUC | held AUC | held pAUC | held precision | held recall | held F1 | held FAR |
+|---|---|---|---|---|---|---|---|---|
+| **rms** | 0.896 | 0.847 | 0.719 | 0.723 | 0.805 | 0.473 | 0.559 | 0.049 |
+| spectral | 0.594 | 0.521 | 0.555 | 0.518 | 0.487 | 0.078 | 0.127 | 0.047 |
+| transient | 0.596 | 0.518 | 0.579 | 0.504 | 0.570 | 0.206 | 0.286 | 0.178 |
+| mfcc | 0.694 | 0.559 | 0.685 | 0.524 | 0.589 | 0.104 | 0.161 | 0.060 |
+| iforest | 0.692 | 0.556 | 0.588 | 0.502 | 0.593 | 0.075 | 0.122 | 0.059 |
+| ae | 0.628 | 0.551 | 0.637 | 0.544 | 0.582 | 0.181 | 0.263 | 0.088 |
+| rms+spectral | 0.886 | 0.806 | 0.728 | 0.708 | 0.745 | 0.450 | 0.542 | 0.059 |
+| rms+mfcc | 0.894 | 0.813 | 0.775 | 0.721 | 0.788 | 0.463 | 0.552 | 0.061 |
+| rms+transient | 0.860 | 0.793 | 0.733 | 0.717 | 0.799 | 0.501 | 0.589 | 0.078 |
+| rms+ae | 0.870 | 0.802 | 0.750 | 0.715 | 0.753 | 0.443 | 0.540 | 0.043 |
+| rms+spectral+transient | 0.852 | 0.787 | 0.732 | 0.705 | 0.748 | 0.462 | 0.550 | 0.067 |
+| classical | 0.829 | 0.737 | 0.741 | 0.686 | 0.806 | 0.435 | 0.530 | 0.060 |
+| all | 0.816 | 0.724 | 0.740 | 0.680 | 0.806 | 0.419 | 0.514 | 0.063 |
+| all/max | 0.858 | 0.791 | 0.746 | 0.700 | 0.805 | 0.471 | 0.564 | 0.081 |
+
+Held-out units, chosen detector `rms`:
+
+| unit | AUC | pAUC | precision | recall | F1 | FAR | normal / faulty clips |
+|---|---|---|---|---|---|---|---|
+| pump/id_04 | 0.716 | 0.635 | 0.958 | 0.230 | 0.371 | 0.010 | 100 / 100 |
+| pump/id_06 | 0.715 | 0.728 | 0.848 | 0.490 | 0.621 | 0.090 | 100 / 102 |
+| fan/id_04 | 0.900 | 0.857 | 0.967 | 0.767 | 0.856 | 0.090 | 100 / 348 |
+| fan/id_06 | 1.000 | 1.000 | 0.984 | 1.000 | 0.992 | 0.060 | 100 / 361 |
+| valve/id_04 | 0.771 | 0.745 | 0.957 | 0.558 | 0.705 | 0.030 | 100 / 120 |
+| valve/id_06 | 0.358 | 0.493 | 0.667 | 0.033 | 0.064 | 0.020 | 100 / 120 |
+| slider/id_04 | 0.866 | 0.839 | 0.963 | 0.725 | 0.827 | 0.050 | 100 / 178 |
+| slider/id_06 | 0.422 | 0.487 | 0.000 | 0.000 | 0.000 | 0.040 | 100 / 89 |
+| gearbox/section_02 | 0.723 | 0.724 | 0.900 | 0.450 | 0.600 | 0.050 | 20 / 20 |
+
+Domain shift (gearbox, changed speed/load, model fitted on the source domain):
+
+- gearbox/section_00: AUC 0.750, FAR 0.600
+- gearbox/section_01: AUC 0.900, FAR 0.100
+- gearbox/section_02: AUC 0.690, FAR 0.400
+
+What this means:
+
+- On held-out units the machine's own loudness is a fair detector, and the other single detectors are
+  weaker. A higher held-out AUC for some fusions is visible above; switching to one now would be choosing
+  on the held-out set, so we have not. Fresh field recordings are the honest way to decide.
+- Loudness depends on where the phone sits and on the shed. The baseline is per machine and per
+  placement; the noisy-shed flag and the confidence reasons (server/health.py) exist for that.
+- The autoencoder's per-machine calibration uses only 10 clips (it was trained on the rest), so its
+  false-alarm rate is less reliable than the others'.
+
 ## 2. Fault type (CWRU-trained classifier)
 
 Record: `docs/runs/faulttype_20261116T060823Z.json`. Labels from CWRU's own file listing; 48 recordings,
@@ -128,11 +185,85 @@ or above the alarm after the baseline, and when the alarm first held for an hour
 - 2nd_test/b3: 82.7% of readings (first alarm day 1.2)
 - 2nd_test/b4: 45.4% of readings (first alarm day 4.19)
 
+## 3b. Time to the maintenance threshold (uncertainty-aware RUL)
+
+Record: `docs/runs/rul_20261116T124914Z.json`. leave one failed bearing out: threshold, trend window and interval calibration from the other three; estimates every ~1/400 of the run from the held-out bearing's first alarm. It estimates days until the health score reaches the maintenance threshold (not a failure date).
+Two truths per bearing: when it actually reached the threshold borrowed from the other bearings, and
+the end of its run (failure). Interval = calibrated 10-90% range, so it should hold the truth ~80% of
+the time. States other than an estimate are counted, not hidden.
+
+| bearing | lead time (alarm to end) | vs threshold: MAE / RMSE / coverage | vs end of run: MAE / RMSE / coverage | estimate / no trend / insufficient / at threshold |
+|---|---|---|---|---|
+| 1st_test/b3 | 26.0 d | never reached | 10.8 d / 12.4 d / 0.62 | 53 / 198 / 133 / 0 |
+| 1st_test/b4 | 26.0 d | never reached | 8.2 d / 11.5 d / 0.81 | 88 / 163 / 133 / 0 |
+| 2nd_test/b1 | 3.1 d | 10.3 d / 15.7 d / 0.00 | 6.8 d / 12.7 d / 0.57 | 111 / 0 / 0 / 115 |
+| 3rd_test/b3 | 35.3 d | 12.5 d / 15.6 d / 0.89 | 12.4 d / 15.3 d / 0.89 | 140 / 161 / 19 / 11 |
+
+Bearings that did not fail (false alarms):
+
+- 2nd_test/b2: 33% of readings above the alarm; did not fail; shares a shaft with 2nd_test/b1, which did
+- 2nd_test/b3: 83% of readings above the alarm; did not fail; shares a shaft with 2nd_test/b1, which did
+- 2nd_test/b4: 45% of readings above the alarm; did not fail; shares a shaft with 2nd_test/b1, which did
+
+What this means: errors of a week or more on runs of 7-45 days, and intervals that hold the truth
+less often than they should on some bearings. The threshold borrowed from other bearings is wrong by a
+large factor for some (failure levels differ ~20x). The dashboard therefore shows a range with its
+meaning, says 'not enough data' after restarts and gaps, and never shows a failure date.
+
 ## 4a. Claude Fable 5.2 vs the rules on labelled faults, and cost per alert
 
 **Not run.** `python -m scripts.eval_understand` needs `ANTHROPIC_API_KEY` (it costs money), and no
 record exists yet. Until then, nothing here claims that Claude helps: in the product, every alert
 works without it (rules, marked 'expert check pending').
+
+## 5. The flour-mill demonstration (one recorded story, not a field result)
+
+Record: `docs/runs/flourmill_20261116T130714Z.json` (`make mill`). RECORDED: MIMII DUE (DCASE 2021 Task 2 dev), gearbox/section_01. DEMO DATA (invented mill, owner, technicians; MOCK dealer stock). Simulated: clock (3 h per reading), network cut, technician visit, post-repair readings (the unit's own held-out normal recordings; no real repair happened). Owner: auto-approved (headless run).
+
+- Learning: 24 readings, no alarms. Normal running afterwards: 0 of 11 readings at or above the alarm.
+- Detection latency: the first recorded fault clip is reading 36; the first at or above the alarm is reading 40 (12 h later at one reading per 3 h); the agent first acted at reading 40. The first fault clips are not louder than normal.
+- Network cut for 5 readings: up to 15 events waited; after it, 0 waiting, 38 events in the cloud copy, audit chain intact.
+- Case outcome: repair_fixed. Repair check against baseline v1: median risk 3.008 before, -0.592 after (the after-repair readings are the unit's own held-out normal recordings: this shows the check works, not that a repair worked).
+
+## 6. The maintenance agent under injected faults
+
+Record: `docs/runs/agent_20261116T131131Z.json` (`python -m server.maint.evaluate`). synthetic machine rows and a simulated clock; this measures the workflow, not detection. 200 randomised runs:
+network cuts, provider errors, technicians declining (sometimes all of them), crash and restart mid-step,
+repeated observations, and an owner who answers promptly, late, never, with conflicting answers on two
+channels, or says no. Measured from the agent's own database and audit log, and the approval state at
+the moment each paid action was delivered.
+
+| measure | value |
+|---|---|
+| completed (verified repair) when the owner approved and a technician existed | 100% |
+| paid actions delivered without a valid approval | 0 |
+| outward actions delivered twice | 0 |
+| actions that failed first (network/provider) and were delivered later | 143 |
+| actions still undelivered after the network came back | 0 |
+| delivered actions with no audit entry | 0 |
+| runs with an intact audit chain fully copied to the cloud | 200 of 200 |
+| bookings when every technician declined | 0 |
+
+Outcomes by owner behaviour: prompt: {'repair_fixed': 44, 'open': 31}; late: {'repair_fixed': 30, 'open': 15}; never: {'open': 33}; conflict: {'repair_fixed': 12, 'open': 11}; reject: {'open': 24}.
+Runs left open are the ones where the owner never answered, said no, or no technician was available:
+the agent keeps watching, keeps looking, and tells the owner. The first version of this evaluation found
+11 bookings sent after an approval had turned into a conflict; approvals are now re-checked at send time.
+
+## 7. What the per-machine pipeline costs per reading
+
+Record: `docs/runs/bench_20261116T131158Z.json` on macOS-26.6.2-arm64-arm-64bit (arm), not a phone.
+
+| step (10 s reading) | cost |
+|---|---|
+| quality check | 0.245 ms |
+| summary (log-mel, MFCC, band statistics) | 1.327 ms |
+| risk, chosen detector (rms) | 0.005 ms |
+| risk, all five classical detectors | 3.838 ms |
+| fit a machine's baseline (40 readings) | 0.301 ms |
+| peak Python memory, one reading | 2.44 MiB |
+| stored per reading (summary + flags, SQLite) | 2867 bytes |
+
+Not measured: phone and ESP32 latency, memory and battery (no Android app; ESP32 firmware untested).
 
 ## 4. What works, what doesn't
 

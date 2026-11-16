@@ -305,3 +305,31 @@ def test_late_approval_moves_the_visit_to_a_day_that_has_not_passed(env):
     booked = [x for x in tr.sent if x["kind"] == "book_job"]
     assert len(booked) == 1 and booked[0]["day"] >= datetime.fromtimestamp(clock.t).date().isoformat()
     assert any(e["event"] == "replanned_visit_day" for e in s.audit(case["id"]))
+
+
+def test_conflicting_answer_after_approval_stops_the_booking_and_asks_again(env):
+    a, s, tr = env["agent"], env["store"], env["transport"]
+    tr.network.online = True
+    case = a.observe("chakki-1", health("inspect"))
+    a.tick()
+    aid = f"{case['id']}:booking"
+    a.decide(aid, "approved", "owner", "app", "tap")
+    tr.network.online = False  # booking cannot go out yet
+    a.tick()
+    a.decide(aid, "rejected", "owner", "whatsapp", "w")  # a different answer arrives late
+    tr.network.online = True
+    env["clock"].t += 6 * H
+    a.tick()
+    assert s.approval(aid)["status"] == "requested"
+    assert not [x for x in tr.sent if x["kind"] == "book_job"]
+
+
+def test_fault_injection_runs_never_violate_approval_or_duplicate(tmp_path):
+    from server.maint import evaluate
+
+    for seed in range(12):
+        d = tmp_path / str(seed)
+        d.mkdir()
+        r = evaluate.one_run(seed, d)
+        assert r["approval_violations"] == 0 and r["duplicate_sends"] == 0
+        assert r["untraced_actions"] == 0 and r["audit_intact"] and r["undelivered"] == 0

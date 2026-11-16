@@ -1,0 +1,4795 @@
+{
+ "run_id": "20261116T131131Z",
+ "git_rev": "6bba71f",
+ "code_sha256": "ae32fc3c359755ef52aa9c6d81a9fb3cf058086494d64474950b9a627edb88d2",
+ "note": "synthetic machine rows and a simulated clock; this measures the workflow, not detection",
+ "summary": {
+  "runs": 200,
+  "approved_runs": 121,
+  "completion_rate_when_approved_and_a_technician_exists": 1.0,
+  "approval_violations": 0,
+  "duplicate_sends": 0,
+  "recovered_failures": 143,
+  "undelivered_at_end": 0,
+  "untraced_actions": 0,
+  "audit_intact_runs": 200,
+  "booked_without_any_technician": 0,
+  "outcomes": {
+   "repair_fixed": 86,
+   "open": 114
+  },
+  "outcomes_by_owner_behaviour": {
+   "prompt": {
+    "repair_fixed": 44,
+    "open": 31
+   },
+   "late": {
+    "repair_fixed": 30,
+    "open": 15
+   },
+   "never": {
+    "open": 33
+   },
+   "conflict": {
+    "repair_fixed": 12,
+    "open": 11
+   },
+   "reject": {
+    "open": 24
+   }
+  }
+ },
+ "runs": [
+  {
+   "seed": 0,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": true,
+    "owner": "conflict",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 1,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": true,
+    "owner": "never",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 2,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 3,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 4,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 5,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 6,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 3,
+    "decline": [
+     "T1"
+    ],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 7,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 4,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 8,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "reject",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 9,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [
+     "T1"
+    ],
+    "crash": true,
+    "owner": "reject",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 10,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 11,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 2,
+   "undelivered": 0,
+   "refused": 4,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 12,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [
+     "T1"
+    ],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 13,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "reject",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 14,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 15,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 16,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 17,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [
+     "T1"
+    ],
+    "crash": true,
+    "owner": "reject",
+    "repeat_obs": 3,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 2,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 18,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 19,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 20,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 4,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 21,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 22,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 2,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 23,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 24,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 25,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 26,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 6,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 27,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [
+     "T1"
+    ],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 28,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "reject",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 29,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [
+     "T1"
+    ],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 30,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 31,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 32,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 33,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 2,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 34,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 3,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 35,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 36,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 37,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 38,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": true,
+    "owner": "reject",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 39,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 2,
+   "undelivered": 0,
+   "refused": 5,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 40,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "reject",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 41,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 2,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 42,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 43,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 44,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 45,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 46,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 47,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 48,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 2,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 49,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 50,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 3,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 51,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 52,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 4,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 53,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 54,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 55,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 56,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 3,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 57,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 58,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "never",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 59,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 4,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 60,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": true,
+    "owner": "never",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 61,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 62,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 63,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 3,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 2,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 64,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "reject",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 65,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 66,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 67,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 68,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 69,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 70,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 71,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 3,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 2,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 72,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 73,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 74,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 75,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "conflict",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 3,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 76,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 77,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 78,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "reject",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 79,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 80,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 81,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 4,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 82,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 83,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 84,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "reject",
+    "repeat_obs": 3,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 85,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 86,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "reject",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 87,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 88,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "reject",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 89,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 90,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 91,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 92,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 93,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 3,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 94,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 95,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 96,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 3,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 4,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 97,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 98,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 99,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 2,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 100,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 101,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "conflict",
+    "repeat_obs": 2,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 102,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "reject",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 103,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "reject",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 104,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 105,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 106,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 107,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 108,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 109,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 110,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 111,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "never",
+    "repeat_obs": 2,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 112,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "reject",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 2,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 113,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 114,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 115,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 116,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 117,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 118,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 119,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "never",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 120,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 121,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 122,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 123,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 124,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 3,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 125,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 3,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 126,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 127,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 128,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1"
+    ],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 129,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 130,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 3,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 131,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 132,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 4,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 133,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 134,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "never",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 135,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "reject",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 2,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 136,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 5,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 137,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 138,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 2,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 5,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 139,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 140,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": true,
+    "owner": "reject",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 141,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 142,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 143,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 144,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "reject",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 145,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 146,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 2,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 147,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 148,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 149,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 150,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": true,
+    "owner": "never",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 151,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 152,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 4,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 153,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "never",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 154,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 155,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 3,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 156,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 157,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 2,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 158,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 159,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 4,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 160,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "conflict",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 161,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "reject",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 162,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 163,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 164,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 165,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 166,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 167,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "reject",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 168,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 1,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "conflict",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 169,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 170,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 1,
+    "decline": [
+     "T1"
+    ],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 2,
+   "undelivered": 0,
+   "refused": 2,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 171,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 172,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 173,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 3,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 174,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 175,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "reject",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 176,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 3,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 177,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "reject",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 178,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 179,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "conflict",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 3,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 180,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 3,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 181,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 182,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": true,
+    "owner": "late",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 2,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 183,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 184,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "reject",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 185,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "conflict",
+    "repeat_obs": 4,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 186,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 187,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 188,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": true,
+    "owner": "reject",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 189,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 2,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 190,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 2,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 191,
+   "scenario": {
+    "network_cuts": 1,
+    "provider_errors": 3,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 192,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 1,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 3,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 193,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "conflict",
+    "repeat_obs": 2,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 194,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 4,
+    "urgency": "urgent_owner_attention"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 195,
+   "scenario": {
+    "network_cuts": 3,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": false,
+    "owner": "prompt",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 196,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [
+     "T1",
+     "T2",
+     "T3"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "open",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 3,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 197,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 0,
+    "decline": [],
+    "crash": true,
+    "owner": "prompt",
+    "repeat_obs": 1,
+    "urgency": "inspect"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 0,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 198,
+   "scenario": {
+    "network_cuts": 0,
+    "provider_errors": 3,
+    "decline": [],
+    "crash": false,
+    "owner": "never",
+    "repeat_obs": 4,
+    "urgency": "inspect"
+   },
+   "outcome": "open",
+   "owner_approved": false,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 0,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  },
+  {
+   "seed": 199,
+   "scenario": {
+    "network_cuts": 2,
+    "provider_errors": 3,
+    "decline": [
+     "T1"
+    ],
+    "crash": false,
+    "owner": "late",
+    "repeat_obs": 1,
+    "urgency": "maintenance"
+   },
+   "outcome": "repair_fixed",
+   "owner_approved": true,
+   "approval_violations": 0,
+   "duplicate_sends": 0,
+   "recovered_failures": 1,
+   "undelivered": 0,
+   "refused": 1,
+   "untraced_actions": 0,
+   "audit_intact": true,
+   "booked_without_any_technician": false
+  }
+ ],
+ "seconds": 16.9
+}

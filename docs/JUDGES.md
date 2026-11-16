@@ -10,6 +10,23 @@ and proves it worked. **Only the owner decides; no code path can stop a machine.
 screens: `?view=owner&f=A&lang=hi` and `?view=mechanic&f=A`. If the internet fails, see
 [DEMO_SCRIPT.md](DEMO_SCRIPT.md). How the parts fit together: [ARCHITECTURE.md](ARCHITECTURE.md).
 
+## PS 4.3 requirements: where to look
+
+| PS 4.3 requirement | how | evidence |
+|---|---|---|
+| Learn from weeks of normal, unlabelled operation | each machine learns its own normal (learning period, then baseline v1 from that machine's readings only); versions; drift-safe adaptation; owner-approved recalibration | [edge/baseline.py](../edge/baseline.py), [tests/test_baseline.py](../tests/test_baseline.py) |
+| Detect deviations before a breakdown | six unsupervised detectors compared; the one chosen on selection units is reported on held-out units (AUC, pAUC, precision, recall, F1, false-alarm rate) | [edge/compare.py](../edge/compare.py), [RESULTS.md 1c](RESULTS.md) |
+| ... with honest uncertainty | health engine: status, urgency, confidence with reasons; time to *maintenance threshold* with a range, "not enough data" after gaps/restarts | [server/health.py](../server/health.py), [edge/rul.py](../edge/rul.py), [RESULTS.md 3b](RESULTS.md) |
+| Work offline | scoring, health and the agent run locally; outward actions queue and are sent once; audit log syncs idempotently; conflicting decisions asked again | [server/maint/sync.py](../server/maint/sync.py), [RESULTS.md 5-6](RESULTS.md) |
+| Affordable hardware | phone mic; ESP32 + MPU6050 node (untested sketch); device ingest with live/upload/simulated labels; per-reading cost | [hardware/](../hardware/), [server/ingest.py](../server/ingest.py), [RESULTS.md 7](RESULTS.md) |
+| Help plan maintenance (agentic) | a persistent case per anomaly: recall history, find a technician, check parts, cite costs, ask, book, verify against the original baseline; recovers from network, provider, technician and crash failures | [server/maint/agent.py](../server/maint/agent.py), [RESULTS.md 6](RESULTS.md) (200 fault-injection runs) |
+| Production-stop decisions stay with the owner | no tool can stop a machine; paid actions refuse to run without an approved approval (checked again at send time) | [tests/test_maint_agent.py](../tests/test_maint_agent.py), [tests/test_guardrails.py](../tests/test_guardrails.py) |
+| Simulated or recorded signals | the flour-mill story replays real MIMII DUE recordings; everything simulated is labelled on screen | [server/flourmill.py](../server/flourmill.py), `?view=mill` |
+
+**The 6-minute path:** `make serve`, open `?view=mill`, press *Play to the next decision*, cut and
+restore the network, approve the visit, play to the end. Headless: `make mill`. The audit of the
+repository before these changes is in [AUDIT.md](AUDIT.md).
+
 ## How each requirement is met
 
 The official statement text is not in this repo. These are the requirements as we were briefed
@@ -19,7 +36,7 @@ The official statement text is not in this repo. These are the requirements as w
 |---|---|---|
 | Listen: normal-only autoencoder, AUC/pAUC per machine on the official split | [edge/train.py](../edge/train.py), [edge/scoring.py](../edge/scoring.py) | done; weak for fan/valve (below) |
 | RMS-threshold baseline; TFLite size and ms/window; battery | [edge/listen_eval.py](../edge/listen_eval.py) | done; **RMS wins on most units**; battery not measured (no app) |
-| Learning period ("din 4/7"), drift-safe adaptation, noisy-shed flag | [edge/adapt.py](../edge/adapt.py), [server/agent.py](../server/agent.py) | done, tested |
+| Learning period ("din 4/7"), drift-safe adaptation, noisy-shed flag | [edge/baseline.py](../edge/baseline.py) (per machine, versioned), [edge/adapt.py](../edge/adapt.py) | done, tested |
 | NASA IMS days-to-failure + replay; CWRU fault type | [edge/ims.py](../edge/ims.py), [edge/faulttype.py](../edge/faulttype.py) | done; 4 failures only |
 | Understand: Claude Fable 5.2 (JSON schema, effort, fallbacks, caching, cost log), rules fallback | [server/understand.py](../server/understand.py) | built and tested with a fake client; **not run on the API** (no key) |
 | Fable vs rules on 30+ labelled faults | [scripts/eval_understand.py](../scripts/eval_understand.py) | ready (48 CWRU cases); **needs a key** |

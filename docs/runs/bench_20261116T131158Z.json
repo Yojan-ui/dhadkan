@@ -1,0 +1,30 @@
+{
+ "run_id": "20261116T131158Z",
+ "git_rev": "6bba71f",
+ "code_sha256": "ec1897ef149312110675ebd8bab8864cfdf5edbf20af28b4bf7d12906e9c13c4",
+ "machine": {
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "processor": "arm",
+  "python": "3.12.16"
+ },
+ "detectors": {
+  "names": [
+   "rms"
+  ],
+  "fusion": "mean",
+  "record": "docs/runs/compare_20261116T124439Z.json",
+  "candidate": "rms"
+ },
+ "summary_width": 236,
+ "reading_seconds": 10,
+ "results": {
+  "quality_ms": 0.245,
+  "summary_ms": 1.327,
+  "risk_ms_chosen": 0.005,
+  "risk_ms_all_classical": 3.838,
+  "fit_baseline_ms_chosen_40_readings": 0.301,
+  "peak_python_mib_one_reading": 2.44,
+  "disk_bytes_per_reading": 2867
+ },
+ "not_measured": "phone and ESP32 latency, memory and battery (no Android app; ESP32 firmware untested)"
+}
