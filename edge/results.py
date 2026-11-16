@@ -265,6 +265,24 @@ def listen_section(ls: dict[str, Any], path: Path, ev: dict[str, Any] | None) ->
     return out
 
 
+def understand_section(un: dict[str, Any] | None, path: Path | None) -> list[str]:
+    out = ["## 4a. Claude Fable 5.2 vs the rules on labelled faults, and cost per alert", ""]
+    if not un or not path:
+        return [
+            *out,
+            "**Not run.** `python -m scripts.eval_understand` needs `ANTHROPIC_API_KEY` (it costs money), and no",
+            "record exists yet. Until then, nothing here claims that Claude helps: in the product, every alert",
+            "works without it (rules, marked 'expert check pending').", ""]  # fmt: skip
+    return [
+        *out,
+        f"Record: `docs/runs/{path.name}` (model {un['model']}). {un['cases']} CWRU recordings; rules = the",
+        "CWRU classifier retrained without the case's load.", "",
+        "| | accuracy | answered | asked for a mechanic | INR per call (median) |", "|---|---|---|---|---|",
+        f"| rules | {pct(un['rules_accuracy'])}% | {un['cases']} | – | 0 |",
+        f"| Claude | {pct(un['claude_accuracy'])}% | {un['claude_answered']} | {pct(un['claude_mechanic_check_share'])}% "
+        f"| {un['inr_per_call_median'] if un['inr_per_call_median'] is not None else '–'} |", ""]  # fmt: skip
+
+
 def main() -> None:
     ev, evp = newest("eval")
     ft, ftp = newest("faulttype")
@@ -285,6 +303,8 @@ def main() -> None:
         lines += classifier_section(ft, ftp)
     if ims and imsp:
         lines += ims_section(ims, imsp)
+    un, unp = newest("understand")
+    lines += understand_section(un, unp)
     lines += (
         (ROOT / "docs" / "results_notes.md").read_text().splitlines()
         if (ROOT / "docs" / "results_notes.md").exists()

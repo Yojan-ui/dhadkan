@@ -128,6 +128,12 @@ or above the alarm after the baseline, and when the alarm first held for an hour
 - 2nd_test/b3: 82.7% of readings (first alarm day 1.2)
 - 2nd_test/b4: 45.4% of readings (first alarm day 4.19)
 
+## 4a. Claude Fable 5.2 vs the rules on labelled faults, and cost per alert
+
+**Not run.** `python -m scripts.eval_understand` needs `ANTHROPIC_API_KEY` (it costs money), and no
+record exists yet. Until then, nothing here claims that Claude helps: in the product, every alert
+works without it (rules, marked 'expert check pending').
+
 ## 4. What works, what doesn't
 
 These notes are written by hand. Every number they refer to is in the generated tables above.
