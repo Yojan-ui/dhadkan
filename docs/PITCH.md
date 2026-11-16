@@ -1,4 +1,9 @@
-# Dhadkan: six-slide pitch script
+# Dhadkan: six-slide pitch script, one owner's story
+
+**The story:** Sunil Shinde runs a small loom shed in Bhosari. He is the demo's invented owner of
+"Loom 1" (`data/sim/cluster.json`, labelled demo data), not a real person or a real interview. Every
+slide follows his loom: what a breakdown costs him, how Dhadkan hears it coming, the WhatsApp alert he
+gets, the mechanic he books, and the re-record that proves the repair worked.
 
 About 3 minutes. Every number is either from a logged run in `docs/runs/`, from a source cited in
 `server/faults.yaml`, or marked **assumption**. The results block on slide 4 is written by
@@ -55,21 +60,26 @@ Three ideas, one line each:
    must already be registered. On the Twilio sandbox, the judge sends the join code first.
 2. Press **Start Demo mode**. Loom 1 now replays NASA IMS test 2, bearing 1: a real bearing run to
    destruction in February 2004.
-3. Let the ring go amber, then orange. Point at the score climbing and at the days range shrinking.
+3. Watch the ring brighten. Point at the score climbing and at the days range shrinking.
 4. At the alarm, the diagnosis card opens: bearing wear, with part, ₹, labour, warranty and the
    cost of waiting. The classifier line under Demo mode shows its live guess at the bearing fault.
    At the first alarm it says inner race (wrong). As the damage grows it settles on outer race,
    which is the truth per the IMS readme. Point at both: the card is right either way, because
    every bearing fault maps to bearing wear.
-5. The judge's phone buzzes. Ask them to reply **1**. The Log drawer shows the signed webhook, and
-   the technician visit is booked.
+5. The judge's phone buzzes (Sunil's phone in the story). Ask them to reply **1** or tap
+   **Mechanic bulao**. Sunil's own mechanic gets the job: part to bring, time, dealer stock. Open
+   `?view=mechanic&f=A` to show it.
+6. "Repaired": run the 60 s re-record (`POST /api/repair/A-G1`; in the demo, the healthy start of
+   the same bearing run stands in for the new bearing, and the record says so). Show **Theek ho
+   gaya**, the signed repair record PDF, and the passport grade moving from C/D to B.
 
 **Say:**
 > "This isn't an animation. It is the vibration of a real bearing that failed on a test rig in
 > Cincinnati, replayed as Loom 1. Our model flags it as bearing wear, and the owner gets this, in
 > Hindi, with the sound before and now. Watch the classifier: it guesses inner race at first, then
-> settles on outer race, which is what really failed. We show its mistakes too. They reply 1. That's the only thing that
-> books a mechanic, and nothing here can switch a machine off."
+> settles on outer race, which is what really failed. We show its mistakes too. Sunil replies 1. That's
+> the only thing that books a mechanic, and nothing here can switch a machine off. After the repair, a
+> one-minute re-record proves it worked, signed, for his warranty claim."
 
 **If there are no keys or no network:** the status line says "dry run" or "queued". Say so. Don't
 pretend a message went out. Show the built message in the Log drawer instead.

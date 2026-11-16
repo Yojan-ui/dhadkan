@@ -1,32 +1,38 @@
 # Dhadkan for judges (statement 4.3)
 
-**Problem.** A small powerloom unit, about six looms on average (3,85,596 units running 24,86,418
-looms, 2013 baseline survey, [source](https://www.technicaltextiles.in/?p=29103)), loses a day's
-output when a loom motor or pump seizes. The bearing that caused it costs a few hundred rupees.
-Dhadkan hears the fault coming, names it, and tells the owner on WhatsApp what to fix, what it costs,
-and how long they can wait. Only a reply of **1** books a mechanic. **Nothing ever stops a machine.**
+**Problem.** Small Indian factories (powerlooms, flour mills, pumps) run old machines until they
+break. A typical powerloom unit is small: 3,85,596 units ran 24,86,418 looms in the 2013 baseline
+survey ([source](https://www.technicaltextiles.in/?p=29103)), about six per unit. Dhadkan uses a phone
+to hear failures coming, tells the owner on WhatsApp in their language, gets the right repair done,
+and proves it worked. **Only the owner decides; no code path can stop a machine.**
 
-**Run it (fresh clone):** `make setup && make demo-data && make demo`, then press **Demo mode**.
-Demo mode needs no dataset download (its NASA bearing ships in `edge/models/ims_demo_pack.npz`).
-The fallback if the internet fails is in [DEMO_SCRIPT.md](DEMO_SCRIPT.md).
+**Run it (fresh clone):** `make setup && make demo-data && make demo`, then **Demo mode**. Phone
+screens: `?view=owner&f=A&lang=hi` and `?view=mechanic&f=A`. If the internet fails, see
+[DEMO_SCRIPT.md](DEMO_SCRIPT.md). How the parts fit together: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## How each requirement is met
 
-The official statement text is not in this repo. These are the requirements as we were briefed.
+The official statement text is not in this repo. These are the requirements as we were briefed
+(build spec sections 1–10).
 
 | requirement | where | status |
 |---|---|---|
-| Real sound data, normal-only training, AUC/pAUC per machine on the official test split | [data/real.py](../data/real.py), [edge/train.py](../edge/train.py), [edge/scoring.py](../edge/scoring.py) (pAUC exactly as the DCASE baseline code) | done; results below are weak for fan and valve |
-| Real run-to-failure to calibrate days-to-failure and drive the replay | [edge/ims.py](../edge/ims.py) (leave-one-out calibration), [server/forecast.py](../server/forecast.py), [server/imsdemo.py](../server/imsdemo.py) | done; 4 failures only |
-| Fault-type classifier trained only on CWRU labels | [edge/faulttype.py](../edge/faulttype.py) | done; vibration only, not microphone |
-| Results document from real runs, failures included | [RESULTS.md](RESULTS.md) (generated), [results_notes.md](results_notes.md), [runs/](runs/) | done |
-| Diagnosis card from a knowledge base, not LLM text: 7 faults, severity, repairable, part + ₹ + labour + technician, misuse, warranty, cost of waiting, sources | [server/faults.yaml](../server/faults.yaml), [server/diagnosis.py](../server/diagnosis.py) | done; labour hours and bearing warranty have no published source (marked null) |
-| WhatsApp: Meta Cloud API with Twilio fallback, keys only in `.env` | [server/notify/whatsapp.py](../server/notify/whatsapp.py), [.env.example](../.env.example) | done; **no real send yet** (no keys) |
-| Hindi / Marathi / English (+ Hindi in Roman script), 5 s before/now clip, spectrogram | [server/diagnosis.py](../server/diagnosis.py), [server/notify/media.py](../server/notify/media.py) | done |
-| Signed reply webhooks, only "1" books, never stops a machine | [server/notify/service.py](../server/notify/service.py), [server/app.py](../server/app.py) `/webhooks/*`, [tests/test_guardrails.py](../tests/test_guardrails.py) | done, tested |
-| Supervisor escalation after 2 h on Stop-now; offline queue with SMS fallback | [server/notify/service.py](../server/notify/service.py), [edge/outbox.py](../edge/outbox.py) | done, tested |
-| README (problem, GIF, diagram, results, `make demo`, limits), pitch, Demo mode button | [README.md](../README.md), [PITCH.md](PITCH.md), [web/src/ui/DemoMode.tsx](../web/src/ui/DemoMode.tsx) | done |
-| Tests: KB schema, severity, WhatsApp payload + webhook, no-stop guardrail, offline queue | [tests/](../tests/) (`make test`) | done |
+| Listen: normal-only autoencoder, AUC/pAUC per machine on the official split | [edge/train.py](../edge/train.py), [edge/scoring.py](../edge/scoring.py) | done; weak for fan/valve (below) |
+| RMS-threshold baseline; TFLite size and ms/window; battery | [edge/listen_eval.py](../edge/listen_eval.py) | done; **RMS wins on most units**; battery not measured (no app) |
+| Learning period ("din 4/7"), drift-safe adaptation, noisy-shed flag | [edge/adapt.py](../edge/adapt.py), [server/agent.py](../server/agent.py) | done, tested |
+| NASA IMS days-to-failure + replay; CWRU fault type | [edge/ims.py](../edge/ims.py), [edge/faulttype.py](../edge/faulttype.py) | done; 4 failures only |
+| Understand: Claude Fable 5.2 (JSON schema, effort, fallbacks, caching, cost log), rules fallback | [server/understand.py](../server/understand.py) | built and tested with a fake client; **not run on the API** (no key) |
+| Fable vs rules on 30+ labelled faults | [scripts/eval_understand.py](../scripts/eval_understand.py) | ready (48 CWRU cases); **needs a key** |
+| Voice notes → Whisper → weak label on the alert | [server/owner_alerts.py](../server/owner_alerts.py) `on_voice`, [server/folk.py](../server/folk.py) | done, tested |
+| faults.yaml: 7 faults, severity, repairable, fix + ₹ + labour + technician, misuse, warranty, sources | [server/faults.yaml](../server/faults.yaml), [server/diagnosis.py](../server/diagnosis.py) | done; labour hours and bearing warranty unsourced (null) |
+| Tell: Meta Cloud API + Twilio, per-severity templates, buttons, hi/mr/gu/en + Roman Hindi, clip + spectrogram | [server/notify/](../server/notify/), [WHATSAPP_TEMPLATES.md](WHATSAPP_TEMPLATES.md) | done; **no real send yet**; spoken alerts not built |
+| Approval gate, no stop tool, escalation 2 h, quiet hours, power cuts, daily digest, offline queue + SMS | [server/fix.py](../server/fix.py), [server/notify/policy.py](../server/notify/policy.py), [server/notify/service.py](../server/notify/service.py) | done, tested |
+| Fix: mechanic job on "Mechanic bulao", dealer stock, weekly parts forecast (Message Batches) | [server/fix.py](../server/fix.py) | done; stock is mock data |
+| Prove: re-record verification, signed repair record (PDF), mechanic success rate (owner only), passport, labels | [server/prove.py](../server/prove.py) | done, tested (tamper, privacy) |
+| Setup: presets, factory profile, WhatsApp onboarding, 30 s baseline per machine | [server/onboard.py](../server/onboard.py), [data/presets.yaml](../data/presets.yaml) | done, tested |
+| Screens: owner (white, big Devanagari), mechanic, 3D cluster | [web/src/screens/](../web/src/screens/), [web/src/scene/](../web/src/scene/) | done |
+| Proof docs: RESULTS (incl. failures), field scoring script, field notes template | [RESULTS.md](RESULTS.md), [scripts/score_recording.py](../scripts/score_recording.py), [FIELD_NOTES.md](FIELD_NOTES.md) | done; no field recordings yet |
+| Tests: guardrail, approval gate, queue, payloads + webhooks, escalation, quiet hours, i18n, schema, verification, tamper, privacy | [tests/](../tests/) | all pass (`make test`) |
 
 ## Real results
 
@@ -54,12 +60,12 @@ The official statement text is not in this repo. These are the requirements as w
 
 ## Limitations (read these before scoring)
 
-- **Sound-only detection is weak.** On the official DCASE split, fan and valve are near chance and
-  every type is below the DCASE baseline on most IDs (we trained on about a tenth of the data). In the
-  scripted MIMII replay, the "faulty" blower is never warned about. Demo mode's real bearing is the
-  replay where the score climbs to failure.
-- **Fault naming needs vibration.** The classifier transfers from CWRU to the IMS bearing only partly,
-  and in Demo mode it says inner race at the first alarm before settling on the true outer race.
-- **Days-to-failure** rests on four real failures, and the ranges are wide (a factor of 10–20).
-- **No Android app and no real WhatsApp send yet.** Prices are listed prices, not quotes. Downtime cost
-  is an assumption. Factories and owners in the simulation are invented.
+- **Sound-only detection is weak**, and a plain loudness threshold beats our autoencoder on most units.
+  In the scripted MIMII replay, the "faulty" blower is never warned about. Demo mode's real bearing is
+  the replay where the score climbs to failure.
+- **Fault naming needs vibration**, and transfer from CWRU to IMS is partial: inner race at the first
+  alarm, then outer race.
+- **Days-to-failure** rests on four real failures, and the ranges span a factor of 10–20.
+- **Not done:** an Android app, a real WhatsApp send, a Claude evaluation (needs a key), spoken alerts,
+  field recordings, owner interviews. Prices are listed prices, downtime cost is an assumption, and
+  every factory and owner in the demo is invented.

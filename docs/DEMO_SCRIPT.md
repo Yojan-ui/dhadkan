@@ -20,12 +20,13 @@ number you say must be on screen, in [RESULTS.md](RESULTS.md), or in PITCH.md wi
 | 0:00–0:45 | PITCH 1: problem | — | A small powerloom unit (about six looms on average, cited). A 6205 bearing costs ₹65–180 (cited). An unplanned stop costs far more: in our demo profile, an **assumed** ₹1,56,960. |
 | 0:45–1:30 | PITCH 2: insight | — | Bearings get louder for days first. Train on normal sound only. Name the fault from a cited table. Tell the owner on WhatsApp. Only "1" books a mechanic. |
 | 1:30–1:50 | App | Click **Demo mode**, type the judge's number, pick **Hindi** or **Hindi (Roman script)**, press **Start**, then **Close**. | "This is a real bearing from NASA's test rig, run to destruction in 2004, playing as Loom 1." |
-| 1:50–3:00 | App: Loom 1 panel | Point at the ring turning amber, then orange, the score climbing, and the days range. | "Flat for days, then the damage starts. The range is calibrated on the other failed bearings." |
+| 1:50–3:00 | App: Loom 1 panel | Point at the ring brightening, the score climbing, and the days range. | "Flat for days, then the damage starts. The range is calibrated on the other failed bearings." |
 | 3:00–3:40 | App: diagnosis card | Scroll to **Diagnosis**. Point at severity, part, ₹, labour, warranty and cost of waiting, and at "typical, confirm with dealer". | "None of this is generated text: it's a cited table. The classifier's first guess is inner race. It settles on outer race, which is what really failed. We show its mistakes." |
-| 3:40–4:20 | Judge's phone / Log drawer | Ask the judge to reply **3**, then **1**. Open **Log**. | "3 sends the full card. 1 books the visit. Nothing here can switch a machine off." |
-| 4:20–5:20 | PITCH 4: results | Open **Evaluation** (E) or RESULTS.md. | Read the generated table. Name the weak spots yourself: fan and valve are near chance on the official split; the IMS day ranges are wide. |
-| 5:20–6:00 | PITCH 5: business | — | Repair shops and dealers pay, owners don't. Listed hardware is about ₹5,000–6,100 per machine. Plan prices are **not set**. |
-| 6:00–6:40 | PITCH 6: roadmap | — | Pilot in one cluster, Android recorder, vibration clip, re-calibrate on pilot data. |
+| 3:40–4:10 | Judge's phone, or the owner screen `?view=owner&f=A&lang=hi` on a phone | Reply **3**, then **1** (or tap **पूरी जानकारी**, then **मिस्त्री बुलाओ**). | "3 sends the full card. 1 books the visit. Nothing here can switch a machine off." |
+| 4:10–4:40 | Mechanic screen `?view=mechanic&f=A`, then repair | Show the visit and the part to carry. Then run the re-record: `curl -X POST localhost:8600/api/repair/A-G1 -H 'content-type: application/json' -d '{"mechanic":"Ramesh"}'`. Open the record PDF (`/api/records/<id>.pdf`, id from the reply) and the passport (`/api/passport/A-G1`). | "A minute's re-record checks the repair: Theek ho gaya. The record is signed for the warranty claim. In the demo, the healthy start of the same NASA run stands in for the new bearing, and the record says so." |
+| 4:40–5:30 | PITCH 4: results | Open **Evaluation** (E) or RESULTS.md. | Read the generated table. Name the weak spots yourself: a plain loudness threshold beats our model on most units, fan and valve are near chance, and the IMS day ranges are wide. |
+| 5:30–6:10 | PITCH 5: business | — | Repair shops and dealers pay, owners don't. Listed hardware is about ₹5,000–6,100 per machine. Plan prices are **not set**. |
+| 6:10–6:40 | PITCH 6: roadmap | — | Pilot in one cluster, Android recorder, vibration clip, field recordings, re-calibrate on pilot data. |
 | 6:40–7:00 | — | — | Questions. |
 
 ## If the internet fails
