@@ -81,8 +81,8 @@ def draft(
     return body + " " + T["ask"][lang].format(tech=tech, day=day, day_on=day_on)
 
 
-YES = {"हाँ", "हां", "हो", "haan", "han", "ha", "ho", "yes", "y", "ok", "ठीक"}
-NO = {"ना", "नहीं", "नही", "नाही", "नको", "na", "nahi", "nahin", "nako", "no", "n"}
+YES = {"1", "हाँ", "हां", "हो", "haan", "han", "ha", "ho", "yes", "y", "ok", "ठीक"}  # 1 = send mechanic
+NO = {"2", "ना", "नहीं", "नही", "नाही", "नको", "na", "nahi", "nahin", "nako", "no", "n"}  # 2 = later
 
 
 def parse_reply(text: str) -> bool | None:

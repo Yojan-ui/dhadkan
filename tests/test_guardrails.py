@@ -72,3 +72,17 @@ def test_approval_books_a_visit_only(cluster):  # noqa: F811
     mid = cluster.db.execute("SELECT id FROM messages ORDER BY id LIMIT 1").fetchone()[0]
     assert agent.record_reply(cluster, mid, "हो") is True
     assert {m: cluster.mode(m) for m in cluster.machines} == before
+
+
+def test_alert_paths_cannot_control_a_machine():
+    """WhatsApp alerts may advise "Stop now"; only the owner can act on it. No alert code can."""
+    import server.notify.service as service
+    import server.notify.whatsapp as provider
+    import server.owner_alerts as owner_alerts
+
+    for mod in (owner_alerts, service, provider):
+        src = inspect.getsource(mod)
+        for forbidden in ("set_mode", "UPDATE state", "INSERT INTO state"):
+            assert forbidden not in src, (mod.__name__, forbidden)
+    # replies reach the cluster only through the agent's booking path
+    assert "self.live.reply(" in inspect.getsource(owner_alerts.OwnerAlerts.on_reply)

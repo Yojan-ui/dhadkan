@@ -31,7 +31,7 @@ from typing import Any
 import librosa
 import numpy as np
 import soundfile as sf
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict
@@ -44,6 +44,8 @@ from edge.runtime import EdgeModel
 from . import agent, costs, folk, forecast, registry, report, route
 from . import explain as sound
 from .config import NODE_DB, VOICE_NOTE, WEB_DIST
+from .notify import env, whatsapp
+from .owner_alerts import ALERT_DIR, OwnerAlerts
 from .sim import Cluster
 
 SLICES = 20  # 10 s reading -> 20 slices of 0.5 s (the 2 Hz stream)
@@ -128,6 +130,7 @@ class Live:
         # fingerprints leave the factory through the phone's outbox; `link_up` simulates signal
         self.link_up = True
         self.outbox = Outbox(Path(node_db or NODE_DB).with_name("outbox.db"), self._send)
+        self.alerts = OwnerAlerts(self, node_db)
         self.cache = {}  # machine -> analysis of its latest reading
         self._readings: dict[tuple[str, int], dict[str, Any]] = {}  # rebuilt past readings (LRU-ish)
         self._explained: dict[tuple[str, int], dict[str, Any]] = {}
@@ -307,6 +310,8 @@ class Live:
                 "events": self.events,
                 "replay": {**self.replay, "started": None, "t": self.replay_t()},
                 "link": {"up": self.link_up, "pending": len(self.outbox.pending())},
+                "alerts": self.alerts.notifier.recent(20),
+                "whatsapp": {"provider": self.alerts.provider},
             }
 
     def reading(self, mid: str, tick: int | None = None) -> dict[str, Any]:
@@ -709,7 +714,17 @@ class Live:
             if planned:
                 self.event("route", run_id=run_id, machines=[leg["machine"] for leg in self.route()["legs"]])
             self.event("digest", run_id=run_id, note=note)
-            return {"run_id": run_id, "note": note}
+        # each owner message also goes out on WhatsApp (or is logged as dry run / no contact)
+        sent = self.alerts.after_digest(run_id)
+        for a in sent:
+            self.event(
+                "whatsapp",
+                machine=a["machine"],
+                status=a["status"],
+                channel=a["channel"],
+                severity=a["severity"],
+            )
+        return {"run_id": run_id, "note": note, "alerts": [a["id"] for a in sent]}
 
     def reply(self, message_id: int, text: str) -> dict[str, Any]:
         with self.lock:
@@ -812,8 +827,12 @@ class Hub:
     async def loop(self) -> None:
         """2 Hz: frame every tick; state whenever something changed."""
         sent_version, sent_tick = -1, None
+        last_alert_tick = time.monotonic()
         while True:
             lv = self.live
+            if time.monotonic() - last_alert_tick > 60:  # escalations and queued alerts, once a minute
+                last_alert_tick = time.monotonic()
+                await asyncio.to_thread(lv.alerts.tick)
             if lv.tick != sent_tick:
                 lv.cursor, sent_tick = 0, lv.tick
             if self.clients:
@@ -852,6 +871,12 @@ class ReplyIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     message_id: int
     reply: str
+
+
+class AlertReplyIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    phone: str
+    text: str
 
 
 class LinkIn(BaseModel):
@@ -1011,6 +1036,64 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
     @app.get("/api/report/{factory}")
     def report_json(factory: str) -> dict[str, Any]:
         return live.savings(factory)
+
+    @app.get("/api/alert-media/{name}")
+    def alert_media(name: str) -> Response:
+        path = ALERT_DIR / name
+        if "/" in name or ".." in name or not path.is_file() or path.suffix not in (".ogg", ".png"):
+            raise HTTPException(404)
+        return Response(path.read_bytes(), media_type="audio/ogg" if path.suffix == ".ogg" else "image/png")
+
+    @app.get("/api/diagnosis/{mid}")
+    def diagnosis_card(mid: str, lang: str | None = None) -> dict[str, Any]:
+        if mid not in live.c.machines:
+            raise HTTPException(404, "unknown machine")
+        lang = lang or live.c.factories[live.c.machines[mid]["factory"]]["language"]
+        card = live.alerts.card(mid, lang)
+        return {"card": card, "text": live.alerts.text(mid, lang) if card else None}
+
+    @app.post("/api/alerts/reply")
+    def alert_reply(body: AlertReplyIn) -> dict[str, Any]:
+        """The same path a WhatsApp reply takes (for testing without a public webhook)."""
+        got = live.alerts.on_reply(body.phone, body.text)
+        if got is None:
+            raise HTTPException(404, "no open alert for that number")
+        return got
+
+    @app.get("/webhooks/whatsapp")
+    def wa_verify(request: Request) -> Response:
+        q = request.query_params
+        if (
+            q.get("hub.mode") == "subscribe"
+            and q.get("hub.verify_token")
+            and q.get("hub.verify_token") == env.get("WA_VERIFY_TOKEN")
+        ):
+            return Response(q.get("hub.challenge", ""), media_type="text/plain")
+        raise HTTPException(403, "verify token mismatch")
+
+    @app.post("/webhooks/whatsapp")
+    async def wa_incoming(request: Request) -> dict[str, Any]:
+        raw = await request.body()
+        secret = env.get("WA_APP_SECRET")
+        if not secret or not whatsapp.verify_meta_signature(
+            secret, raw, request.headers.get("X-Hub-Signature-256")
+        ):
+            raise HTTPException(403, "bad signature")
+        handled = [live.alerts.on_reply(m["from"], m["text"]) for m in whatsapp.parse_meta(json.loads(raw))]
+        return {"handled": [h for h in handled if h]}
+
+    @app.post("/webhooks/twilio")
+    async def twilio_incoming(request: Request) -> Response:
+        form = {k: str(v) for k, v in (await request.form()).items()}
+        token = env.get("TWILIO_AUTH_TOKEN")
+        url = (env.get("PUBLIC_BASE_URL") or str(request.base_url).rstrip("/")) + "/webhooks/twilio"
+        if not token or not whatsapp.verify_twilio_signature(
+            token, url, form, request.headers.get("X-Twilio-Signature")
+        ):
+            raise HTTPException(403, "bad signature")
+        for m in whatsapp.parse_twilio(form):
+            live.alerts.on_reply(m["from"], m["text"])
+        return Response("<Response/>", media_type="application/xml")
 
     @app.get("/api/voice_note.wav")
     def voice_note() -> Response:
