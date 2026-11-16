@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS wa_log (id INTEGER PRIMARY KEY, ts REAL, factory_ts T
 CREATE TABLE IF NOT EXISTS wa_threads (id INTEGER PRIMARY KEY, ts REAL, machine TEXT, role TEXT, phone TEXT,
   expects TEXT, stage TEXT, answered INTEGER DEFAULT 0, reminded INTEGER DEFAULT 0, context TEXT);
 CREATE TABLE IF NOT EXISTS wa_stages (machine TEXT, stage TEXT, ts REAL, PRIMARY KEY (machine, stage));
+CREATE TABLE IF NOT EXISTS wa_faults (machine TEXT PRIMARY KEY, fault TEXT);
 """
 CHOICE = {
     "1": {"1", "haan", "han", "ha", "yes", "हाँ", "हां", "हो", "mechanic", "bulao", "accept"},
@@ -100,6 +101,12 @@ class Flow:
 
     def card(self, mid: str, lang: str = "en") -> dict[str, Any] | None:
         return self.live.alerts.card(mid, lang)
+
+    def risk_line(self, mid: str) -> str:
+        """'₹1,56,960 khatre mein (2 din)': the owner phone screen's line (chance within 2 days x breakdown cost)."""
+        r = next((x for x in self.live.ranking() if x["machine_id"] == mid), {})
+        v = int(r.get("rupees_at_risk") or 0)
+        return f"{inr(v)} khatre mein (2 din)" if v > 0 else ""
 
     def health(self, mid: str) -> dict[str, Any]:
         r = next((x for x in self.live.ranking() if x["machine_id"] == mid), {})
@@ -235,6 +242,7 @@ class Flow:
             }
             top = max((ORDER.index(s) for s in done), default=-1)
             if st in done or ORDER.index(st) <= top:
+                self._fault_update(mid, ORDER[top] if top >= 0 else st)
                 return None
             self.live.c.db.execute(
                 "INSERT INTO wa_stages (machine, stage, ts) VALUES (?,?,?)", (mid, st, time.time())
@@ -259,6 +267,31 @@ class Flow:
             stage=stage,
         )
         wa_agent.compose(self, mid, stage, set(ROLES_FOR[stage]))
+        self._note_fault(mid)
+
+    def _note_fault(self, mid: str) -> None:
+        with self.lock:
+            self.live.c.db.execute("INSERT OR REPLACE INTO wa_faults (machine, fault) VALUES (?,?)",
+                                   (mid, self.diagnosis(mid).get("fault") or ""))  # fmt: skip
+            self.live.c.db.commit()
+
+    def _fault_update(self, mid: str, stage: str) -> None:
+        """A stage message went out before the fault was named; once it is, the owner gets it too (one update)."""
+        if stage not in ("repair_soon", "stop_now", "replace"):
+            return
+        row = self.live.c.db.execute("SELECT fault FROM wa_faults WHERE machine=?", (mid,)).fetchone()
+        fault = self.diagnosis(mid).get("fault")
+        if row is None or row[0] or not fault:
+            return
+        self._note_fault(mid)
+        with self.lock:  # the new message carries the decision; the earlier one is superseded
+            self.live.c.db.execute("UPDATE wa_threads SET answered=1 WHERE machine=? AND role='owner' AND "
+                                   "expects='decision' AND answered=0", (mid,))  # fmt: skip
+            self.live.c.db.commit()
+        text = self.template(mid, "owner", stage).replace(
+            "[Owner] ", "[Owner] Update, kharabi pehchan li: ", 1
+        )
+        self.send(mid, "owner", text, stage=stage, by="update", expects="decision")
 
     def tick(self) -> list[int]:
         """One reminder per unanswered owner decision after REMIND_AFTER_S of real time."""
@@ -281,9 +314,12 @@ class Flow:
         dx = self.diagnosis(mid)
         h = self.health(mid)
         tag = f"[{role.capitalize()}] {d['name']} ({d['shed']}):"
+        sev = (c.get("severity") or {}).get("label", {}).get("hi_latn")
+        risk = self.risk_line(mid)
         if not dx.get("fault"):
             what, fixc, brk, cause, warr = (
-                "awaaz badli hai, kharabi ka naam pakka nahi; mistri ko dikhana chahiye.",
+                (c.get("unknown") or {}).get("hi_latn")
+                or "awaaz badli hai, kharabi ka naam pakka nahi; mistri ko dikhana chahiye.",
                 None,
                 None,
                 None,
@@ -305,7 +341,8 @@ class Flow:
             if stage == "watch":
                 return f"{tag} {what} Andaaz: {left}. Abhi kuch karne ki zaroorat nahi, hum nazar rakh rahe hain."
             head = "Ye machine ab marammat layak nahi lagti (beyond repair). " if stage == "replace" else ""
-            parts = [f"{tag} {head}{what}", f"Samay: {left}."]
+            label = f"{sev}. " if sev else ""
+            parts = [f"{tag} {label}{head}{what}", f"{risk + '. ' if risk else ''}Samay: {left}."]
             if fixc:
                 parts.append(
                     f"Abhi theek karayein: {fixc}; tootne par: {brk} se zyada (+ band machine ka nuksaan)."
@@ -521,6 +558,16 @@ class Flow:
     def reset(self) -> None:
         with self.lock:
             self.live.c.db.executescript("DELETE FROM wa_log; DELETE FROM wa_threads; DELETE FROM wa_stages;")
+
+
+def inr(v: int) -> str:
+    """Indian digit grouping, as on the phone screen: 156960 -> '₹1,56,960'."""
+    d = str(abs(int(v)))
+    head, tail = d[:-3], d[-3:]
+    while len(head) > 2:
+        tail = head[-2:] + "," + tail
+        head = head[:-2]
+    return "₹" + (head + "," + tail if head else tail)
 
 
 def mask(phone: str | None) -> str | None:

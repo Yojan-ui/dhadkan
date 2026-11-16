@@ -191,3 +191,20 @@ def test_reply_to_a_template_gets_the_queued_full_alert_as_twiml(world, monkeypa
     r = post(world[1], {"From": "whatsapp:+919876500007", "Body": "ok"})
     assert r.status_code == 200 and "<Message>[Owner] Loom 4 full alert 1 Mechanic bulao</Message>" in r.text
     assert whatsapp.take_pending("whatsapp:+919876500007") == []
+
+
+@needs_ims
+def test_owner_whatsapp_matches_the_phone_screen(world):
+    _, client, live, _ = world
+    live.flow.on_reading("A-G1", background=False)  # catch up if the fault was named after the stage message
+    card = client.get("/api/diagnosis/A-G1?lang=hi_latn").json()["card"]
+    what = (card.get("what") or card.get("unknown"))["hi_latn"]
+    last = [
+        m
+        for m in out_msgs(live, "owner")
+        if m["kind"] in ("agent", "template", "update")
+        and m["stage"] in ("repair_soon", "stop_now", "replace")
+    ][-1]["text"]
+    assert what in last and card["severity"]["label"]["hi_latn"] in last
+    # the rupee figure is live on the phone and a snapshot in WhatsApp (sent once per stage); same line, same source
+    assert not live.flow.risk_line("A-G1") or "khatre mein (2 din)" in last
