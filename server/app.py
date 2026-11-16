@@ -1197,6 +1197,72 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
         card = live.alerts.card(mid, lang)
         return {"card": card, "text": live.alerts.text(mid, lang) if card else None}
 
+    class RepairIn(BaseModel):
+        model_config = ConfigDict(extra="forbid")
+        mechanic: str | None = Field(default=None, max_length=60)
+        part: str | None = Field(default=None, max_length=120)
+
+    @app.post("/api/repair/{mid}")
+    def repair(mid: str, body: RepairIn) -> dict[str, Any]:
+        """After a repair: the 60 s re-record (demo: the unit's own normal recordings), verified, signed."""
+        from . import prove
+
+        if mid not in live.c.machines:
+            raise HTTPException(404)
+        after, note = prove.demo_after_readings(live, mid)
+        rec = prove.make_record(live, mid, after, body.mechanic, body.part, demo_note=note)
+        live.event("repair_verified", machine=mid, outcome=rec["record"]["verification"]["outcome"])
+        return rec
+
+    @app.get("/api/records")
+    def list_records(machine: str | None = None) -> list[dict[str, Any]]:
+        from . import prove
+
+        return [{k: v for k, v in r.items() if k != "mechanic"} for r in prove.records(live, machine)]
+
+    @app.get("/api/records/public-key")
+    def records_public_key() -> Response:
+        from . import prove
+
+        return Response(prove.public_key_pem(), media_type="application/x-pem-file")
+
+    class VerifyIn(BaseModel):
+        record: dict[str, Any]
+        signature: str = Field(max_length=200)
+
+    @app.post("/api/records/verify")
+    def verify_record(body: VerifyIn) -> dict[str, bool]:
+        from . import prove
+
+        return {"valid": prove.verify_signature(body.record, body.signature)}
+
+    @app.get("/api/records/{rid}.pdf")
+    def record_pdf(rid: int) -> Response:
+        from . import prove
+
+        rec = next((r for r in prove.records(live) if r["id"] == rid), None)
+        if rec is None:
+            raise HTTPException(404)
+        return Response(prove.record_pdf(rec), media_type="application/pdf",
+                        headers={"Content-Disposition": f'inline; filename="repair-{rid}.pdf"'})  # fmt: skip
+
+    @app.get("/api/passport/{mid}")
+    def passport(mid: str) -> dict[str, Any]:
+        from . import prove
+
+        if mid not in live.c.machines:
+            raise HTTPException(404)
+        return prove.passport(live, mid)
+
+    @app.get("/api/owner/{factory}/mechanics")
+    def owner_mechanics(factory: str) -> list[dict[str, Any]]:
+        """Owner only (the owner screen); never part of the shareable passport."""
+        from . import prove
+
+        if factory not in live.c.factories:
+            raise HTTPException(404)
+        return prove.mechanic_stats(live, factory)
+
     @app.get("/api/forecast/parts")
     def parts_forecast(days: float = 14.0) -> dict[str, Any]:
         """Cluster parts forecast for dealers: counts of machines whose days-to-fault range reaches `days`."""
