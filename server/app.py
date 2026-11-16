@@ -146,6 +146,10 @@ class Live:
         self.prev_status = {}
         self.mel_hz = librosa.mel_frequencies(N_MELS + 2, fmin=0, fmax=SR / 2)[1:-1].tolist()
         with self.lock:
+            # A Demo-mode run (NASA IMS readings on Loom 1) cannot be resumed after a restart: its source is
+            # gone, so its readings would be scored as the wrong machine. Start clean instead.
+            if self.c.db.execute("SELECT 1 FROM readings WHERE mode='ims' LIMIT 1").fetchone():
+                self.reset()
             if self.c.tick_no() >= 0:
                 self._analyse()
                 self.prev_status = {r["machine_id"]: r["status"] for r in self.ranking()}
@@ -1253,6 +1257,19 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
         if mid not in live.c.machines:
             raise HTTPException(404)
         return prove.passport(live, mid)
+
+    class DecideIn(BaseModel):
+        model_config = ConfigDict(extra="forbid")
+        machine: str = Field(max_length=16)
+        choice: str = Field(pattern="^(book|later|details)$")
+        lang: str | None = Field(default=None, pattern="^(" + "|".join(diagnosis.LANGS) + ")$")
+
+    @app.post("/api/owner/decide")
+    def owner_decide(body: DecideIn) -> dict[str, Any]:
+        """Owner screen buttons (Mechanic bulao / Kal / Details): the same path as a WhatsApp reply."""
+        if body.machine not in live.c.machines:
+            raise HTTPException(404)
+        return live.alerts.decide(body.machine, body.choice, body.lang)
 
     @app.get("/api/owner/{factory}/mechanics")
     def owner_mechanics(factory: str) -> list[dict[str, Any]]:

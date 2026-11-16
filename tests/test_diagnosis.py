@@ -120,7 +120,7 @@ def test_card_money_comes_from_the_knowledge_base_and_profile():
 def test_message_template(lang, reply):
     c = d.card(MACHINE, "A", "bearing_wear", hp=2, service_h=1.5, lang=lang)
     text = d.message(c, "Loom 1", days_rising=3, lang=lang)
-    assert text.startswith("⚠ ") and reply in text
+    assert "⚠" not in text and reply in text
     assert d.load()["disclaimer"][lang] in text
     lo, hi = c["fix"]["total_inr"]
     assert f"₹{lo:,}-{hi:,}" in text
@@ -146,8 +146,6 @@ def test_roman_hindi_alert_matches_the_brief_style():
          "forecast": {"status": "estimate", "low": 3, "mid": 5, "high": 9, "crossings": [3, 5, 9]}}  # fmt: skip
     c = d.card(m, "A", "bearing_wear", 2, 1.5, "hi_latn")
     text = d.message(c, "Loom 1", 3, "hi_latn")
-    assert (
-        text.startswith("⚠ ") and "bearing ghis raha hai" in text and "3 din se aawaz badh rahi hai" in text
-    )
+    assert "⚠" not in text and "bearing ghis raha hai" in text and "3 din se aawaz badh rahi hai" in text
     assert "Reply 1 = mistri bulao, 2 = baad mein, 3 = poori jaankari" in text
     assert all(ord(ch) < 0x900 or ord(ch) > 0x97F for ch in text)  # no Devanagari

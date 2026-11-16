@@ -287,6 +287,39 @@ class OwnerAlerts:
         )
         return {"onboarding": True, "next": q}
 
+    def decide(self, mid: str, choice: str, lang: str | None = None) -> dict[str, Any]:
+        """The owner screen's buttons: the same decision path as a WhatsApp reply (only "book" books, and the
+        mechanic's job still needs the logged approval). details -> the full card text."""
+        lang = lang or self.owner_lang(mid)
+        if choice == "details":
+            return {"choice": "details", "text": self.details(mid, lang)}
+        if choice not in ("book", "later"):
+            raise ValueError(choice)
+        msg = self.live.c.db.execute(
+            "SELECT id FROM messages WHERE ask LIKE ? AND approved IS NULL ORDER BY id DESC LIMIT 1",
+            (f"{mid}|%",),
+        ).fetchone()
+        if msg is None:
+            return {"choice": choice, "booked": False, "why": "no open visit request for this machine"}
+        self.live.reply(int(msg[0]), "1" if choice == "book" else "2")
+        alert = next(
+            (a for a in self.notifier.recent(200) if a["machine"] == mid and a["kind"] == "alert"), None
+        )
+        if alert:
+            self.notifier.db.execute(
+                "UPDATE alerts SET reply=COALESCE(reply, ?), choice=COALESCE(choice, ?), replied_at=? WHERE id=?",
+                ("owner screen", choice, self.notifier.clock(), alert["id"]),
+            )
+            self.notifier.db.commit()
+        job = None
+        if choice == "book":
+            from . import fix
+
+            row = alert or {"machine": mid, "severity": "repair_soon", "id": None}
+            job = fix.send_job(self, {**row, "message_id": int(msg[0])})
+        self.live.event("owner_decision", machine=mid, choice=choice, via="owner screen")
+        return {"choice": choice, "booked": choice == "book", "job_status": job and job["status"]}
+
     def on_audio(self, phone: str, audio: bytes, mime: str = "audio/ogg") -> dict[str, Any] | None:
         """A recording: an onboarding baseline clip if this phone is setting up, else a voice note on an alert."""
         if self.onboard.active(phone):

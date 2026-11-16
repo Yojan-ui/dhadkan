@@ -1,4 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { MechanicScreen } from "./screens/Mechanic";
+import { OwnerScreen } from "./screens/Owner";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { get, post, store, useConnected, useLive, useMeta, type Machine, type PastReading } from "./api";
 import type { View } from "./scene/CameraRig";
@@ -20,6 +22,18 @@ const Scene = lazy(() => sceneChunk ?? import("./scene/Scene"));
 type DrawerName = "operator" | "eval" | "log" | "keys" | "demo" | null;
 
 export default function App() {
+  const q = new URLSearchParams(location.search);
+  const view = q.get("view"); // phone screens: ?view=owner&f=A&lang=hi, ?view=mechanic&f=A
+  if (view === "owner") {
+    const lang = (q.get("lang") ?? "hi") as "hi" | "hi_latn" | "mr" | "gu" | "en";
+    return (
+      <OwnerScreen
+        factory={q.get("f") ?? "A"}
+        lang={["hi", "hi_latn", "mr", "gu", "en"].includes(lang) ? lang : "hi"}
+      />
+    );
+  }
+  if (view === "mechanic") return <MechanicScreen factory={q.get("f")} />;
   return (
     <LazyMotion features={domAnimation} strict>
       <Main />

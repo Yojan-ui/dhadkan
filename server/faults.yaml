@@ -75,10 +75,10 @@ sources:
 severity:
   order: [watch, repair_soon, stop_now, replace]
   labels:
-    watch: {en: "Watch", hi: "नज़र रखें", mr: "लक्ष ठेवा", hi_latn: "Dhyan do", gu: "ધ્યાન રાખો"}
-    repair_soon: {en: "Repair soon", hi: "जल्द ठीक कराएँ", mr: "लवकर दुरुस्त करा", hi_latn: "Jaldi repair", gu: "જલ્દી રિપેર કરાવો"}
-    stop_now: {en: "Stop now", hi: "अभी बंद करें", mr: "आत्ताच बंद करा", hi_latn: "Band karne ka sochiye", gu: "બંધ કરવાનું વિચારો"}
-    replace: {en: "Beyond repair (replace)", hi: "मरम्मत से बाहर, बदलें", mr: "दुरुस्तीपलीकडे, बदला", hi_latn: "Badalna padega", gu: "રિપેરથી બહાર, બદલો"}
+    watch: {en: "Watch", hi: "ध्यान दो", mr: "लक्ष ठेवा", hi_latn: "Dhyan do", gu: "ધ્યાન રાખો"}
+    repair_soon: {en: "Repair soon", hi: "जल्दी रिपेयर", mr: "लवकर दुरुस्त करा", hi_latn: "Jaldi repair", gu: "જલ્દી રિપેર કરાવો"}
+    stop_now: {en: "Consider stopping it", hi: "बंद करने का सोचिए", mr: "बंद करण्याचा विचार करा", hi_latn: "Band karne ka sochiye", gu: "બંધ કરવાનું વિચારો"}
+    replace: {en: "Beyond repair (replace)", hi: "बदलना पड़ेगा", mr: "दुरुस्तीपलीकडे, बदला", hi_latn: "Badalna padega", gu: "રિપેરથી બહાર, બદલો"}
   rules:
     stop_now_within_days: 2      # the low end of the days-to-fault range is this close, or it already sounds faulty
     repair_soon_within_days: 14  # alarm, registry match, or the low end of the range within this

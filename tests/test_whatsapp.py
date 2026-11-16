@@ -163,7 +163,7 @@ def send(n, **kw):
         "severity": "repair_soon",
         "to": TO,
         "lang": "hi",
-        "body": "⚠ ...",
+        "body": "Loom 1 ...",
         "media": [],
     }
     return n.send(**{**base, **kw})

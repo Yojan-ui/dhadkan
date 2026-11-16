@@ -3,20 +3,20 @@ import { useEffect, useState } from "react";
 import type { Factory, Machine } from "./api";
 
 export const C = {
-  bg: "#16171a",
+  bg: "#000000",
   ground: "#1c1d20",
   slab: "#25272b",
   wall: "#2f3237",
   partA: "#4b4f56",
   partB: "#5d626a",
   partC: "#3b3e44",
-  ink: "#e9e7e2",
-  muted: "#8e9198",
-  rule: "#2f3136",
+  ink: "#ffffff",
+  muted: "#8a8a8a",
+  rule: "#1a1a1a",
   track: "#3d4046",
   grey: "#7d8189",
-  amber: "#d9a03a",
-  accent: "#FF6A13",
+  amber: "#FE5101",
+  accent: "#FE5101",
 };
 
 const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);

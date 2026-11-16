@@ -13,17 +13,17 @@ Built for Tech4Bharat problem statement 4.3 (machine failure prediction for smal
 
 The owner receives:
 
-> ⚠ अभी बंद करें · लूम 1 – मोटर का बेयरिंग घिस रहा है। 2 दिन से आवाज़ बढ़ रही है। अभी ठीक हो सकता है:
+> बंद करने का सोचिए · लूम 1 – मोटर का बेयरिंग घिस रहा है। 2 दिन से आवाज़ बढ़ रही है। अभी ठीक हो सकता है:
 > बेयरिंग 6205 (पुराने जैसा नंबर), ~₹315-680, 1-2 घंटा। 1.5 दिन से ज़्यादा चलाया तो मोटर जल सकती है
 > (~₹2,000)। जवाब दें: 1 = मिस्त्री बुलाओ, 2 = बाद में, 3 = पूरी जानकारी। (अनुमानित दाम और वारंटी, डीलर से पक्का करें।)
 
 *(Output of `server/diagnosis.py`. Inputs: bearing wear, 2 HP motor, estimate 1.5–5 days to fault
-level, rising for 2 days. The English version reads "Stop now · Loom 1 – The ball bearing in the
+level, rising for 2 days. The English version reads "Consider stopping it · Loom 1 – The ball bearing in the
 motor is wearing out … Reply 1 = send mechanic, 2 = later, 3 = details. (Typical prices and
 warranty, confirm with dealer.)")*
 
 Every word comes from `server/faults.yaml`, not from a language model. The price is the cited part
-range plus labour at an assumed rate. "Stop now" is advice to the owner: **Dhadkan never stops a
+range plus labour at an assumed rate. "Consider stopping it" is advice to the owner: **Dhadkan never stops a
 machine**, and only a reply of **1** books the technician.
 
 ---

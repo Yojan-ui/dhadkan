@@ -38,7 +38,7 @@ def test_the_real_bearing_failure_sends_a_whatsapp_alert_with_media(world):
     loom = [s for s in to_a if "लूम 1" in s["text"]]
     assert loom, "factory A's owner gets the Loom 1 alert"
     a = loom[0]
-    assert a["lang"] == "hi" and "1 = मिस्त्री बुलाओ" in a["text"] and a["text"].startswith("⚠ ")
+    assert a["lang"] == "hi" and "1 = मिस्त्री बुलाओ" in a["text"] and not a["text"].startswith("⚠")
     assert "बेयरिंग" in a["text"]  # the classifier's bearing fault maps to the bearing-wear card
     assert a["media"] == ["audio/ogg", "image/png"]
     alerts = client.get("/api/state").json()["alerts"]
@@ -53,7 +53,7 @@ def test_diagnosis_endpoint(world):
     d = client.get("/api/diagnosis/A-G1?lang=en").json()
     assert d["card"]["fault"] == "bearing_wear" and d["card"]["named_by"] == "classifier"
     assert d["card"]["severity"]["level"] in ("watch", "repair_soon", "stop_now", "replace")
-    assert d["text"].startswith("⚠ ")
+    assert d["text"] and "⚠" not in d["text"]  # spec: no emoji
 
 
 def test_webhook_verification_and_signature(world):
@@ -142,3 +142,20 @@ def test_voice_note_becomes_a_weak_label_on_the_alerted_machine(world, monkeypat
     handled = client.post("/webhooks/whatsapp", content=raw, headers=headers).json()["handled"]
     assert handled and handled[0]["machine"] == "A-G1" and handled[0]["label"]["sound"] == "khat-khat"
     assert any(e["kind"] == "owner_voice" for e in live.events)
+
+
+@needs_ims
+def test_restart_after_demo_mode_starts_clean(tmp_path):
+    """Leftover NASA readings must not be scored as Loom 1's gearbox after a restart."""
+    from server import app as app_mod
+
+    mp = pytest.MonkeyPatch()
+    try:
+        _, _, live, _ = ims_world(tmp_path, mp)
+        assert live.c.db.execute("SELECT COUNT(*) FROM readings WHERE mode='ims'").fetchone()[0] > 0
+        again = app_mod.create_app(tmp_path / "node.db", tmp_path / "registry.db", stream=False).state.live
+        assert (
+            again.c.db.execute("SELECT COUNT(*) FROM readings").fetchone()[0] == 0 and again.c.tick_no() == -1
+        )
+    finally:
+        mp.undo()

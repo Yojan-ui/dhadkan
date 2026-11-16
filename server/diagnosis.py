@@ -201,15 +201,15 @@ def _rs(lo: int, hi: int | None = None) -> str:
 
 
 TEMPLATE = {
-    "hi": "⚠ {sev} · {name} – {what} {rising}अभी ठीक हो सकता है: {part}, ~{price}, {hours} घंटा। {ignore}"
+    "hi": "{sev} · {name} – {what} {rising}अभी ठीक हो सकता है: {part}, ~{price}, {hours} घंटा। {ignore}"
     "जवाब दें: 1 = मिस्त्री बुलाओ, 2 = बाद में, 3 = पूरी जानकारी। ({disc})",
-    "mr": "⚠ {sev} · {name} – {what} {rising}आत्ता दुरुस्त होऊ शकते: {part}, ~{price}, {hours} तास. {ignore}"
+    "mr": "{sev} · {name} – {what} {rising}आत्ता दुरुस्त होऊ शकते: {part}, ~{price}, {hours} तास. {ignore}"
     "उत्तर द्या: 1 = मिस्त्री बोलवा, 2 = नंतर, 3 = सविस्तर माहिती. ({disc})",
-    "en": "⚠ {sev} · {name} – {what} {rising}Fixable now: {part}, ~{price}, {hours} h. {ignore}"
+    "en": "{sev} · {name} – {what} {rising}Fixable now: {part}, ~{price}, {hours} h. {ignore}"
     "Reply 1 = send mechanic, 2 = later, 3 = details. ({disc})",
-    "hi_latn": "⚠ {sev} · {name} – {what} {rising}Abhi theek ho sakta hai: {part}, ~{price}, {hours} ghanta. {ignore}"
+    "hi_latn": "{sev} · {name} – {what} {rising}Abhi theek ho sakta hai: {part}, ~{price}, {hours} ghanta. {ignore}"
     "Reply 1 = mistri bulao, 2 = baad mein, 3 = poori jaankari. ({disc})",
-    "gu": "⚠ {sev} · {name} – {what} {rising}હમણાં ઠીક થઈ શકે: {part}, ~{price}, {hours} કલાક. {ignore}"
+    "gu": "{sev} · {name} – {what} {rising}હમણાં ઠીક થઈ શકે: {part}, ~{price}, {hours} કલાક. {ignore}"
     "જવાબ આપો: 1 = મિસ્ત્રી બોલાવો, 2 = પછી, 3 = પૂરી માહિતી. ({disc})",
 }
 RISING = {
@@ -234,11 +234,11 @@ IGNORE = {
     "gu": "ચલાવતા રહ્યા તો {what} (~{cost}). ",
 }
 UNKNOWN = {
-    "hi": "⚠ {sev} · {name} – {text} जवाब दें: 1 = मिस्त्री बुलाओ, 2 = बाद में, 3 = पूरी जानकारी।",
-    "mr": "⚠ {sev} · {name} – {text} उत्तर द्या: 1 = मिस्त्री बोलवा, 2 = नंतर, 3 = सविस्तर माहिती.",
-    "en": "⚠ {sev} · {name} – {text} Reply 1 = send mechanic, 2 = later, 3 = details.",
-    "hi_latn": "⚠ {sev} · {name} – {text} Reply 1 = mistri bulao, 2 = baad mein, 3 = poori jaankari.",
-    "gu": "⚠ {sev} · {name} – {text} જવાબ આપો: 1 = મિસ્ત્રી બોલાવો, 2 = પછી, 3 = પૂરી માહિતી.",
+    "hi": "{sev} · {name} – {text} जवाब दें: 1 = मिस्त्री बुलाओ, 2 = बाद में, 3 = पूरी जानकारी।",
+    "mr": "{sev} · {name} – {text} उत्तर द्या: 1 = मिस्त्री बोलवा, 2 = नंतर, 3 = सविस्तर माहिती.",
+    "en": "{sev} · {name} – {text} Reply 1 = send mechanic, 2 = later, 3 = details.",
+    "hi_latn": "{sev} · {name} – {text} Reply 1 = mistri bulao, 2 = baad mein, 3 = poori jaankari.",
+    "gu": "{sev} · {name} – {text} જવાબ આપો: 1 = મિસ્ત્રી બોલાવો, 2 = પછી, 3 = પૂરી માહિતી.",
 }
 
 
