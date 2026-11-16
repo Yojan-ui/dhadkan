@@ -102,6 +102,17 @@ class Flow:
     def card(self, mid: str, lang: str = "en") -> dict[str, Any] | None:
         return self.live.alerts.card(mid, lang)
 
+    def alerted(self, mid: str, lang: str = "hi_latn") -> dict[str, Any] | None:
+        """The highest stage WhatsApp has alerted for this machine, with its faults.yaml label (phone screen)."""
+        from .. import diagnosis as kb
+
+        done = [r[0] for r in self.live.c.db.execute("SELECT stage FROM wa_stages WHERE machine=?", (mid,))]
+        if not done:
+            return None
+        st = max(done, key=ORDER.index)
+        labels = kb.load()["severity"]["labels"].get(st, {})
+        return {"level": st, "label": labels.get(lang) or labels.get("en")}
+
     def risk_line(self, mid: str) -> str:
         """'₹1,56,960 khatre mein (2 din)': the owner phone screen's line (chance within 2 days x breakdown cost)."""
         r = next((x for x in self.live.ranking() if x["machine_id"] == mid), {})
@@ -241,13 +252,15 @@ class Flow:
                 r[0] for r in self.live.c.db.execute("SELECT stage FROM wa_stages WHERE machine=?", (mid,))
             }
             top = max((ORDER.index(s) for s in done), default=-1)
-            if st in done or ORDER.index(st) <= top:
-                self._fault_update(mid, ORDER[top] if top >= 0 else st)
-                return None
-            self.live.c.db.execute(
-                "INSERT INTO wa_stages (machine, stage, ts) VALUES (?,?,?)", (mid, st, time.time())
-            )
-            self.live.c.db.commit()
+            caught_up = st in done or ORDER.index(st) <= top
+            if not caught_up:
+                self.live.c.db.execute(
+                    "INSERT INTO wa_stages (machine, stage, ts) VALUES (?,?,?)", (mid, st, time.time())
+                )
+                self.live.c.db.commit()
+        if caught_up:  # outside the lock: the diagnosis reads live state that has locks of its own
+            self._fault_update(mid, ORDER[top] if top >= 0 else st)
+            return None
         if background:
             threading.Thread(target=self._dispatch, args=(mid, st), daemon=True).start()
         else:
@@ -269,10 +282,12 @@ class Flow:
         wa_agent.compose(self, mid, stage, set(ROLES_FOR[stage]))
         self._note_fault(mid)
 
-    def _note_fault(self, mid: str) -> None:
+    def _note_fault(self, mid: str, fault: str | None = None) -> None:
+        f = (
+            fault if fault is not None else (self.diagnosis(mid).get("fault") or "")
+        )  # read before taking the lock
         with self.lock:
-            self.live.c.db.execute("INSERT OR REPLACE INTO wa_faults (machine, fault) VALUES (?,?)",
-                                   (mid, self.diagnosis(mid).get("fault") or ""))  # fmt: skip
+            self.live.c.db.execute("INSERT OR REPLACE INTO wa_faults (machine, fault) VALUES (?,?)", (mid, f))
             self.live.c.db.commit()
 
     def _fault_update(self, mid: str, stage: str) -> None:
@@ -283,14 +298,14 @@ class Flow:
         fault = self.diagnosis(mid).get("fault")
         if row is None or row[0] or not fault:
             return
-        self._note_fault(mid)
+        self._note_fault(mid, fault)
         with self.lock:  # the new message carries the decision; the earlier one is superseded
             self.live.c.db.execute("UPDATE wa_threads SET answered=1 WHERE machine=? AND role='owner' AND "
                                    "expects='decision' AND answered=0", (mid,))  # fmt: skip
             self.live.c.db.commit()
-        text = self.template(mid, "owner", stage).replace(
-            "[Owner] ", "[Owner] Update, kharabi pehchan li: ", 1
-        )
+        d = self.display(mid)
+        tag = f"{d['name']} ({d['shed']}):"
+        text = self.template(mid, "owner", stage).replace(tag, f"{tag} Update, kharabi pehchan li.", 1)
         self.send(mid, "owner", text, stage=stage, by="update", expects="decision")
 
     def tick(self) -> list[int]:
@@ -314,7 +329,11 @@ class Flow:
         dx = self.diagnosis(mid)
         h = self.health(mid)
         tag = f"[{role.capitalize()}] {d['name']} ({d['shed']}):"
-        sev = (c.get("severity") or {}).get("label", {}).get("hi_latn")
+        from .. import diagnosis as kb
+
+        # the label of the stage this message is about (faults.yaml, as on the phone screen); the live card's label
+        # can swing between readings
+        sev = kb.load()["severity"]["labels"].get(stage, {}).get("hi_latn")
         risk = self.risk_line(mid)
         if not dx.get("fault"):
             what, fixc, brk, cause, warr = (

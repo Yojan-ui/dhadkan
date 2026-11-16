@@ -1295,7 +1295,11 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
             raise HTTPException(404, "unknown machine")
         lang = lang or live.c.factories[live.c.machines[mid]["factory"]]["language"]
         card = live.alerts.card(mid, lang)
-        return {"card": card, "text": live.alerts.text(mid, lang) if card else None}
+        return {
+            "card": card,
+            "text": live.alerts.text(mid, lang) if card else None,
+            "alerted": live.flow.alerted(mid, lang),
+        }
 
     class RepairIn(BaseModel):
         model_config = ConfigDict(extra="forbid")

@@ -199,12 +199,29 @@ def test_owner_whatsapp_matches_the_phone_screen(world):
     live.flow.on_reading("A-G1", background=False)  # catch up if the fault was named after the stage message
     card = client.get("/api/diagnosis/A-G1?lang=hi_latn").json()["card"]
     what = (card.get("what") or card.get("unknown"))["hi_latn"]
-    last = [
+    msg = [
         m
         for m in out_msgs(live, "owner")
         if m["kind"] in ("agent", "template", "update")
         and m["stage"] in ("repair_soon", "stop_now", "replace")
-    ][-1]["text"]
-    assert what in last and card["severity"]["label"]["hi_latn"] in last
+    ][-1]
+    last = msg["text"]
+    from server import diagnosis as kb
+
+    # the label of the stage the message is about, from the same faults.yaml labels the phone screen shows
+    assert what in last and kb.load()["severity"]["labels"][msg["stage"]]["hi_latn"] in last
     # the rupee figure is live on the phone and a snapshot in WhatsApp (sent once per stage); same line, same source
     assert not live.flow.risk_line("A-G1") or "khatre mein (2 din)" in last
+
+
+@needs_ims
+def test_phone_screen_gets_the_label_whatsapp_alerted_at(world):
+    _, client, live, _ = world
+    from server import diagnosis as kb
+
+    top = max(
+        (r[0] for r in live.c.db.execute("SELECT stage FROM wa_stages WHERE machine='A-G1'")),
+        key=flow_mod.ORDER.index,
+    )
+    got = client.get("/api/diagnosis/A-G1?lang=hi_latn").json()["alerted"]
+    assert got == {"level": top, "label": kb.load()["severity"]["labels"][top]["hi_latn"]}

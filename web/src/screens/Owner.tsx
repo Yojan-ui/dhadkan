@@ -103,14 +103,18 @@ export function OwnerScreen({ factory, lang }: { factory: string; lang: Lang }) 
   );
 }
 
+const ORDER = ["watch", "repair_soon", "stop_now", "replace"];
+type Alerted = { level: string; label: string };
+
 function OwnerCard({ m, lang, tick }: { m: Machine; lang: Lang; tick: number }) {
   const t = L[lang];
   const [card, setCard] = useState<DiagnosisCard | null>(null);
+  const [alerted, setAlerted] = useState<Alerted | null>(null);
   const [out, setOut] = useState<string | null>(null);
   useEffect(() => {
     let on = true;
-    get<{ card: DiagnosisCard | null }>(`/api/diagnosis/${m.id}?lang=${lang}`)
-      .then((r) => on && setCard(r.card))
+    get<{ card: DiagnosisCard | null; alerted?: Alerted | null }>(`/api/diagnosis/${m.id}?lang=${lang}`)
+      .then((r) => on && (setCard(r.card), setAlerted(r.alerted ?? null)))
       .catch(() => on && setCard(null));
     return () => {
       on = false;
@@ -125,7 +129,9 @@ function OwnerCard({ m, lang, tick }: { m: Machine; lang: Lang; tick: number }) 
     setOut(r.text ?? (r.why ? t.noreq : t.sent));
   };
   const what = card?.what?.[lang as "en"] ?? card?.unknown?.[lang as "en"];
-  const sev = card?.severity.label[lang as "en"];
+  // the stage WhatsApp alerted at, if higher than this reading's: the owner sees the same label in both places
+  const higher = alerted && card && ORDER.indexOf(alerted.level) > ORDER.indexOf(card.severity.level);
+  const sev = higher ? alerted.label : card?.severity.label[lang as "en"];
   return (
     <section className="lite-card">
       <div className="lite-row">
