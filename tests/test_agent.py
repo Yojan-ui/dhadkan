@@ -147,7 +147,8 @@ def test_claude_loop_with_fake_client(cluster):
     fake = FakeClaude()
     run_id, note = agent.run_claude(cluster, client=fake)
     assert note == "Tuesday: A-P1"
-    assert fake.calls[0]["model"] == "claude-opus-5-5"
+    assert fake.calls[0]["model"] == "claude-fable-5-2" and "thinking" not in fake.calls[0]
+    assert fake.calls[0]["output_config"] == {"effort": "low"} and "tool_choice" not in fake.calls[0]
     assert {t["name"] for t in fake.calls[0]["tools"]} == {t["name"] for t in agent.TOOLS}
     # tool results went back to the model in one user turn each
     last = fake.calls[-1]["messages"][-1]
