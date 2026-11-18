@@ -175,7 +175,7 @@ def main() -> None:
     }
     RUNS.mkdir(exist_ok=True)
     out = RUNS / f"compare_{record['run_id']}.json"
-    out.write_text(json.dumps(record, indent=1))
+    out.write_text(json.dumps(record, indent=1), encoding="utf-8")
     print(f"\nwrote {out}\nchosen on selection units: {chosen}")
     print(
         f"{'candidate':26s} {'sel AUC':>8s} {'sel pAUC':>8s} | {'held AUC':>8s} {'held pAUC':>9s} {'held F1':>7s} {'held FAR':>8s}"

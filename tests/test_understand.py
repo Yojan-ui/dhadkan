@@ -78,7 +78,7 @@ def test_good_answer_is_used_and_costed():
     assert out["severity_words"] == "Jaldi repair"
     want_usd = (1000 * 8 + 200 * 40 + 3000 * 0.20) / 1e6
     assert out["cost"]["usd"] == pytest.approx(want_usd, abs=1e-5) and out["cost"]["inr"] > 0
-    row = json.loads(understand.LOG.read_text().splitlines()[0])
+    row = json.loads(understand.LOG.read_text(encoding="utf-8").splitlines()[0])
     assert row["machine"] == "A-G1" and row["stop_reason"] == "end_turn" and "inr" in row
 
 

@@ -165,7 +165,7 @@ def demo_pack(clf: Any = None) -> Path:
     """
     import hashlib
 
-    meta = json.loads((MODELS / "ims_replay.json").read_text())
+    meta = json.loads((MODELS / "ims_replay.json").read_text(encoding="utf-8"))
     t, x = load(meta["test"], meta["bearing"])
     score = np.asarray(meta["score"], dtype=np.float32)
     start = int(len(t) * BASELINE_FRAC)
@@ -190,7 +190,7 @@ def demo_pack(clf: Any = None) -> Path:
 
 
 def main() -> None:
-    meta = json.loads((RAW / "ims" / "meta.json").read_text())
+    meta = json.loads((RAW / "ims" / "meta.json").read_text(encoding="utf-8"))
     series: dict[tuple[str, str], dict[str, Any]] = {}
     for key in [*FAILED, *HEALTHY]:
         if not (RAW / "ims" / f"{key[0]}_{key[1]}.npy").exists():
@@ -257,7 +257,7 @@ def main() -> None:
             }  # fmt: skip
     RUNS.mkdir(parents=True, exist_ok=True)
     out = RUNS / f"ims_{record['run_id']}.json"
-    out.write_text(json.dumps(record, indent=1, default=float))
+    out.write_text(json.dumps(record, indent=1, default=float), encoding="utf-8")
     if (
         DEMO in series
     ):  # the replay Demo mode plays: score per snapshot + timestamps (raw audio stays in data/raw)
@@ -268,7 +268,7 @@ def main() -> None:
                   "window_days": b["window_days_chosen"], "ratio_band_log10": b["calibration_log10_ratio_band"],
                   "ratios_log10": b["calibration_log10_ratios"], "first_alarm_day": b["first_alarm_day"],
                   "true_fault": FAILED[DEMO], "source_run": out.name, "first_snapshot": meta["tests"][DEMO[0]]["first"]}  # fmt: skip
-        Path(MODELS / "ims_replay.json").write_text(json.dumps(replay))
+        Path(MODELS / "ims_replay.json").write_text(json.dumps(replay), encoding="utf-8")
         demo_pack(clf)
     print(out)
     for k, v in record["bearings"].items():

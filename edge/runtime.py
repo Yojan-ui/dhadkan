@@ -20,7 +20,7 @@ class EdgeModel:
     def __init__(self, mtype: str, models_dir: Path = MODELS) -> None:
         d = models_dir / mtype
         self.mtype = mtype
-        self.meta = json.loads((d / "meta.json").read_text())
+        self.meta = json.loads((d / "meta.json").read_text(encoding="utf-8"))
         self.mu = np.array(self.meta["mel_mean"], dtype=np.float32)[:, None]
         self.sd = np.array(self.meta["mel_std"], dtype=np.float32)[:, None]
         self.interp = Interpreter(model_path=str(d / "model.tflite"), num_threads=4)

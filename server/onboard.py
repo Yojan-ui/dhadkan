@@ -113,7 +113,7 @@ class Onboarding:
         if state["step"] in ("clip", "done"):
             self.root.mkdir(parents=True, exist_ok=True)
             (self.root / f"{digits(phone)}.json").write_text(
-                json.dumps(profile, ensure_ascii=False, indent=1)
+                json.dumps(profile, ensure_ascii=False, indent=1), encoding="utf-8"
             )
 
     def active(self, phone: str) -> bool:

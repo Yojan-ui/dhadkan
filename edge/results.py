@@ -51,7 +51,7 @@ BASELINE_AVG = {
 
 def newest(prefix: str) -> tuple[dict[str, Any] | None, Path | None]:
     runs = sorted(RUNS.glob(f"{prefix}_*.json"))
-    return (json.loads(runs[-1].read_text()), runs[-1]) if runs else (None, None)
+    return (json.loads(runs[-1].read_text(encoding="utf-8")), runs[-1]) if runs else (None, None)
 
 
 def pct(v: float | None) -> str:
@@ -310,7 +310,7 @@ def main() -> None:
     lines += understand_section(un, unp)
     lines += results_more.mill_section() + results_more.agent_section() + results_more.bench_section()
     lines += (
-        (ROOT / "docs" / "results_notes.md").read_text().splitlines()
+        (ROOT / "docs" / "results_notes.md").read_text(encoding="utf-8").splitlines()
         if (ROOT / "docs" / "results_notes.md").exists()
         else []
     )

@@ -73,7 +73,7 @@ def main() -> None:
            "rows": out}  # fmt: skip
     RUNS.mkdir(parents=True, exist_ok=True)
     path = RUNS / f"understand_{rec['run_id']}.json"
-    path.write_text(json.dumps(rec, indent=1))
+    path.write_text(json.dumps(rec, indent=1), encoding="utf-8")
     print(path, {k: rec[k] for k in ("cases", "rules_accuracy", "claude_answered", "claude_accuracy")})
 
 

@@ -69,7 +69,7 @@ def main() -> None:
            "results": {k: round(v, 3) if isinstance(v, float) else v for k, v in res.items()},
            "not_measured": "phone and ESP32 latency, memory and battery (no Android app; ESP32 firmware untested)"}  # fmt: skip
     out = RUNS / f"bench_{rec['run_id']}.json"
-    out.write_text(json.dumps(rec, indent=1))
+    out.write_text(json.dumps(rec, indent=1), encoding="utf-8")
     print(out)
     print(json.dumps(rec["results"], indent=1))
 

@@ -118,6 +118,11 @@ class FlourMillDemo:
         self.last_health: dict[str, Any] | None = None
         self.events: list[dict[str, Any]] = []
 
+    def close(self) -> None:
+        """Close the SQLite files so a reset can delete them (Windows refuses to delete an open file)."""
+        for db in (self.base.db, self.store.db, self.cloud.db):
+            db.close()
+
     def _cloud_send(self, op: str, payload: dict[str, Any]) -> dict[str, Any]:
         if not self.net.online:
             raise ConnectionError("network down (simulated)")
@@ -311,7 +316,7 @@ class FlourMillDemo:
 
 
 def _downtime_at_risk() -> dict[str, Any]:
-    c = json.loads((ROOT / "data" / "sim" / "costs.json").read_text())
+    c = json.loads((ROOT / "data" / "sim" / "costs.json").read_text(encoding="utf-8"))
     hours = c["unplanned_downtime_hours"]["gearbox"]
     out_h = c["output_per_hour_inr"]["A"]
     return {"unplanned_downtime_hours": hours, "output_per_hour_inr": out_h, "at_risk_inr": hours * out_h,
@@ -343,7 +348,7 @@ def main() -> None:
                "repairs": st["repairs"], "audit_ok": st["audit_ok"], "sync": st["sync"], "messages": st["messages"],
                "owner": "auto-approved (headless run)"}  # fmt: skip
         out = RUNS / f"flourmill_{rec['run_id']}.json"
-        out.write_text(json.dumps(rec, indent=1, default=str))
+        out.write_text(json.dumps(rec, indent=1, default=str), encoding="utf-8")
         print(out)
 
 

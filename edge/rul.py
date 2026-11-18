@@ -215,7 +215,7 @@ def main() -> None:
            **evaluate()}  # fmt: skip
     rec["seconds"] = round(time.time() - t0, 1)
     out = RUNS / f"rul_{rec['run_id']}.json"
-    out.write_text(json.dumps(rec, indent=1, default=float))
+    out.write_text(json.dumps(rec, indent=1, default=float), encoding="utf-8")
     print(out)
     for k, b in rec["bearings"].items():
         m1, m2 = b["metrics"]["vs_threshold"], b["metrics"]["vs_end_of_run"]

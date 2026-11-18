@@ -10,7 +10,7 @@ from .config import RUNS
 
 def newest(prefix: str) -> tuple[dict[str, Any] | None, Path | None]:
     runs = sorted(RUNS.glob(f"{prefix}_*.json"))
-    return (json.loads(runs[-1].read_text()), runs[-1]) if runs else (None, None)
+    return (json.loads(runs[-1].read_text(encoding="utf-8")), runs[-1]) if runs else (None, None)
 
 
 def _f(v: Any, nd: int = 3) -> str:

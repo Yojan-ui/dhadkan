@@ -30,7 +30,7 @@ READINGS = 120  # the replay is shown as about this many readings (every k-th re
 
 class ImsSource:
     def __init__(self) -> None:
-        self.meta: dict[str, Any] = json.loads((MODELS / "ims_replay.json").read_text())
+        self.meta: dict[str, Any] = json.loads((MODELS / "ims_replay.json").read_text(encoding="utf-8"))
         pack = np.load(ims.PACK)
         k = max(1, math.ceil(len(pack["t_days"]) / READINGS))
         self.t = pack["t_days"][::k]

@@ -78,7 +78,7 @@ def main() -> None:
            "note": "field recordings; numbers only, no audio stored here"}  # fmt: skip
     OUT.mkdir(parents=True, exist_ok=True)
     out = OUT / f"{rec['run_id']}.json"
-    out.write_text(json.dumps(rec, indent=1))
+    out.write_text(json.dumps(rec, indent=1), encoding="utf-8")
     print(out)
 
 

@@ -17,13 +17,13 @@ pytestmark = pytest.mark.skipif(
 
 @pytest.fixture(scope="module")
 def ev():
-    return json.loads(EVALS[-1].read_text())
+    return json.loads(EVALS[-1].read_text(encoding="utf-8"))
 
 
 @pytest.mark.parametrize("mtype", ["pump", "fan", "gearbox"])
 def test_threshold_is_95th_percentile_of_own_validation_normals(ev, mtype):
     rep = ev["types"][mtype]
-    meta = json.loads((MODELS / mtype / "meta.json").read_text())
+    meta = json.loads((MODELS / mtype / "meta.json").read_text(encoding="utf-8"))
     for unit, thr in rep["thresholds"].items():
         val = [r["score"] for r in rep["clip_scores"] if r["unit"] == unit and r["split"] == "val"]
         assert len(val) >= 10

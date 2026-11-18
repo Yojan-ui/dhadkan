@@ -85,7 +85,7 @@ def features(win: np.ndarray, fs: int, shaft_hz: float, bearing: Bearing) -> np.
 def load_cwru() -> list[dict[str, Any]]:
     """Every CWRU recording as {label, load, size, x (12 kHz), rpm}."""
     rows = []
-    for r in json.loads((RAW / "cwru" / "index.json").read_text()):
+    for r in json.loads((RAW / "cwru" / "index.json").read_text(encoding="utf-8")):
         m = sio.loadmat(RAW / "cwru" / r["file"])
         keys = [k for k in m if not k.startswith("__")]
         x = next(m[k] for k in keys if k.endswith("_DE_time")).ravel().astype(np.float64)
@@ -182,7 +182,7 @@ def main() -> None:
     joblib.dump(clf, MODELS / "faulttype.joblib")
     RUNS.mkdir(parents=True, exist_ok=True)
     out = RUNS / f"faulttype_{record['run_id']}.json"
-    out.write_text(json.dumps(record, indent=1))
+    out.write_text(json.dumps(record, indent=1), encoding="utf-8")
     print(out)
     ev = record["eval"]
     print("leave-one-load-out:", {k: round(v["accuracy"], 3) for k, v in ev["leave_one_load_out"].items()})

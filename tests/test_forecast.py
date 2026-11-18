@@ -50,7 +50,7 @@ def test_probability_grows_with_time():
 def test_fault_levels_come_from_the_evaluation_record():
     import json
 
-    ev = json.loads(sorted(forecast.RUNS.glob("eval_*.json"))[-1].read_text())
+    ev = json.loads(sorted(forecast.RUNS.glob("eval_*.json"))[-1].read_text(encoding="utf-8"))
     lv = forecast.fault_levels()
     for rep in ev["types"].values():
         for unit, thr in rep["thresholds"].items():
@@ -122,7 +122,7 @@ def test_demo_pack_matches_the_real_ims_replay():
     from edge.config import RAW
 
     pack = np.load(ims.PACK)
-    meta = json.loads((ims.MODELS / "ims_replay.json").read_text())
+    meta = json.loads((ims.MODELS / "ims_replay.json").read_text(encoding="utf-8"))
     idx = pack["snapshot_index"]
     assert idx[0] >= int(len(meta["t_days"]) * ims.BASELINE_FRAC)  # replay starts after the learning window
     assert np.allclose(pack["score"], np.asarray(meta["score"])[idx])

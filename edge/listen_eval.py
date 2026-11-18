@@ -105,7 +105,7 @@ def main() -> None:
             print(mtype, rec["edge"][mtype])
     RUNS.mkdir(parents=True, exist_ok=True)
     out = RUNS / f"listen_{rec['run_id']}.json"
-    out.write_text(json.dumps(rec, indent=1))
+    out.write_text(json.dumps(rec, indent=1), encoding="utf-8")
     print(out)
 
 
