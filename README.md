@@ -31,9 +31,9 @@ npm run demo      # backend + web app; the NASA IMS bearing run-to-failure plays
   machines by risk, live spectrum and spectrogram, focus-machine trend, ₹ at risk in the next 2 days
   (7-segment readout), overall health gauge, actions and the agent's checklist.
 - **The owner's agent** ([server/owner_agent.py](server/owner_agent.py)) runs observe → diagnose → plan →
-  ask owner → act → verify with ten tools: get_machine_health, get_spectrogram, diagnose_fault,
-  find_local_mechanic, check_part_stock, estimate_cost_inr, schedule_repair, send_whatsapp,
-  verify_repair, log_warranty_claim.
+  ask owner → act → verify with twelve tools: get_machine_health, get_spectrogram, diagnose_fault,
+  find_local_mechanic, check_part_stock, estimate_cost_inr, check_warranty_insurance,
+  read_machine_documents, schedule_repair, send_whatsapp, verify_repair, log_warranty_claim.
   - It uses Claude Fable 5.2 (tool use) when `ANTHROPIC_API_KEY` is set, and rules otherwise or offline.
   - It acts on an alarm by itself.
   - Anything that costs money waits for the owner's "1 = Haan" on WhatsApp. No tool can stop a machine.
@@ -102,6 +102,52 @@ flowchart LR
    - **1** books the technician, **2** means later, **3** sends the full card.
    - A Stop-now alert with no reply in 2 h goes to the supervisor.
    - With no network, alerts queue, fall back to SMS, and send when the network returns.
+
+### Warranty and insurance: "can I claim this repair?"
+
+Owners of small factories often pay for repairs that their machine's warranty or insurance would have
+covered, because the papers sit in a drawer and nobody checks them when the machine starts making noise.
+Dhadkan keeps each machine's papers and checks them on every alert ([server/coverage.py](server/coverage.py)).
+
+1. **Upload once.** In the machine's side panel (click a machine on the Digital Twin), upload the warranty
+   card, insurance policy, invoice, AMC or manual as a PDF, photo or text file. The owner can also just send
+   a photo or PDF of the paper on WhatsApp; it is filed against the machine of their latest alert.
+2. **Read.** With `ANTHROPIC_API_KEY`, Claude Fable 5.2 reads the paper (PDFs and photos too) into fields
+   through a JSON schema, with an exact quote from the paper for each field: who issued it, number, valid
+   from and till, what it covers and excludes, deductible, claim deadline, claim steps, whom to call, and
+   what voids it. Offline, a rule reader handles text and text PDFs.
+3. **Decide in code.** When a fault is named, plain code (not the model) compares the date with the
+   validity and looks the fault up in the paper's own covers and excludes lists. A specific exclusion
+   ("V-belts") beats a specific cover ("motor bearings"), which beats a general exclusion ("wear and
+   tear"), which beats a general cover ("manufacturing defects"). A cover that only applies to defects is
+   "ask the company", not "claimable". A policy pays only above its deductible, and the alert says when the
+   repair costs less than the deductible.
+4. **Tell the owner, in their language.** The WhatsApp alert gets one more line, for example:
+
+   > ✅ वारंटी (Shree Ganesh Looms Pvt. Ltd., 11-08-2027 तक) में यह कवर है: क्लेम हो सकता है, ~₹315-₹680 बचेंगे।
+   > मरम्मत से पहले 1800-000-4471 (sample) पर बताएं (7 दिन के अंदर)। कंपनी के देखने से पहले मशीन किसी से न
+   > खुलवाएँ, वरना क्लेम रद्द हो सकता है। छोड़ दिया और मोटर जल गई तो वह ब्रेकडाउन बीमा (Suraksha General Insurance
+   > Co. Ltd.) में कवर है (₹5,000 कटौती के बाद)। 4 = क्लेम मदद।
+
+   *(Loom 1, bearing wear, with the sample papers. English: "The warranty covers this: likely claimable,
+   saves about ₹315-680. Call the company before any repair, within 7 days. Don't let anyone open the
+   machine before the company sees it, or the claim can be refused. If it is left and the motor burns, the
+   insurance covers that breakdown after the ₹5,000 deductible. Reply 4 = claim help.")*
+5. **Reply 4 = claim help.** The owner gets the claim steps, the contact, what to keep ready (card number,
+   serial number, invoice, photos, the Dhadkan sound report) and a short claim letter in English, with the
+   sound evidence, ready to forward to the company. The owner screen has the same button.
+
+Languages: Hindi, Marathi, Gujarati, English and Hinglish on WhatsApp. The agent answers questions about
+the papers in any of its languages ("insurance kab tak hai?") through `read_machine_documents`, and never
+decides coverage itself. The sample papers in [data/sample_docs/](data/sample_docs/) are made up and say
+so; Loom 1 (A-G1) has a warranty card, a machinery breakdown policy and an invoice, Pump 1 (A-P1) has an
+expired warranty, and Loom 1 at Gupta (B-G1) has only a policy. "Likely claimable" is advice, not a
+promise: the line always tells the owner to confirm with the company.
+
+API: `GET/POST /api/docs/{machine}`, `DELETE /api/docs/{machine}/{doc}`, `GET /api/coverage/{machine}?lang=hi`,
+`GET /api/claim/{machine}?lang=hi`. Tests: [tests/test_coverage.py](tests/test_coverage.py).
+
+![Warranty and insurance panel for Loom 1](docs/screenshots/digital-twin/5-papers.png)
 
 ### Beyond the alert
 

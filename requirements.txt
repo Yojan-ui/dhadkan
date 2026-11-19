@@ -16,3 +16,4 @@ remotezip==0.12.6
 reportlab==5.1.0
 PyYAML==6.0.3
 cryptography==50.0.2   # Ed25519 signatures on repair records and passports
+pypdf==6.17.0          # reads text PDFs of warranty cards / insurance policies offline (server/coverage.py); optional
