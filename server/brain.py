@@ -488,6 +488,7 @@ def planner_trace(store: Store, planner: Planner, case_id: str | None = None, ma
                           "reply": d["reply"], "outcome": d["outcome"],
                           "grounding_ok": (d["grounding"] or {}).get("ok", True),
                           "knowledge": list((d["grounding"] or {}).get("knowledge") or []),
+                          "observed": list((d["grounding"] or {}).get("observed") or []),
                           "guardian": [{"target": v.get("target"), "ok": bool(v.get("ok")),
                                         "reasons": [f"{r['rule']}: {r['detail']}" for r in v.get("reasons", [])]}
                                        for v in (d["grounding"] or {}).get("guardian") or []],

@@ -153,7 +153,7 @@ def run_loop(client: Any, model: str, effort: str, system: str, tools: list[dict
             res = dispatch(u.name, dict(args))
             out.calls.append({"tool": u.name, "input": args, "result": res, "ok": "error" not in res})
             block: dict[str, Any] = {"type": "tool_result", "tool_use_id": u.id,
-                                     "content": json.dumps(res, ensure_ascii=False, default=str)}  # fmt: skip
+                                     "content": json.dumps(res, ensure_ascii=False, default=str, separators=(",", ":"))}  # fmt: skip
             if "error" in res:
                 block["is_error"] = True
             results.append(block)

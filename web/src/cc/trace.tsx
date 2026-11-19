@@ -24,6 +24,17 @@ export function engineWord(engine: string, model: string | null) {
   return "rules (fixed plan)";
 }
 
+function GuardianLine({ checks }: { checks: { target: string; ok: boolean; reasons: string[] }[] }) {
+  const refused = checks.filter((c) => !c.ok);
+  if (refused.length === 0) return <div className="tiny mono">Guardian: {checks.length} checks passed</div>;
+  return (
+    <div className="tiny warn">
+      Guardian refused {refused.map((c) => `${c.target} (${c.reasons.join("; ")})`).join(", ")} ·{" "}
+      {checks.length - refused.length} passed
+    </div>
+  );
+}
+
 export function TraceCase({ c, compact = false }: { c: PlannerCase; compact?: boolean }) {
   const steps = compact ? c.steps.slice(-4) : c.steps;
   return (
@@ -63,8 +74,24 @@ export function TraceCase({ c, compact = false }: { c: PlannerCase; compact?: bo
                 ))}
               </div>
             )}
+            {s.observed && s.observed.length > 0 && (
+              <div className="tiny mono muted">fetched by code first: {s.observed.join(", ")}</div>
+            )}
+            {s.knowledge && s.knowledge.length > 0 && (
+              <div className="tiny mono">KB: {s.knowledge.join(", ")}</div>
+            )}
+            {s.a2a?.map((a, i) => (
+              <div key={`a2a${i}`} className="tiny mono">
+                A2A {a.partner} (external, untrusted): {a.said}
+              </div>
+            ))}
+            {s.guardian && s.guardian.length > 0 && <GuardianLine checks={s.guardian} />}
             {!s.grounding_ok && (
-              <div className="tiny warn">reply rejected: a number no tool returned (rules reply sent)</div>
+              <div className="tiny warn">
+                {s.status === "guardian_rejected"
+                  ? "reply refused by the Guardian (rules reply sent)"
+                  : "reply rejected: a number no tool returned (rules reply sent)"}
+              </div>
             )}
             {s.outcome && <div className="tiny">{s.outcome}</div>}
           </li>

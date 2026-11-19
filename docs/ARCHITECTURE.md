@@ -15,7 +15,7 @@ flowchart LR
     SIM --> FC["days to fault level<br/>forecast.py (IMS-calibrated)"]
     SIM --> DX["diagnosis card<br/>diagnosis.py + faults.yaml"]
     VIB["vibration (optional)<br/>faulttype.py (CWRU)"] --> DX
-    SIM -. "only when the fault<br/>is not named" .-> UN["Claude Fable 5.2<br/>understand.py"] --> DX
+    SIM -. "only when the fault<br/>is not named" .-> UN["Granite (local Ollama)<br/>understand.py"] --> DX
     DX --> OA["owner_alerts.py"]
     OA --> POL["quiet hours, power cuts,<br/>daily digest<br/>notify/policy.py"]
     POL --> NT["notify/service.py<br/>WhatsApp → SMS → queue"]
@@ -43,8 +43,8 @@ flowchart LR
 | | `edge/listen_eval.py` | RMS-threshold baseline, edge cost (size, ms) | |
 | | `edge/ims.py`, `edge/faulttype.py` | NASA IMS run-to-failure calibration; CWRU fault-type classifier | IMS, CWRU |
 | Understand | `server/diagnosis.py`, `server/faults.yaml` | severity rules and the diagnosis card; every ₹, part and warranty value is cited here | |
-| | `server/understand.py` | Claude Fable 5.2 second look (JSON schema, effort high, fallbacks, caching, cost log) | `ANTHROPIC_API_KEY` (optional) |
-| | `server/folk.py` | owner's words / voice notes → weak label (local Whisper, lexicon, Claude for unknown words) | |
+| | `server/understand.py` | Granite second look (JSON schema output, text-only: the spectrogram goes as a note; cost log) | Ollama (optional) |
+| | `server/folk.py` | owner's words / voice notes → weak label (local Whisper, lexicon, Granite for unknown words) | |
 | Tell | `server/owner_alerts.py` | builds the alert from the card, media, sends; replies, voice notes, onboarding | |
 | | `server/notify/policy.py` | quiet hours, power cuts, daily digest, templates, buttons | |
 | | `server/notify/service.py` | alert log, outbox, WhatsApp → SMS fallback, escalation after 2 h, release of held alerts | |
@@ -166,7 +166,7 @@ flowchart LR
 - **Downloaded, git-ignored:** datasets (`data/raw/`, `make data` or `make demo-data`).
 - **Local state, git-ignored:** SQLite `data/node.db` (readings, messages, alerts, repair records), registry, outbox,
   `data/alerts/` (alert media), `data/factories/` (onboarded profiles and baseline clips), `data/labels/` (verified
-  repairs), `data/llm/` (Claude call log), `runs/field/` (field scores), `keys/` (signing key), `.env` (API keys).
+  repairs), `data/llm/` (LLM call log), `runs/field/` (field scores), `keys/` (signing key), `.env` (API keys).
 - **Never stored or shared:** raw audio outside the factory's own computer. The registry holds 64-number fingerprints,
   and the passport holds numbers only.
 
@@ -175,7 +175,7 @@ flowchart LR
 1. No tool, endpoint or reply can stop or control a machine.
 2. No outward action without the owner's logged approval: the mechanic's job is refused without `messages.approved = 1`.
 3. Only reply `1` (or button 1) books; everything else is logged.
-4. Prices, parts and warranty come from `faults.yaml` with sources, marked "typical, confirm with dealer". Claude never
+4. Prices, parts and warranty come from `faults.yaml` with sources, marked "typical, confirm with dealer". Granite never
    writes a number on the card.
 5. Keys only in `.env`; the recorder and rehearsals can force a dry run (`DHADKAN_DRY_RUN=1`).
 
@@ -186,7 +186,7 @@ flowchart LR
   anomaly score per shift, risk ranking, focus trend, ₹ at risk, health share and the agent checklist.
 - `server/owner_agent.py`: the owner's conversational agent (observe → diagnose → plan → ask owner → act →
   verify) rules pass, language detection and ₹ / IST formatting. Since 2026-11-19 its chat and alarms are
-  events into the planner below; `run_claude` remains for callers without the planner.
+  events into the planner below; `run_llm` remains for callers without the planner.
 
 ## The event-driven planner (server/planner/, 2026-11-19)
 
@@ -205,7 +205,7 @@ flowchart LR
   end
   Sources --> EV["planner/events.py<br/>typed events, stored once<br/>(idempotency key, maint store)"]
   EV --> CODE["code first:<br/>numbered reply -> decision,<br/>measurement re-score,<br/>re-plan technician, warranty"]
-  CODE --> PL{"ANTHROPIC_API_KEY,<br/>online, under budget?"}
+  CODE --> PL{"Ollama answering,<br/>under budget?"}
   PL -->|yes| LLM["planner/agent.py + llm.py<br/>context: case, memory, preferences,<br/>order book, open cases<br/>Haiku / Sonnet / Fable by event<br/>turns, tokens, ₹ per case bounded"]
   PL -->|no| RULES["fixed plan<br/>maint/agent PLAN_FIX<br/>(handoff)"]
   LLM -->|"tool calls"| TB["planner/tools.py<br/>schema, factory scope,<br/>grounding of outgoing text"]
@@ -222,11 +222,11 @@ flowchart LR
 | module | does |
 |---|---|
 | `server/planner/events.py` | 11 typed events; stored in the maintenance store (`events`) under an idempotency key, so a retried webhook or a restart is handled once; `drain()` resumes events left running by a crash |
-| `server/planner/agent.py` | per event: code-side effects first (an owner's numbered reply on a reply channel becomes a decision on the approval that option names; a recording or hand check re-scores the case; preferences are noted; a no-show or decline re-plans), then Claude with the full context, then the grounding check; every turn is a row in `decisions` |
-| `server/planner/llm.py` | model routing from `.env` (`DHADKAN_MODEL_ROUTINE/PLAN/DIAGNOSE`), request shape checked against anthropic 2.8.0 (strict tools, `tool_choice` auto, `output_config.effort`, refusal fallback on the beta endpoint for Sonnet / Fable; plain endpoint for Haiku), prompt caching, ₹ cost from usage, the bounded loop |
+| `server/planner/agent.py` | per event: code-side effects first (an owner's numbered reply on a reply channel becomes a decision on the approval that option names; a recording or hand check re-scores the case; preferences are noted; a no-show or decline re-plans), then Granite with the full context (knowledge chunks, partner offers), then the grounding check and the Guardian; every turn is a row in `decisions` |
+| `server/planner/llm.py` | model routing from `.env` (`DHADKAN_MODEL_ROUTINE/PLAN/DIAGNOSE`), the client from `server/provider.py` (Granite on Ollama), ₹ cost from usage (₹0 for a local model unless priced), the bounded loop |
 | `server/planner/tools.py` | the decision tools (find_mechanics, propose_slots, check_parts, compare_options, triage, request_measurement, recall / remember, ask_owner, tell_owner, book_job, order_part); data sources labelled on every result |
 | `server/planner/grounding.py` | numbers (Indian-script digits read as digits, 1,56,960 = 156960, percent and lakh forms), ₹ amounts and part numbers in a reply must appear in that run's tool results or the code-built context |
-| `server/planner/evaluate.py` | 36 scenarios against a scripted mock policy (default, no network) or Claude (`--live`); `docs/runs/planner_<UTC>.json`, RESULTS.md 8 |
+| `server/planner/evaluate.py` | 36 scenarios against a scripted mock policy (default, no network) or Granite (`--live`); `docs/runs/planner_<UTC>.json`, RESULTS.md 8 |
 
 What stays deterministic, on purpose: verification against baseline v1, the approval gate and its send-time
 re-check, the idempotent action queue, the audit chain, the warranty claim, and the fixed plan that takes a
@@ -240,3 +240,7 @@ numbered reply decides an approval (no tool can); `book_job` is refused unless t
 technician on *that* day (or the autonomy policy allows it), on top of the gate; a chat message is never read
 as a numbered answer; outgoing text and the final reply are grounded; the owner's autonomy policy is read from
 the factory profile in the gate, never from a prompt, and never approves a purchase or a stop.
+
+## Granite, knowledge base, Guardian, A2A
+
+The LLM layer, RAG, the Guardian and agent interop are described in [GRANITE.md](GRANITE.md).

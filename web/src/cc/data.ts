@@ -186,6 +186,10 @@ export interface PlannerStep {
   reply: string | null;
   outcome: string | null;
   grounding_ok: boolean;
+  knowledge?: string[];
+  observed?: string[];
+  guardian?: { target: string; ok: boolean; reasons: string[] }[];
+  a2a?: { partner: string; question: string; said: string }[];
   input_tokens: number;
   output_tokens: number;
   cost_inr: number;

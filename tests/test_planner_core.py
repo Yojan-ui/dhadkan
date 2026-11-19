@@ -499,3 +499,18 @@ def test_every_tool_is_strict_and_none_controls_a_machine():
         assert not any(
             w in t["name"] for w in ("stop", "shut", "halt", "control", "speed", "power", "approve")
         )
+
+
+def test_routine_events_go_to_rules_on_a_local_model_but_alarms_do_not(world, monkeypatch):
+    class Local(Script):
+        provider = "ollama"
+
+    c = Local()
+    p = world.make(c)
+    out = p.handle(world.bus.emit("daily_tick", idem="day:9"))
+    assert out["engine"] == "rules" and "routine event" in out["reason"] and not c.calls
+    p.handle(alarm(world))
+    assert c.calls  # the alarm still goes to the model
+    monkeypatch.setenv("DHADKAN_LLM_SKIP_EVENTS", "none")
+    p.handle(world.bus.emit("daily_tick", idem="day:10"))
+    assert len(c.calls) >= 2

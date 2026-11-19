@@ -177,3 +177,9 @@ def test_planner_gets_knowledge_logs_it_and_can_search(tmp_path, monkeypatch):
     assert call["tool"] == "search_knowledge" and call["result"]["chunks"]
     assert call["result"]["method"] == "keyword" and "faults.yaml" in call["result"]["source"]
     assert "search_knowledge" in {t["name"] for t in client.calls[0]["tools"]}
+
+
+def test_retrieval_quality_on_the_labelled_questions():
+    """kb/eval_questions.json, keyword mode (offline): the answer is in the top 3 for nearly every question."""
+    m = kb.evaluate()["modes"]["keyword"]
+    assert m["hit@3"] >= 0.9 and m["mrr"] >= 0.8, m

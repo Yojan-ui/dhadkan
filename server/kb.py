@@ -305,6 +305,44 @@ def ensure_index() -> dict[str, Any] | None:
         return None
 
 
+EVAL = KB_DIR / "eval_questions.json"
+
+
+def evaluate(index: Path = INDEX, questions: Path = EVAL) -> dict[str, Any]:
+    """Retrieval quality on labelled questions: a hit is a chunk tagged with the expected fault.
+    Keyword mode always; hybrid mode when Ollama and the index are there. No fault hint is given."""
+    qs = json.loads(questions.read_text(encoding="utf-8"))["questions"]
+    cs = chunks()
+    modes: dict[str, Any] = {}
+    for mode in ("keyword", "hybrid"):
+        rows = []
+        for q in qs:
+            if mode == "keyword":
+                saved = provider.available
+                provider.available = lambda model=None: False  # type: ignore[assignment]
+                try:
+                    hits = search(q["q"], k=5, machine_type=q.get("machine"), index=index, cs=cs)
+                finally:
+                    provider.available = saved  # type: ignore[assignment]
+            else:
+                hits = search(q["q"], k=5, machine_type=q.get("machine"), index=index, cs=cs)
+                if hits and hits[0]["method"] != "hybrid":
+                    break
+            rank = next((i + 1 for i, h in enumerate(hits) if q["fault"] in h["faults"]), None)
+            rows.append(
+                {"q": q["q"], "want": q["fault"], "rank": rank, "top": hits[0]["id"] if hits else None}
+            )
+        if len(rows) < len(qs):
+            modes[mode] = {"skipped": "Ollama or the vector index is not available"}
+            continue
+        n = len(rows)
+        modes[mode] = {"hit@1": round(sum(r["rank"] == 1 for r in rows) / n, 3),
+                       "hit@3": round(sum(bool(r["rank"]) and r["rank"] <= 3 for r in rows) / n, 3),
+                       "mrr": round(sum(1 / r["rank"] for r in rows if r["rank"]) / n, 3),
+                       "misses_at_1": [r for r in rows if r["rank"] != 1]}  # fmt: skip
+    return {"questions": len(qs), "chunks": len(cs), "embed_model": provider.embed_model(), "modes": modes}
+
+
 def main() -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -316,7 +354,21 @@ def main() -> int:
     s.add_argument("--fault")
     s.add_argument("--machine")
     s.add_argument("-k", type=int, default=4)
+    sub.add_parser("eval", help="retrieval quality on kb/eval_questions.json -> docs/runs/kb_eval_<UTC>.json")
     a = ap.parse_args()
+    if a.cmd == "eval":
+        import time
+
+        from edge.config import RUNS
+
+        rec = {"run_id": time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()), **evaluate()}
+        RUNS.mkdir(parents=True, exist_ok=True)
+        out = RUNS / f"kb_eval_{rec['run_id']}.json"
+        out.write_text(json.dumps(rec, indent=1, ensure_ascii=False), encoding="utf-8")
+        for m, v in rec["modes"].items():
+            print(m, {k: v[k] for k in ("hit@1", "hit@3", "mrr")} if "mrr" in v else v)
+        print(out)
+        return 0
     if a.cmd == "build":
         try:
             print(json.dumps(build(), indent=1))
