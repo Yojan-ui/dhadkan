@@ -1,0 +1,40 @@
+SAMPLE DOCUMENT FOR THE DHADKAN DEMO. Company names, numbers and phone numbers are made up.
+
+SURAKSHA GENERAL INSURANCE CO. LTD. (sample)
+MACHINERY BREAKDOWN INSURANCE - POLICY SCHEDULE
+
+Policy no: MB/2026/PN/004512
+Insurer: Suraksha General Insurance Co. Ltd.
+Insured: Shinde Engineering Works, Bhosari MIDC, Pune
+Policy period from: 01-04-2026
+Policy period to: 31-03-2027
+Machine: Powerloom SGL-56 with 2 HP motor, serial no SGL56-2025-04471
+Sum insured: Rs. 1,80,000
+Deductible: Rs. 5,000 per claim
+
+Scope of cover:
+- Sudden and unforeseen physical damage to the insured machine
+- Electrical breakdown, including motor burn-out and winding failure
+- Gearbox breakdown
+- Cost of repair or replacement and labour
+
+Exclusions:
+- Gradual wear and tear, rust and slow deterioration
+- Consumable parts: belts, pickers, shuttles, lubricants
+- Loss of production
+- Damage while the machine is under the manufacturer's warranty, to the extent the manufacturer pays
+
+Conditions:
+- Do not repair or dismantle the machine before the surveyor inspects it, except to prevent further damage
+- Keep the damaged parts for the surveyor
+
+How to claim:
+1. Intimate the claim within 48 hours on the claims helpline or by email.
+2. Give the policy no., the machine serial no. and what happened.
+3. A surveyor visits and inspects the machine.
+4. Submit the repair estimate, the final bill and photos.
+5. The claim is paid to your bank account after the deductible.
+
+Claims helpline: 1800-000-4512 (sample)
+Claims email: claims@suraksha-gi.example
+Contact person: Ms. A. Kulkarni, Claims Desk, Pune

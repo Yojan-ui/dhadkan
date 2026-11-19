@@ -56,12 +56,12 @@ const L: Record<Lang, Record<string, string>> = {
     noreq: "No open request",
   },
 };
-const BUTTONS: Record<Lang, [string, string, string]> = {
-  hi: ["मिस्त्री बुलाओ", "बाद में", "पूरी जानकारी"],
-  hi_latn: ["Mechanic bulao", "Baad mein", "Details"],
-  mr: ["मिस्त्री बोलवा", "उद्या", "माहिती"],
-  gu: ["મિસ્ત્રી બોલાવો", "કાલે", "માહિતી"],
-  en: ["Send mechanic", "Later", "Details"],
+const BUTTONS: Record<Lang, [string, string, string, string]> = {
+  hi: ["मिस्त्री बुलाओ", "बाद में", "पूरी जानकारी", "क्लेम मदद"],
+  hi_latn: ["Mechanic bulao", "Baad mein", "Details", "Claim madad"],
+  mr: ["मिस्त्री बोलवा", "उद्या", "माहिती", "क्लेम मदत"],
+  gu: ["મિસ્ત્રી બોલાવો", "કાલે", "માહિતી", "ક્લેમ મદદ"],
+  en: ["Send mechanic", "Later", "Details", "Claim help"],
 };
 const rs = (v: number) => "₹" + Math.round(v).toLocaleString("en-IN");
 
@@ -120,7 +120,7 @@ function OwnerCard({ m, lang, tick }: { m: Machine; lang: Lang; tick: number }) 
       on = false;
     };
   }, [m.id, lang, tick]);
-  const decide = async (choice: "book" | "later" | "details") => {
+  const decide = async (choice: "book" | "later" | "details" | "claim") => {
     const r = await post<{ text?: string; booked?: boolean; why?: string }>("/api/owner/decide", {
       machine: m.id,
       choice,
@@ -149,7 +149,7 @@ function OwnerCard({ m, lang, tick }: { m: Machine; lang: Lang; tick: number }) 
           <button
             key={b}
             className={i === 0 ? "lite-go" : "lite-btn"}
-            onClick={() => decide((["book", "later", "details"] as const)[i])}
+            onClick={() => decide((["book", "later", "details", "claim"] as const)[i])}
           >
             {b}
           </button>

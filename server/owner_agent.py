@@ -6,7 +6,11 @@ as a timeline.
 
 Tools (all strict JSON schemas, all backed by tested code; none can stop or control a machine):
   get_machine_health, get_spectrogram, diagnose_fault, find_local_mechanic, check_part_stock,
-  estimate_cost_inr, schedule_repair, send_whatsapp, verify_repair, log_warranty_claim
+  estimate_cost_inr, check_warranty_insurance, read_machine_documents, schedule_repair, send_whatsapp,
+  verify_repair, log_warranty_claim
+check_warranty_insurance matches the fault against the machine's own uploaded papers (server/coverage.py:
+the verdict is code, not the model); read_machine_documents gives the agent the papers' text so it can
+answer any question about them ("insurance kab tak hai?", "claim ke liye kisko phone karun?").
 Anything that costs money waits for the owner: schedule_repair only *asks* (WhatsApp "1 = Haan,
 2 = Nahi"); the visit is booked, and the mechanic told, only when the owner replies 1 (server/fix.py
 refuses otherwise). log_warranty_claim needs a signed, verified repair record.
@@ -32,7 +36,7 @@ STEPS = ["observe", "diagnose", "plan", "ask owner", "act", "verify"]
 TOOL_STEP = {"get_machine_health": "observe", "get_spectrogram": "observe", "diagnose_fault": "diagnose",
              "find_local_mechanic": "plan", "check_part_stock": "plan", "estimate_cost_inr": "plan",
              "schedule_repair": "ask owner", "send_whatsapp": "ask owner", "verify_repair": "verify",
-             "log_warranty_claim": "act"}  # fmt: skip
+             "log_warranty_claim": "act", "check_warranty_insurance": "plan", "read_machine_documents": "plan"}  # fmt: skip
 
 
 # ---------------------------------------------------------------- India formatting
@@ -153,6 +157,8 @@ TOOLS = [
     {"name": "find_local_mechanic", "description": "The owner's own mechanic first, else the cluster technician.", "input_schema": _schema(MID, ["machine_id"])},
     {"name": "check_part_stock", "description": "Local dealer stock for the part this fault needs (mock dealer data in the demo).", "input_schema": _schema(MID, ["machine_id"])},
     {"name": "estimate_cost_inr", "description": "Fix now vs waiting a week, in rupees, from the factory's cost profile.", "input_schema": _schema(MID, ["machine_id"])},
+    {"name": "check_warranty_insurance", "description": "Is this machine's repair covered by its own warranty card, AMC or insurance policy (uploaded by the owner)? Returns the verdict (claimable / check / not_covered / no_docs), which paper, valid till, deductible, claim deadline, claim steps, contact, and what voids the claim. Call it before booking any paid repair.", "input_schema": _schema(MID, ["machine_id"])},
+    {"name": "read_machine_documents", "description": "The machine's uploaded papers (warranty card, insurance policy, invoice, AMC, manual): extracted fields and the document text, to answer the owner's questions about them.", "input_schema": _schema(MID, ["machine_id"])},
     {"name": "schedule_repair", "description": "Propose a visit slot (respects shifts, off-days, power cuts, peak season) and ASK the owner on WhatsApp. Books nothing.", "input_schema": _schema(MID, ["machine_id"])},
     {"name": "send_whatsapp", "description": "Send the owner the alert for this machine (plain words, fix, rupees, warranty, buttons).", "input_schema": _schema(MID, ["machine_id"])},
     {"name": "verify_repair", "description": "After a repair: re-record vs baseline -> fixed / partly / failed, signed record.", "input_schema": _schema(MID, ["machine_id"])},
@@ -236,6 +242,25 @@ class AgentTools:
                 "summary": f"fix now {inr(lo)}-{inr(hi)}; wait {money['wait_days']} d: "
                            f"{round(money['p_fault_within_wait'] * 100)}% chance of {inr(money['breakdown_inr'])}"}  # fmt: skip
 
+    def check_warranty_insurance(self, mid: str) -> dict[str, Any]:
+        from . import coverage
+
+        card = self.live.alerts.card(mid, "en")
+        cov = (card or {}).get("coverage") or self.live.alerts.coverage(mid, card)
+        lang = CARD_LANG.get(self.lang, self.lang)
+        b = cov.get("best") or {}
+        summary = {"claimable": f"likely claimable under {b.get('kind')} ({b.get('provider')})",
+                   "check": f"{b.get('kind')} ({b.get('provider')}) active, fault not named: ask them",
+                   "not_covered": f"not covered ({b.get('why')})", "no_docs": "no warranty/insurance papers uploaded",
+                   "unknown_fault": "fault not named yet; papers in force listed"}.get(cov.get("verdict", ""), "-")  # fmt: skip
+        return {"coverage": cov, "owner_words": coverage.alert_text(cov, lang), "summary": summary}
+
+    def read_machine_documents(self, mid: str) -> dict[str, Any]:
+        from . import coverage
+
+        docs = coverage.for_agent(self.live.alerts.docs, mid, self.live.c.machines[mid])
+        return {"documents": docs, "summary": f"{len(docs)} paper(s): " + ", ".join(d["kind"] for d in docs)}
+
     def slot(self, mid: str) -> datetime:
         """Next working slot: not an off-day, not in a power cut, outside quiet hours, 09:00-18:00, at
         least 2 h from now; in peak season the slot moves to the shift change (13:30) to save output."""
@@ -315,12 +340,15 @@ SYSTEM = (
     "You are Dhadkan, a maintenance assistant for a small Indian factory owner. Reply in the owner's language and "
     "spoken style (the language of their message; Hinglish in Roman script if they wrote that), short and plain, "
     "like a trusted mechanic. Work in this order: observe (get_machine_health, get_spectrogram), diagnose "
-    "(diagnose_fault), plan (find_local_mechanic, check_part_stock, estimate_cost_inr), ask the owner "
+    "(diagnose_fault), plan (check_warranty_insurance, find_local_mechanic, check_part_stock, estimate_cost_inr), ask the owner "
     "(schedule_repair asks on WhatsApp and books nothing), and after an approved repair, verify_repair. Rules: "
     "never invent numbers, prices or parts; use only what the tools return. Rupees in Indian format (lakh, crore). "
     "Times in IST. Suggest the owner's own mechanic and dealer first. If you are unsure, say so and suggest a "
     "mechanic check. You cannot stop or control a machine, and nothing that costs money happens until the owner "
-    "replies 1 (Haan)."
+    "replies 1 (Haan). If the machine's warranty or insurance covers the repair, say so first, with the "
+    "company's number and the claim deadline, and warn that letting a local mechanic open the machine can void "
+    "the claim. The coverage verdict comes from check_warranty_insurance; never decide coverage yourself, and "
+    "use read_machine_documents to answer questions about the papers, quoting them."
 )
 
 
@@ -399,6 +427,7 @@ def run_rules(live: Any, text: str, factory: str | None, lang: str) -> dict[str,
     tools.call("find_local_mechanic", {"machine_id": mid})
     tools.call("check_part_stock", {"machine_id": mid})
     cost = tools.call("estimate_cost_inr", {"machine_id": mid})
+    cover = tools.call("check_warranty_insurance", {"machine_id": mid})
     card = dx.get("card") or {}
     if not card.get("fault"):
         reply = _t("unsure", lang, m=name)
@@ -408,6 +437,8 @@ def run_rules(live: Any, text: str, factory: str | None, lang: str) -> dict[str,
         wait = _t("wait", lang, d=cost.get("wait_days", 7), p=round((cost.get("p_breakdown") or 0) * 100),
                   cost=inr(cost.get("breakdown_inr") or 0, words=False))  # fmt: skip
         reply = _t("why", lang, m=name, what=what, price=f"{inr(lo)}-{inr(hi)}", wait=wait)
+    if cover.get("owner_words") and cover["coverage"].get("verdict") != "no_docs":
+        reply += "\n" + cover["owner_words"]
     ask = tools.call("schedule_repair", {"machine_id": mid})
     if ask.get("status") == "waiting_for_owner":
         reply += "\n" + _t("asked", lang, when=ask["slot"])

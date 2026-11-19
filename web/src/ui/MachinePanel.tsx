@@ -9,6 +9,7 @@ import { DiagnosisBlock } from "./Diagnosis";
 import { HealthRing, Spectro2D } from "./bits";
 import { ExplainCard } from "./Explain";
 import { ForecastBlock } from "./Forecast";
+import { PapersBlock } from "./Papers";
 import type { Loaded } from "./hooks";
 import { playClip, stopClip } from "./hooks";
 import { TimeMachine } from "./TimeMachine";
@@ -123,6 +124,8 @@ export function MachinePanel({
       {flagged && !past && <ExplainCard id={m.id} ex={ex} />}
 
       {flagged && !past && <DiagnosisBlock id={m.id} tick={tick} alerts={alerts} />}
+
+      <PapersBlock id={m.id} tick={tick} />
 
       {hist.data ? (
         <TimeMachine

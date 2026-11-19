@@ -1,0 +1,33 @@
+SAMPLE DOCUMENT FOR THE DHADKAN DEMO. Company names, numbers and phone numbers are made up.
+
+SURAKSHA GENERAL INSURANCE CO. LTD. (sample)
+MACHINERY BREAKDOWN INSURANCE - POLICY SCHEDULE
+
+Policy no: MB/2026/PN/007790
+Insurer: Suraksha General Insurance Co. Ltd.
+Insured: Gupta Pumps & Fabrication, Chakan, Pune
+Policy period from: 15-01-2026
+Policy period to: 14-01-2027
+Machine: Powerloom with 2 HP motor and gearbox
+Sum insured: Rs. 1,50,000
+Deductible: Rs. 5,000 per claim
+
+Scope of cover:
+- Sudden and unforeseen physical damage to the insured machine
+- Electrical breakdown, including motor burn-out and winding failure
+- Gearbox breakdown
+
+Exclusions:
+- Gradual wear and tear, rust and slow deterioration
+- Consumable parts: belts, lubricants
+
+Conditions:
+- Do not repair or dismantle the machine before the surveyor inspects it
+
+How to claim:
+1. Intimate the claim within 48 hours on the claims helpline.
+2. A surveyor visits and inspects the machine.
+3. Submit the repair bill and photos.
+
+Claims helpline: 1800-000-4512 (sample)
+Claims email: claims@suraksha-gi.example
