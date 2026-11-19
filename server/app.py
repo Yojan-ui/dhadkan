@@ -158,7 +158,10 @@ class Live:
     def _analyse(self, scored: dict[str, tuple[np.ndarray, dict[str, Any]]] | None = None) -> None:
         """Per-slice view of the latest reading. `scored` reuses sim.step's results."""
         tick = self.c.tick_no()
+        feed = getattr(getattr(self, "brain", None), "feed", None)
         for mid, m in self.c.machines.items():
+            if feed is not None and feed.is_live(mid):
+                continue  # the live recorder's clip is in the cache already
             if self.c.operating(mid) != ("running", "ok") or not self.c.history(mid, 1):
                 self.cache.pop(mid, None)  # nothing live: never stream an old reading as if it were now
                 continue
@@ -309,6 +312,12 @@ class Live:
                         "maintenance": self._maintenance(mid),
                     }
                 )
+            feed = getattr(getattr(self, "brain", None), "feed", None)
+            for m in machines:  # a machine the live recorder feeds: its view comes from its live readings
+                live = feed is not None and feed.is_live(m["id"])
+                m.update(feed.twin_entry(m["id"]) if live else {"live": None})
+                if live:
+                    m["band_z"] = (self.cache.get(m["id"]) or {}).get("band_z")
             calls = [
                 dict(r)
                 for r in self.c.db.execute(
@@ -1097,7 +1106,7 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
     brain = Brain(live, Path(node_db or NODE_DB).parent)
     app.state.brain = brain
     app.include_router(mill_api.router())
-    app.include_router(ingest.router())
+    app.include_router(ingest.router(brain=brain))
     app.include_router(cc_api.router(brain))
     from .a2a import router as a2a_router
 

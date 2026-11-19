@@ -103,6 +103,10 @@ class Brain:
             threading.Thread(target=self._planner_worker, name="planner", daemon=True).start()
             # the knowledge-base vectors, off the start-up path (keyword search until they are ready)
             threading.Thread(target=kb.ensure_index, name="kb-index", daemon=True).start()
+        from .live_feed import LiveFeed
+
+        self.feed = LiveFeed(self)  # machines a live recorder feeds (server/live_feed.py)
+        self.transport.send = self.feed.send
         live.brain = self
         if backfill:
             self.backfill()
@@ -164,7 +168,11 @@ class Brain:
         """First start on an existing cluster: learn each machine's normal from its recorded history."""
         n = 0
         for mid in self.c.machines:
-            if self.base.history(mid, last=1):
+            if (
+                self.base.history(mid, last=1)
+                or self.feed.is_live(mid)
+                or self.c.machines[mid].get("source") == "live"
+            ):
                 continue
             rows = [h for h in self.c.history(mid) if h["mode"] != "ims"][-BACKFILL_TICKS:]
             for h in rows:
@@ -217,7 +225,8 @@ class Brain:
             noisy = adapt.noisy_shed(10.0 * (row[S.mel_mean] - np.median(learned[:, S.mel_mean], axis=0)))
         reps = [{"what": r["work"], "date": datetime.fromtimestamp(r["done"]).date().isoformat(),
                  "result": r["outcome"]} for r in self.store.repairs(mid)]  # fmt: skip
-        h = health.assess(mid, hist, now=self.c.now(), preset=PRESET.get(self.c.machines[mid]["type"], "flour_mill"),
+        now = datetime.now() if self.feed.is_live(mid) else self.c.now()
+        h = health.assess(mid, hist, now=now, preset=PRESET.get(self.c.machines[mid]["type"], "flour_mill"),
                           explanation=ex, rul=est, baseline_rows=v[0]["n_rows"] if v else None, noisy_shed=noisy,
                           repairs=reps).as_dict()  # fmt: skip
         return h | {"explanation": ex}
@@ -227,12 +236,14 @@ class Brain:
             t0 = time.perf_counter()
             seen = []
             for mid, (audio, r) in out.items():
-                if mid in self.c.ims:
-                    continue  # Demo mode's IMS bearing is vibration; the classic screen handles it
+                if mid in self.c.ims or self.feed.is_live(mid):
+                    continue  # IMS: the classic screen handles it; live: the recorder feeds it (live_feed)
                 self._observe(mid, tick, audio, r.get("score"))
                 seen.append(mid)
             changed = []
             for mid in self.c.machines:
+                if self.feed.is_live(mid):
+                    continue  # assessed when its own clip arrives (live_feed.reading)
                 prev = self.health.get(mid, {}).get("urgency")
                 self.health[mid] = self.assess(mid)
                 h = self.health[mid]
@@ -335,6 +346,7 @@ class Brain:
                 "last_ts": datetime.fromtimestamp(last["ts"]).isoformat(timespec="minutes") if last else None,
                 "run": run, "sensor": sensor, "source": last["source"] if last else None,
                 "case": (self.store.open_case(mid) or {}).get("id"),
+                "live": self.feed.status(mid) if self.feed.is_live(mid) else None,
             })  # fmt: skip
         return out
 

@@ -126,6 +126,21 @@ class BaselineStore:
             raise KeyError(f"machine {machine!r} is not registered")
         return dict(r)
 
+    def restart(self, machine: str, learning_days: float, now: float | None = None) -> str:
+        """Learn this machine's normal again from scratch (a new microphone, a new place, a live recorder
+        taking over a simulated machine). Nothing is deleted: its earlier readings and versions move to an
+        archive name, so the new v1 is learned only from what comes next. Returns the archive name."""
+        self.machine(machine)
+        now = time.time() if now is None else now
+        archive = f"{machine}~{int(now)}"
+        self.db.execute("UPDATE summaries SET machine=? WHERE machine=?", (archive, machine))
+        self.db.execute("UPDATE baselines SET machine=? WHERE machine=?", (archive, machine))
+        self.db.execute("UPDATE machines SET registered=?, learning_days=?, state='learning', active_version=NULL,"
+                        " hold=0 WHERE machine=?", (now, float(learning_days), machine))  # fmt: skip
+        self.db.commit()
+        self._models = {k: v for k, v in self._models.items() if k[0] != machine}
+        return archive
+
     def set_hold(self, machine: str, hold: bool) -> None:
         """While a machine has an open anomaly case, nothing it records is learned from."""
         self.db.execute("UPDATE machines SET hold=? WHERE machine=?", (int(hold), machine))
