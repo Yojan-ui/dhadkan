@@ -7,15 +7,14 @@ approved this visit is logged (messages.approved = 1). Nothing in this module ca
 Dealer stock comes from data/sim/parts_mock.json, which is MOCK data (labelled as such in every
 message). The parts forecast counts machines, not parts: a machine is counted when its days-to-fault
 range reaches into the horizon (low end = "may", high end = "likely"), so every number is a count of
-real forecasts on the dashboard. The weekly dealer message can be drafted by Claude through the
-Message Batches API (50% price; the batch API takes no `fallbacks`), but its numbers are filled in by
-code, never by the model.
+real forecasts on the dashboard. The weekly dealer message can be drafted by Granite (local Ollama),
+run as one local batch, but its numbers are filled in by code, never by the model.
 """
 
 from datetime import timedelta
 from typing import Any
 
-from . import costs, diagnosis
+from . import costs, diagnosis, provider
 from .notify import env
 
 MOCK_FAULT = {
@@ -132,10 +131,10 @@ def forecast_text(rows: list[dict[str, Any]], horizon_days: float = 14.0) -> str
 
 
 def dealer_batch_requests(rows: list[dict[str, Any]], dealers: dict[str, str]) -> list[dict[str, Any]]:
-    """Message Batches requests: Claude only rewords the computed forecast for each dealer (effort low).
+    """Batch requests: Granite only rewords the computed forecast for each dealer (effort low).
 
-    Each item is {"custom_id", "params"} for client.messages.batches.create(requests=...). No `fallbacks`
-    (the batch API rejects it); no `thinking` parameter; JSON output so the numbers can be checked.
+    Each item is {"custom_id", "params"} for client.messages.batches.create(requests=...); JSON output so
+    the numbers can be checked (numbers_kept).
     """
     schema = {"type": "object", "properties": {"message": {"type": "string"}}, "required": ["message"],
               "additionalProperties": False}  # fmt: skip
@@ -143,7 +142,7 @@ def dealer_batch_requests(rows: list[dict[str, Any]], dealers: dict[str, str]) -
     for dealer, lang in dealers.items():
         facts = forecast_text(rows)
         out.append({"custom_id": f"dealer-{dealer}"[:64], "params": {
-            "model": "claude-fable-5-2", "max_tokens": 1000,
+            "model": provider.chat_model(), "max_tokens": 1000,
             "output_config": {"effort": "low", "format": {"type": "json_schema", "schema": schema}},
             "system": "Rewrite a parts forecast as a short WhatsApp message for a parts dealer. Keep every number "
                       "exactly as given; do not add numbers. Say it is a forecast, not an order.",
@@ -162,13 +161,10 @@ def numbers_kept(text: str, facts: str) -> bool:
 def submit_dealer_batch(
     rows: list[dict[str, Any]], dealers: dict[str, str], client: Any = None
 ) -> str | None:
-    """Weekly: submit the dealer drafts as one Message Batch. Needs ANTHROPIC_API_KEY; returns the batch id."""
+    """Weekly: run the dealer drafts as one local batch on Granite. None when no local LLM; returns the batch id."""
     if client is None:
-        key = env.get("ANTHROPIC_API_KEY")
-        if not key:
+        client = provider.make_client()
+        if client is None:
             return None
-        import anthropic
-
-        client = anthropic.Anthropic(api_key=key)
     batch = client.messages.batches.create(requests=dealer_batch_requests(rows, dealers))
     return str(batch.id)

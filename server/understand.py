@@ -1,21 +1,19 @@
-"""Understand: a Claude Fable 5.2 second look at an alert, only when needed, with the rules as fallback.
+"""Understand: a Granite second look at an alert, only when needed, with the rules as fallback.
 
-Claude reads the evidence (before/now spectrogram images, the 14-day trend, the machine and factory
+Granite (local Ollama, server/provider.py) reads the evidence (before/now spectrogram images, the 14-day trend, the machine and factory
 profile, and server/faults.yaml) and names the likely fault with a confidence, the evidence it used,
 a severity and a hand check the owner can do ("motor ka end garam hai?"). It does NOT produce prices,
 parts, labour or warranty: those always come from faults.yaml through server/diagnosis.py, so no
 number on the card is model-generated.
 
-API use (as specified; checked against the Claude API reference shipped with Claude Code):
-- model claude-fable-5-2; no `thinking` parameter (thinking is always on); no prefill; no forced
-  tool_choice. Structured output via output_config.format (JSON schema); effort "high" to diagnose.
-- server-side refusal fallback: betas=["server-side-fallback-2026-07-01"], fallbacks="default".
-- streamed (messages.stream + get_final_message); stop_reason checked (refusal / max_tokens -> rules).
-- prompt caching on the stable system blocks (instructions + faults.yaml + factory profile).
-- every call logged with tokens and cost (USD and INR) to data/llm/calls.jsonl (git-ignored).
-- the key comes only from ANTHROPIC_API_KEY (environment or .env).
+Model use:
+- DHADKAN_MODEL (ibm/granite4.2:8b-q3_K_M by default) on the local Ollama; no prefill; no forced
+  tool_choice. Structured output via output_config.format (JSON schema -> Ollama `format`); effort "high".
+- the chat model is text-only: the spectrogram image goes as a one-line note, the trend and profile as text.
+- stop_reason checked (max_tokens -> rules); the output is validated against the schema in code.
+- every call logged with tokens and cost to data/llm/calls.jsonl (git-ignored); a local model is ₹0.
 
-No key, an API error, a refusal, or invalid output -> the rules diagnosis, marked "expert check pending".
+No local LLM, an error, or invalid output -> the rules diagnosis, marked "expert check pending".
 """
 
 import base64
@@ -24,16 +22,11 @@ import time
 from pathlib import Path
 from typing import Any
 
-from . import costs, diagnosis
+from . import costs, diagnosis, provider
 from .config import FAULTS, ROOT
-from .notify import env
 
-MODEL = "claude-fable-5-2"
-BETAS = ["server-side-fallback-2026-07-01"]
 LOG = ROOT / "data" / "llm" / "calls.jsonl"
 CONFIDENT = 0.6  # below this the card says "mechanic check needed" (assumption)
-# Claude Fable 5.2 list prices, USD per million tokens (Claude API reference: shared/models.md)
-PRICE_USD_PER_MTOK = {"input": 8.0, "output": 40.0, "cache_read": 0.20, "cache_write_5m": 10.0}
 SEVERITY_WORDS = {  # the owner's words for the knowledge-base severities (spec: Hinglish labels)
     "ok": "Theek", "watch": "Dhyan do", "repair_soon": "Jaldi repair",
     "stop_now": "Band karne ka sochiye", "replace": "Badalna padega",
@@ -75,7 +68,7 @@ def build_request(
     factory: dict[str, Any],
     lang: str,
 ) -> dict[str, Any]:
-    """Keyword arguments for client.beta.messages.stream(...). Stable blocks first, cached."""
+    """Keyword arguments for client.messages.stream(...). Stable blocks first."""
     kb = FAULTS.read_text(encoding="utf-8")
     profile = json.dumps(
         {k: factory.get(k) for k in ("name", "area", "language", "shifts", "off_days")}, ensure_ascii=False
@@ -86,15 +79,13 @@ def build_request(
         return {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": data}}
 
     return {
-        "model": MODEL,
+        "model": provider.chat_model(),
         "max_tokens": 4000,
-        "betas": BETAS,
-        "fallbacks": "default",
         "output_config": {"effort": "high", "format": {"type": "json_schema", "schema": schema()}},
         "system": [
             {"type": "text", "text": SYSTEM},
             {"type": "text", "text": "Fault knowledge base (server/faults.yaml):\n" + kb},
-            {"type": "text", "text": "Factory profile: " + profile, "cache_control": {"type": "ephemeral"}},
+            {"type": "text", "text": "Factory profile: " + profile},
         ],
         "messages": [{"role": "user", "content": [
             {"type": "text", "text": f"Machine: {json.dumps({k: machine.get(k) for k in ('name', 'type', 'motor_hp', 'nominal_rpm')}, ensure_ascii=False)}"},
@@ -106,17 +97,12 @@ def build_request(
 
 
 def cost(usage: Any) -> dict[str, float]:
-    def get(k: str) -> float:
-        return float(getattr(usage, k, 0) or 0)
+    """A local model: ₹0 unless DHADKAN_LOCAL_INR_PER_MTOK prices its electricity and hardware."""
+    from .planner import llm
 
-    usd = (
-        get("input_tokens") * PRICE_USD_PER_MTOK["input"]
-        + get("output_tokens") * PRICE_USD_PER_MTOK["output"]
-        + get("cache_read_input_tokens") * PRICE_USD_PER_MTOK["cache_read"]
-        + get("cache_creation_input_tokens") * PRICE_USD_PER_MTOK["cache_write_5m"]
-    ) / 1e6
+    inr = llm.cost_inr(provider.chat_model(), usage)
     rate = costs.load()["usd_to_inr"]
-    return {"usd": round(usd, 5), "inr": round(usd * rate, 3), "usd_to_inr": rate}
+    return {"usd": round(inr / rate, 5), "inr": round(inr, 3), "usd_to_inr": rate}
 
 
 def _log(row: dict[str, Any]) -> None:
@@ -126,21 +112,18 @@ def _log(row: dict[str, Any]) -> None:
 
 
 def diagnose(request: dict[str, Any], client: Any = None, machine_id: str = "") -> dict[str, Any]:
-    """Claude's reading, or {"source": "rules", "expert_check": "pending", "why": ...} on any failure."""
+    """Granite's reading, or {"source": "rules", "expert_check": "pending", "why": ...} on any failure."""
     if client is None:
-        key = env.get("ANTHROPIC_API_KEY")
-        if not key or env.get("DHADKAN_LLM") == "0":
+        client = provider.make_client()
+        if client is None:
             return {
                 "source": "rules",
                 "expert_check": "pending",
-                "why": "no ANTHROPIC_API_KEY (or DHADKAN_LLM=0)",
+                "why": "no local LLM (Ollama not reachable, or DHADKAN_LLM=0)",
             }
-        import anthropic
-
-        client = anthropic.Anthropic(api_key=key)
     t0 = time.time()
     try:
-        with client.beta.messages.stream(**request) as stream:
+        with client.messages.stream(**request) as stream:
             msg = stream.get_final_message()
     except Exception as e:  # network down, rate limit, bad request: the rules still work
         _log({"ts": t0, "machine": machine_id, "model": request["model"], "error": type(e).__name__})
@@ -170,7 +153,7 @@ def diagnose(request: dict[str, Any], client: Any = None, machine_id: str = "") 
             "cost": c,
         }
     unsure = out["fault"] == "unknown" or float(out["confidence"]) < CONFIDENT or out["mechanic_check_needed"]
-    return {**out, "source": "claude", "mechanic_check_needed": bool(unsure), "cost": c,
+    return {**out, "source": provider.NAME, "mechanic_check_needed": bool(unsure), "cost": c,
             "severity_words": SEVERITY_WORDS[out["severity"]]}  # fmt: skip
 
 

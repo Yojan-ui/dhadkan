@@ -125,11 +125,15 @@ export function Operator({ state, meta }: { state: State; meta: Meta }) {
         <B name="rules" path="/api/agent" body={{ engine: "rules" }}>
           Run (rules)
         </B>
-        <B name="claude" path="/api/agent" body={{ engine: "claude" }} disabled={!meta.has_key}>
-          Run (Claude)
+        <B name="granite" path="/api/agent" body={{ engine: "granite" }} disabled={!meta.has_llm}>
+          Run (Granite)
         </B>
       </div>
-      {!meta.has_key && <p className="small muted">Run (Claude) needs ANTHROPIC_API_KEY on the server.</p>}
+      {!meta.has_llm && (
+        <p className="small muted">
+          Run (Granite) needs Ollama running with {meta.llm?.model ?? "the Granite model"} pulled.
+        </p>
+      )}
 
       <h3>Other machines</h3>
       <div className="row gap">

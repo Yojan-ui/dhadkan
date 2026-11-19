@@ -9,7 +9,6 @@ POST /labels/text    owner's text note -> weak label (stored)
 POST /labels/voice   owner's voice note -> Whisper -> weak label (audio discarded)
 """
 
-import os
 import tempfile
 from pathlib import Path
 from typing import Annotated, Any
@@ -19,7 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from edge.config import EMBED_DIM, MACHINE_TYPES
 
-from . import folk, registry
+from . import folk, provider, registry
 from .config import REGISTRY_DB
 
 
@@ -50,11 +49,11 @@ class TextNote(BaseModel):
 
 
 def create_app(db_path: Path = REGISTRY_DB, llm: folk.LLM | None = None) -> FastAPI:
-    """`llm` overrides the Claude fallback (tests pass a stub or None)."""
+    """`llm` overrides the Granite fallback (tests pass a stub or None)."""
     app = FastAPI(title="Dhadkan registry")
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
     db = registry.connect(db_path)
-    use_llm = llm if llm is not None else (folk.claude_label if os.environ.get("ANTHROPIC_API_KEY") else None)
+    use_llm = llm if llm is not None else (folk.llm_label if provider.available() else None)
 
     def check_type(t: str) -> None:
         if t not in MACHINE_TYPES:

@@ -37,7 +37,7 @@ class Rogue:
 
     def __init__(self):
         self.calls = []
-        self.beta = NS(messages=NS(create=self.create))
+        self.messages = NS(create=self.create)
 
     def create(self, **kw):
         self.calls.append(list(kw["messages"]))
@@ -53,7 +53,7 @@ class Rogue:
 def test_unknown_tool_names_are_refused_and_nothing_changes(cluster):  # noqa: F811
     before = {m: cluster.mode(m) for m in cluster.machines}
     rogue = Rogue()
-    run_id, _ = agent.run_claude(cluster, client=rogue)
+    run_id, _ = agent.run_llm(cluster, client=rogue)
     results = rogue.calls[1][-1]["content"]
     assert len(results) == 5 and all(r.get("is_error") for r in results)
     assert all("unknown tool" in r["content"] for r in results)
@@ -176,12 +176,31 @@ def test_planner_grounding_rejection_falls_back_and_is_logged(tmp_path, monkeypa
     assert any(r["event"] == "grounding_rejected" for r in w.store.audit())
 
 
-def test_planner_without_a_key_makes_no_llm_call(monkeypatch):
+def test_planner_without_a_local_llm_makes_no_llm_call(monkeypatch):
+    from server import provider
     from server.planner import llm as pllm
 
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.setattr("server.notify.env._dotenv", dict)
+    monkeypatch.setattr(provider, "_seen", {})
+    monkeypatch.setenv("DHADKAN_LLM", "1")
+    monkeypatch.setattr(provider, "models", list)  # Ollama down
     assert pllm.make_client() is None
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    monkeypatch.setattr(provider, "models", lambda: [provider.chat_model()])
+    monkeypatch.setattr(provider, "_seen", {})
+    assert pllm.make_client() is not None  # up, and switched on
     monkeypatch.setenv("DHADKAN_LLM", "0")
-    assert pllm.make_client() is None
+    assert pllm.make_client() is None  # up, but switched off
+
+
+def test_no_cloud_llm_sdk_anywhere_in_the_code():
+    """The only LLM is Granite on a local Ollama (server/provider.py): no cloud SDK import, no cloud model id."""
+    import re
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    files = [*root.glob("server/**/*.py"), *root.glob("scripts/**/*.py"), *root.glob("edge/**/*.py"),
+             *root.glob("web/src/**/*.ts*"), root / "requirements.txt"]  # fmt: skip
+    bad = re.compile(r"\banthropic\b|\bopenai\b|claude-[a-z]|generativeai", re.IGNORECASE)
+    hits = [f"{f.relative_to(root)}:{i}" for f in files for i, line in
+            enumerate(f.read_text(encoding="utf-8").splitlines(), 1) if bad.search(line)]  # fmt: skip
+    assert hits == []

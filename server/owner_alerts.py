@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from . import diagnosis, forecast, understand
+from . import diagnosis, forecast, provider, understand
 from .config import DATA, NODE_DB
 from .notify import env, media, policy, whatsapp
 from .notify.service import Notifier, parse_choice
@@ -54,7 +54,9 @@ class OwnerAlerts:
         # judge only hears about the demo machine (never about other machines' false alarms).
         self.contact_override: dict[str, str] = {}
         self.lang_override: dict[str, str] = {}
-        self.expert: dict[str, dict[str, Any]] = {}  # machine -> Claude's second look (or the rules fallback)
+        self.expert: dict[str, dict[str, Any]] = (
+            {}
+        )  # machine -> Granite's second look (or the rules fallback)
         from .onboard import Onboarding
 
         self.onboard = Onboarding(live.c.db, learning_days=int(live.c.cfg.get("learning_days", 7)))
@@ -98,7 +100,7 @@ class OwnerAlerts:
         expert = None
         if fault is None and rank.get("status") in ("alarm", "early_match"):  # only when needed
             expert = self.second_look(mid, lang or self.owner_lang(mid), [h["risk"] for h in hist])
-            if expert.get("source") == "claude" and not expert["mechanic_check_needed"]:
+            if expert.get("source") == provider.NAME and not expert["mechanic_check_needed"]:
                 fault = expert["fault"]
         row = {"id": mid, "type": m["type"], "status": rank.get("status", "ok"), "known_fault": owner_word,
                "forecast": est, "days_at_fault": at_fault * th / 24}  # fmt: skip
@@ -110,14 +112,14 @@ class OwnerAlerts:
             out["days_rising"] = rank.get("days_rising", 0)
             out["named_by"] = (
                 "classifier" if mid in self.classified else "owner" if owner_word
-                else "claude" if expert and expert.get("source") == "claude" and fault else None
+                else provider.NAME if expert and expert.get("source") == provider.NAME and fault else None
             )  # fmt: skip
             if expert is not None:  # evidence, confidence, hand check; or "expert check pending" (rules)
                 out["expert"] = {k: v for k, v in expert.items() if k != "cost"}
         return out
 
     def second_look(self, mid: str, lang: str, trend: list[float]) -> dict[str, Any]:
-        """Claude Fable 5.2 on the spectrograms + trend + profile, once per alert episode (server/understand.py)."""
+        """Granite on the spectrogram note + trend + profile, once per alert episode (server/understand.py)."""
         if mid in self.expert:
             return self.expert[mid]
         try:
@@ -341,7 +343,7 @@ class OwnerAlerts:
         return self.on_voice(phone, audio, mime)
 
     def on_voice(self, phone: str, audio: bytes, mime: str = "audio/ogg") -> dict[str, Any] | None:
-        """A WhatsApp voice note: local Whisper -> lexicon (Claude for unknown words) -> weak label on the
+        """A WhatsApp voice note: local Whisper -> lexicon (Granite for unknown words) -> weak label on the
         machine of this owner's latest alert. The owner's words are a weak label, not an inspection."""
         a = self.notifier.latest_for(phone)
         if a is None:
@@ -356,7 +358,7 @@ class OwnerAlerts:
             a["lang"] if a["lang"] in ("hi", "mr", "en") else "hi"
         )  # Whisper has no hi_latn; speech is Hindi
         text, heard = folk.transcribe(str(path), language=lang)
-        llm = folk.claude_label if env.get("ANTHROPIC_API_KEY") else None
+        llm = folk.llm_label if provider.available() else None
         lab = folk.label_text(text, folk.load_lexicon(), llm)
         with self.live.lock:
             registry.add_weak_label(self.live.c.reg, a["factory"], a["machine"], text, heard, lab)

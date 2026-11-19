@@ -2,9 +2,9 @@
 
 On the server the owner's chat and a machine's alarm are events into the one planner (server/planner):
 chat() sends an owner_reply event (channel "chat") and on_alarm() an alarm event, and the planner decides
-(Claude when ANTHROPIC_API_KEY is set). Without a key the planner answers with run_rules below: the same
+(Granite on the local Ollama). Without it the planner answers with run_rules below: the same
 tools in a fixed order and template replies. This module keeps the owner-facing pieces: language
-detection, ₹ and IST formatting (inr, ist), the reply templates and the rules pass. run_claude is Claude
+detection, ₹ and IST formatting (inr, ist), the reply templates and the rules pass. run_llm is Granite
 over these tools for a caller without the planner, through the planner's bounded loop and grounding check.
 Either way every step is logged and shown to the owner as a timeline.
 
@@ -18,7 +18,7 @@ refuses otherwise). log_warranty_claim needs a signed, verified repair record.
 Languages: Hindi, Marathi, Gujarati, Tamil, Kannada, Telugu, English and Hindi in Roman script, detected
 from the owner's message (script, then common words). Offline replies come from templates; the fault
 description itself exists in faults.yaml for hi/mr/gu/en/hi_latn only, so for ta/kn/te the offline
-reply keeps the fault name in English (Claude replies fully in the owner's language).
+reply keeps the fault name in English (Granite replies in the owner's language).
 """
 
 import json
@@ -28,9 +28,9 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Any
 
+from . import provider
 from .notify import env
 
-MODEL = "claude-fable-5-2"
 DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 STEPS = ["observe", "diagnose", "plan", "ask owner", "act", "verify"]
 TOOL_STEP = {"get_machine_health": "observe", "get_spectrogram": "observe", "diagnose_fault": "diagnose",
@@ -83,7 +83,7 @@ def detect_lang(text: str) -> str:
     return "hi_latn" if len(words & HINGLISH_WORDS) >= 2 else "en"
 
 
-# Offline reply templates (rule-based fallback); Claude writes its own replies in the owner's style.
+# Offline reply templates (rule-based fallback); Granite writes its own replies in the owner's style.
 T: dict[str, dict[str, str]] = {
     "why": {
         "en": "{m}: {what} Fixable now for about {price}. {wait} Shall I ask your mechanic? 1 = Yes, 2 = No",
@@ -425,17 +425,17 @@ def run_rules(live: Any, text: str, factory: str | None, lang: str) -> dict[str,
     }
 
 
-def run_claude(
+def run_llm(
     live: Any, text: str, factory: str | None, lang: str, client: Any, max_turns: int = 8
 ) -> dict[str, Any]:
-    """Claude over the owner-agent tools, for a server without the planner (no brain attached).
+    """Granite over the owner-agent tools, for a server without the planner (no brain attached).
 
     The loop is the planner's (server/planner/llm.run_loop: bounded turns and tokens, strict tools, refusal
-    fallback) with the diagnose model (DHADKAN_MODEL_DIAGNOSE, Claude Fable 5.2 by default), and the reply
+    fallback) with the diagnose model (DHADKAN_MODEL_DIAGNOSE, else DHADKAN_MODEL), and the reply
     goes through the same grounding check; a reply with a number no tool returned falls back to the rules."""
     from .planner import grounding, llm
 
-    run_id = "agent-claude-" + uuid.uuid4().hex[:6]
+    run_id = f"agent-{provider.NAME}-" + uuid.uuid4().hex[:6]
     tools = AgentTools(live, run_id, lang)
     machines = [{"id": mid, "name": m["name"], "type": m["type"]} for mid, m in live.c.machines.items()
                 if not factory or m["factory"] == factory]  # fmt: skip
@@ -452,7 +452,7 @@ def run_claude(
     if not g["ok"]:
         live.event("grounding_rejected", run=run_id, unknown=g["unknown_numbers"] + g["unknown_parts"])
         return run_rules(live, text, factory, lang) | {"grounding": g}
-    return {"run_id": run_id, "lang": lang, "reply": res.reply, "steps": tools.steps, "engine": "claude",
+    return {"run_id": run_id, "lang": lang, "reply": res.reply, "steps": tools.steps, "engine": provider.NAME,
             "input_tokens": res.input_tokens, "output_tokens": res.output_tokens, "cost_inr": res.cost_inr}  # fmt: skip
 
 
@@ -518,7 +518,7 @@ def chat(
     """One owner message -> the agent's reply and its tool timeline.
 
     With the planner attached (the server always has one): an owner_reply event on channel "chat", handled
-    at once by the same planner that handles alarms. Otherwise (or with an explicit `client`): Claude over
+    at once by the same planner that handles alarms. Otherwise (or with an explicit `client`): Granite over
     the owner-agent tools when keyed, the rules when not."""
     lang = lang or detect_lang(text)
     t0 = time.time()
@@ -535,14 +535,11 @@ def chat(
             out = run_rules(live, text, factory, lang) | {"fallback_reason": type(e).__name__}
             return _finish(live, out, lang, t0)
         return _finish(live, _from_planner(got, lang, mid), lang, t0)
-    key = env.get("ANTHROPIC_API_KEY")
-    if client is None and key and env.get("DHADKAN_LLM") != "0":
-        import anthropic
-
-        client = anthropic.Anthropic(api_key=key)
+    if client is None:
+        client = provider.make_client()
     try:
         out = (
-            run_claude(live, text, factory, lang, client)
+            run_llm(live, text, factory, lang, client)
             if client is not None
             else run_rules(live, text, factory, lang)
         )

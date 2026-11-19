@@ -2,7 +2,7 @@
 
     "पंप से खट-खट आवाज़ आ रही है"  -> sound khat-khat -> bearing (weak)
 
-Order: transcribe (Whisper, local) -> lexicon match -> Claude only if the
+Order: transcribe (Whisper, local) -> lexicon match -> Granite (local) only if the
 lexicon finds nothing. The result is a *weak* label: the owner's description,
 not an inspection.
 """
@@ -14,12 +14,11 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from . import provider
 from .config import LEXICON
 
-# (text, lexicon) -> {sound, fault, ...}: the Claude fallback, or a stub in tests
+# (text, lexicon) -> {sound, fault, ...}: the Granite fallback, or a stub in tests
 LLM = Callable[[str, dict[str, Any]], dict[str, Any]]
-
-LLM_MODEL = "claude-fable-5-2"  # spec: Claude Fable 5.2, effort low for labelling
 
 
 def load_lexicon(path: Path = LEXICON) -> dict[str, Any]:
@@ -79,11 +78,11 @@ def label_text(text: str, lexicon: dict[str, Any] | None = None, llm: LLM | None
     return llm(text, lexicon)
 
 
-def claude_label(text: str, lexicon: dict[str, Any], client: Any = None) -> dict[str, Any]:
-    """Fallback for sounds the lexicon doesn't know. Needs ANTHROPIC_API_KEY."""
-    import anthropic
-
-    client = client or anthropic.Anthropic()
+def llm_label(text: str, lexicon: dict[str, Any], client: Any = None) -> dict[str, Any]:
+    """Fallback for sounds the lexicon doesn't know: Granite on the local Ollama."""
+    client = client or provider.make_client()
+    if client is None:
+        return {"sound": None, "fault": "unknown", "scores": {}, "source": "none"}
     faults = lexicon["faults"] + ["unknown"]
     schema = {
         "type": "object",
@@ -96,11 +95,9 @@ def claude_label(text: str, lexicon: dict[str, Any], client: Any = None) -> dict
         "additionalProperties": False,
     }
     known = "; ".join(f"{s['sound']} = {s['meaning']}" for s in lexicon["sounds"])
-    resp = client.beta.messages.create(
-        model=LLM_MODEL,
+    resp = client.messages.create(
+        model=provider.chat_model(),
         max_tokens=1024,
-        betas=["server-side-fallback-2026-07-01"],
-        fallbacks="default",
         output_config={"effort": "low", "format": {"type": "json_schema", "schema": schema}},
         system=(
             "A small-factory owner in India describes a machine sound in Hindi, Marathi or "
@@ -112,7 +109,11 @@ def claude_label(text: str, lexicon: dict[str, Any], client: Any = None) -> dict
     )
     if resp.stop_reason == "refusal":
         return {"sound": None, "fault": "unknown", "scores": {}, "source": "llm_refused"}
-    out = json.loads(next(b.text for b in resp.content if b.type == "text"))
+    try:
+        out = json.loads(next(b.text for b in resp.content if b.type == "text"))
+        assert out["fault"] in faults  # code validates what the model proposed
+    except (StopIteration, ValueError, KeyError, AssertionError):
+        return {"sound": None, "fault": "unknown", "scores": {}, "source": "llm_invalid"}
     return {
         "sound": out["sound"] or None,
         "fault": out["fault"],

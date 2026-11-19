@@ -5,7 +5,7 @@ PYTHON  ?= $(shell command -v python3.12 2>/dev/null || command -v python3 2>/de
 PORT    ?= 8600
 WEB_SRC := $(shell find web/src web/index.html web/public -type f 2>/dev/null) web/package.json web/vite.config.ts
 
-.PHONY: setup data demo-data train results demo demo-ims serve dev test lint fmt clean compare rul mill mill-pack eval-agent
+.PHONY: setup data demo-data train results demo demo-ims serve dev test lint fmt clean compare rul mill mill-pack eval-agent llm-check
 
 setup:                       ## venv, Python and web dependencies
 	@$(PYTHON) -c 'import sys; sys.exit(0 if sys.version_info[:2] >= (3, 12) else "Python 3.12+ needed: make setup PYTHON=/path/to/python3.12")'
@@ -64,9 +64,12 @@ mill:                        ## the flour-mill story headless (owner auto-approv
 mill-pack:                   ## rebuild edge/models/flourmill_pack.npz from MIMII DUE gearbox recordings
 	$(PY) -m server.flourmill --pack
 
-eval-agent:                  ## the planner's scenarios: live against Claude when ANTHROPIC_API_KEY is set, else the mock policy
-	$(PY) -m server.planner.evaluate $(if $(ANTHROPIC_API_KEY),--live,)
+eval-agent:                  ## the planner's scenarios on the mock policy; LIVE=1 runs them on local Granite (Ollama)
+	$(PY) -m server.planner.evaluate $(if $(LIVE),--live,)
 	$(PY) -m edge.results
+
+llm-check:                   ## is Granite answering through Ollama? provider, model, latency, one real tool call
+	$(PY) -m server.llm_check
 
 test:
 	$(PY) -m pytest -q

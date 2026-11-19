@@ -1,21 +1,20 @@
-"""The planner's LLM layer: which model for which event, what a call costs in rupees, and the bounded tool loop.
+"""The planner's LLM layer: which model for which event, what a call costs, and the bounded tool loop.
 
-Model routing (.env; defaults in brackets):
-    DHADKAN_MODEL_ROUTINE  [claude-haiku-5-5]   effort low     owner acks, daily tick, network back
-    DHADKAN_MODEL_PLAN     [claude-sonnet-5-5]  effort medium  alarms, mechanic and parts events
-    DHADKAN_MODEL_DIAGNOSE [claude-fable-5-2]   effort high    unsure diagnosis, voice notes, failed repairs
+The model is IBM Granite on a local Ollama server (server/provider.py): no API key, no cloud call, no
+per-token bill. Offline (Ollama not running, or the model not pulled) make_client() returns None and the
+planner runs its rules.
 
-Request shape (checked against the installed SDK, anthropic 2.8.0): strict tools, tool_choice left at
-auto (forcing a tool is a 400 on these models), output_config.effort, no `thinking` parameter (adaptive
-thinking is the default on every model above). Sonnet 5.5 / Fable 5.2 / Opus 5.5 go through the beta
-endpoint with the server-side refusal fallback (betas=["server-side-fallback-2026-07-01"],
-fallbacks="default"); Haiku 5.5 has no server-side fallback and uses the plain endpoint. The system prompt
-and tool list are marked for prompt caching (they are the same on every call).
+Model routing (.env; every tier defaults to DHADKAN_MODEL, ibm/granite4.2:8b-q3_K_M):
+    DHADKAN_MODEL_ROUTINE   effort low     owner acks, daily tick, network back
+    DHADKAN_MODEL_PLAN      effort medium  alarms, mechanic and parts events
+    DHADKAN_MODEL_DIAGNOSE  effort high    unsure diagnosis, voice notes, failed repairs
+A bigger local model for one tier (e.g. a Granite 4 "small" for diagnose) is one line in .env.
+`effort` high turns on Granite's thinking when DHADKAN_GRANITE_THINK=1.
 
 Bounds, per event (one planner turn): DHADKAN_PLANNER_MAX_TURNS [6] model calls, DHADKAN_PLANNER_MAX_TOKENS
-[40000] input + output tokens; per case: DHADKAN_PLANNER_CASE_CAP_INR [50] rupees of LLM cost. Prices are
-Anthropic list prices per million tokens (cached 2026-11-03); rupees use the RBI reference rate in
-data/sim/costs.json.
+[40000] input + output tokens; per case: DHADKAN_PLANNER_CASE_CAP_INR [50] rupees of LLM cost. A local
+model costs ₹0 per token unless DHADKAN_LOCAL_INR_PER_MTOK prices its electricity and hardware; PRICES
+below is kept for a priced model id set in .env.
 """
 
 import json
@@ -24,23 +23,21 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from server import provider
 from server.maint.tools import COSTS
 from server.notify import env
 
 TIERS = {
-    "routine": ("DHADKAN_MODEL_ROUTINE", "claude-haiku-5-5", "low"),
-    "plan": ("DHADKAN_MODEL_PLAN", "claude-sonnet-5-5", "medium"),
-    "diagnose": ("DHADKAN_MODEL_DIAGNOSE", "claude-fable-5-2", "high"),
+    "routine": ("DHADKAN_MODEL_ROUTINE", "low"),
+    "plan": ("DHADKAN_MODEL_PLAN", "medium"),
+    "diagnose": ("DHADKAN_MODEL_DIAGNOSE", "high"),
 }
 EVENT_TIER = {"alarm": "plan", "health_change": "plan", "owner_reply": "routine", "owner_voice_note": "diagnose",
               "mechanic_reply": "plan", "mechanic_no_show": "plan", "part_out_of_stock": "plan",
               "network_restored": "routine", "repair_done": "plan", "verify_result": "plan",
               "daily_tick": "routine"}  # fmt: skip
-# USD per million tokens: input, output, cache read. Cache writes are 1.25x input.
-PRICES = {"claude-haiku-5-5": (0.10, 0.50, 0.01), "claude-sonnet-5-5": (2.0, 10.0, 0.10),
-          "claude-opus-5-5": (4.0, 20.0, 0.20), "claude-fable-5-2": (8.0, 40.0, 0.20)}  # fmt: skip
-FALLBACK_BETA = "server-side-fallback-2026-07-01"
-NO_SERVER_FALLBACK = ("claude-haiku",)  # these models take the plain endpoint
+# USD per million tokens (input, output) for a priced model id; local models are not listed (₹0).
+PRICES: dict[str, tuple[float, float]] = {}
 
 
 def setting(name: str, default: float) -> float:
@@ -62,8 +59,8 @@ def tier_for(event_type: str, payload: dict[str, Any] | None = None) -> str:
 
 
 def model_for(tier: str) -> tuple[str, str]:
-    var, default, effort = TIERS[tier]
-    return env.get(var) or default, effort
+    var, effort = TIERS[tier]
+    return env.get(var) or provider.chat_model(), effort
 
 
 def usd_to_inr() -> float:
@@ -71,14 +68,15 @@ def usd_to_inr() -> float:
 
 
 def cost_inr(model: str, usage: Any) -> float:
-    """Rupees for one response's usage (unknown models are priced as the most expensive one)."""
+    """Rupees for one response's usage: PRICES for a priced model, DHADKAN_LOCAL_INR_PER_MTOK (default 0)
+    for a local one."""
     if usage is None:
         return 0.0
-    pin, pout, pread = PRICES.get(model, PRICES["claude-fable-5-2"])
-    g = lambda k: float(getattr(usage, k, 0) or 0)  # noqa: E731
-    usd = (g("input_tokens") * pin + g("output_tokens") * pout + g("cache_read_input_tokens") * pread
-           + g("cache_creation_input_tokens") * pin * 1.25) / 1e6  # fmt: skip
-    return round(usd * usd_to_inr(), 4)
+    i, o = tokens(usage)
+    if model in PRICES:
+        pin, pout = PRICES[model]
+        return round((i * pin + o * pout) / 1e6 * usd_to_inr(), 4)
+    return round((i + o) * setting("DHADKAN_LOCAL_INR_PER_MTOK", 0) / 1e6, 4)
 
 
 def tokens(usage: Any) -> tuple[int, int]:
@@ -91,13 +89,8 @@ def tokens(usage: Any) -> tuple[int, int]:
 
 def request(client: Any, model: str, effort: str, system: str, tools: list[dict[str, Any]],
             messages: list[dict[str, Any]], max_tokens: int = 4000) -> Any:  # fmt: skip
-    cached_tools = [*tools[:-1], {**tools[-1], "cache_control": {"type": "ephemeral"}}] if tools else tools
-    kw: dict[str, Any] = {"model": model, "max_tokens": max_tokens, "tools": cached_tools, "messages": messages,
-                          "system": [{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
-                          "output_config": {"effort": effort}}  # fmt: skip
-    if model.startswith(NO_SERVER_FALLBACK):
-        return client.messages.create(**kw)
-    return client.beta.messages.create(**kw, betas=[FALLBACK_BETA], fallbacks="default")
+    return client.messages.create(model=model, max_tokens=max_tokens, tools=tools, messages=messages,
+                                  system=system, output_config={"effort": effort})  # fmt: skip
 
 
 @dataclass
@@ -172,10 +165,5 @@ def run_loop(client: Any, model: str, effort: str, system: str, tools: list[dict
 
 
 def make_client() -> Any:
-    """An Anthropic client when ANTHROPIC_API_KEY is set and DHADKAN_LLM is not 0; otherwise None."""
-    key = env.get("ANTHROPIC_API_KEY")
-    if not key or env.get("DHADKAN_LLM") == "0" or env.get("DHADKAN_PLANNER") == "0":
-        return None
-    import anthropic
-
-    return anthropic.Anthropic(api_key=key)
+    """Granite on the local Ollama when it answers and DHADKAN_LLM is not 0; otherwise None (rules)."""
+    return provider.make_client()

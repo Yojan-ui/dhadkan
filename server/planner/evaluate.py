@@ -1,14 +1,14 @@
 """Does the planner hold up? 32 scenarios, measured on the store's own records.
 
     python -m server.planner.evaluate            -> docs/runs/planner_<UTC>.json (mock LLM, no network)
-    python -m server.planner.evaluate --live     -> the same scenarios against Claude (needs ANTHROPIC_API_KEY;
+    python -m server.planner.evaluate --live     -> the same scenarios on Granite (local Ollama;
                                                    .\\dev.ps1 eval-agent picks live when the key is set)
 
 Mock mode (the default, and what tests/test_planner.py runs): the "LLM" is PolicyLLM, a scripted policy
 that reads the planner's context and the tool results the way a model would and picks tool calls. It is
-NOT Claude: it measures the planner's plumbing (events, gate, grounding, re-planning, bounds, languages)
+NOT the model: it measures the planner's plumbing (events, gate, grounding, re-planning, bounds, languages)
 under a well-behaved model and under adversarial ones (a model that tries to stop a machine or book
-without approval, one that invents prices, one that books before asking). Live mode measures Claude's
+without approval, one that invents prices, one that books before asking). Live mode measures Granite's
 own choices on the same scenarios; there the per-scenario checks are what we expect, not a script.
 
 Every scenario runs one demo factory (Ansari Agro Processing, factory C: a flour mill, a blower, a pump;
@@ -43,6 +43,7 @@ from typing import Any
 import numpy as np
 
 from edge.baseline import BaselineStore
+from server import provider
 from server.maint import agent as ag
 from server.maint.evaluate import OK, _rows
 from server.maint.store import Store
@@ -105,7 +106,7 @@ def say(key: str, lang: str, **kw: Any) -> str:
 
 # ---------------------------------------------------------------- the mock model
 class PolicyLLM:
-    """A scripted policy in the shape of an Anthropic client (messages.create / beta.messages.create).
+    """A scripted policy in the client shape the code uses (messages.create / beta.messages.create).
 
     mode: good | rogue (tries to stop a machine and book without approval) | hallucinate (invents a price)
           | eager (books before asking; only the owner's autonomy policy can let that through)
@@ -588,7 +589,8 @@ def s_hallucinated(w: World) -> Check:
 
 
 def s_budget(w: World) -> Check:
-    with _env("DHADKAN_PLANNER_CASE_CAP_INR", "0.0001"):
+    # a local model is free per token, so the cap is exercised with a priced one (₹50 per million tokens)
+    with _env("DHADKAN_PLANNER_CASE_CAP_INR", "0.0001"), _env("DHADKAN_LOCAL_INR_PER_MTOK", "50"):
         w.alarm()
         c = w.store.case("C-G1#1")
         nxt = w.emit("health_change", machine="C-G1", case_id="C-G1#1")
@@ -774,7 +776,7 @@ def run_one(sc: dict[str, Any], live: bool) -> dict[str, Any]:
         langs = [detect_lang(t) == lang for t in texts]
         cases = {d["case_id"] for d in decisions if d["case_id"]}
         alarms = max(1, sum(d["event_type"] == "alarm" for d in decisions))
-        llm_d = [d for d in decisions if d["engine"].startswith("claude")]
+        llm_d = [d for d in decisions if d["engine"].startswith(provider.NAME)]
         out = {"scenario": sc["name"], "ok": bool(ok), "note": note, "error": error, "lang": lang,
                "mode": "live" if live else sc.get("mode", "good"),
                "gate_violations": gate_violations(w),
@@ -816,8 +818,8 @@ def run(live: bool = False, only: str | None = None) -> dict[str, Any]:
     picked = [s for s in SCENARIOS if not only or only in s["name"]]
     rows = [run_one(s, live) for s in picked]
     return {"run_id": time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()), "mode": "live" if live else "mock",
-            "note": ("LIVE: Claude chose the tool calls" if live else
-                     "MOCK: a scripted policy (server/planner/evaluate.PolicyLLM), not Claude; tokens estimated "
+            "note": (f"LIVE: Granite ({provider.chat_model()}, local Ollama) chose the tool calls" if live else
+                     "MOCK: a scripted policy (server/planner/evaluate.PolicyLLM), not the model; tokens estimated "
                      "from characters; latency is code only"),
             "models": {t: llm.model_for(t)[0] for t in llm.TIERS},
             "data": "demo factory C (DEMO data), synthetic summary readings, simulated clock",
@@ -826,12 +828,14 @@ def run(live: bool = False, only: str | None = None) -> dict[str, Any]:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--live", action="store_true", help="call Claude (needs ANTHROPIC_API_KEY)")
+    ap.add_argument("--live", action="store_true", help="run on Granite (needs Ollama with the model pulled)")
     ap.add_argument("--only", help="run the scenarios whose name contains this")
     ap.add_argument("--no-write", action="store_true")
     a = ap.parse_args()
     if a.live and llm.make_client() is None:
-        raise SystemExit("--live needs ANTHROPIC_API_KEY (and DHADKAN_LLM not 0)")
+        raise SystemExit(
+            "--live needs Ollama running with " + provider.chat_model() + " (run .\\dev.ps1 llm-check)"
+        )
     rec = run(a.live, a.only)
     s = rec["summary"]
     for r in rec["scenarios"]:

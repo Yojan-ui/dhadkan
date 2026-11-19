@@ -326,7 +326,8 @@ export interface Meta {
   frame_s: number;
   fault_machine: string;
   similar_machine: string;
-  has_key: boolean;
+  has_llm: boolean;
+  llm?: { provider: string; model: string };
   nominal_rpm?: Record<string, number>; // ASSUMED, animation only
   rpm_note?: string;
   note: string;

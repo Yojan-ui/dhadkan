@@ -26,5 +26,5 @@ def test_summary_metrics_are_computed():
     ]
     s = ev.summarise(rows)
     assert s["gate_violations"] == 0 and s["grounding_rejections"] >= 2
-    assert s["tokens_per_alarm"] > 0 and s["inr_per_alarm"] > 0 and s["latency_ms_p50"] is not None
+    assert s["tokens_per_alarm"] > 0 and s["inr_per_alarm"] == 0 and s["latency_ms_p50"] is not None
     assert len(ev.SCENARIOS) >= 30

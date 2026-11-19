@@ -13,7 +13,7 @@ Then the outbox and the audit replica sync if the link is up (the link switch in
 Events (server/planner/events): an urgency change is a health_change event, a rise to inspect or above
 an alarm, a new factory day a daily_tick; owner decisions, replies, voice notes and the agent's own
 events (repair done, verify result, ...) join them. The planner (server/planner/agent) handles each one:
-with ANTHROPIC_API_KEY on a worker thread (Claude chooses the tool calls, outside the tick lock), without
+with Granite on the local Ollama on a worker thread (Granite chooses the tool calls, outside the tick lock), without
 one at the end of the tick (the rules: the fixed plan runs exactly as before).
 
 State lives in data/brain_edge.db (readings, baselines), data/brain_maint.db (cases, steps, actions,
@@ -88,7 +88,7 @@ class Brain:
         self.sync = SyncClient(self.store, self.agent, self._cloud_send, node="cluster-node")
         self.health: dict[str, dict[str, Any]] = {}
         self.version = 0
-        # the planner: one event-driven brain over the agent (Claude when keyed, the fixed plan otherwise)
+        # the planner: one event-driven brain over the agent (Granite when Ollama answers, the fixed plan otherwise)
         self.bus = EventBus(self.store, lock=self.lock)
         self.agent.emit_hook = self.bus.emit
         tech = cfg.get("technician", {})
@@ -498,8 +498,8 @@ def planner_trace(store: Store, planner: Planner, case_id: str | None = None, ma
                       "cost_inr": round(sum(s["cost_inr"] for s in steps), 4)})  # fmt: skip
     return {"llm": planner.llm_on, "models": {t: planner_llm.model_for(t)[0] for t in planner_llm.TIERS},
             "pending_events": len(store.events(status="pending")), "cases": cases,
-            "note": "Claude chooses the tool calls" if planner.llm_on
-            else "no ANTHROPIC_API_KEY: the fixed plan runs (rules); decisions are still logged"}  # fmt: skip
+            "note": "Granite (local Ollama) chooses the tool calls" if planner.llm_on
+            else "no local LLM (Ollama not reachable, or DHADKAN_LLM=0): the fixed plan runs (rules); decisions are still logged"}  # fmt: skip
 
 
 ACTION = {

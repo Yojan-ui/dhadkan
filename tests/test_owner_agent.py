@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from server import owner_agent as oa
+from server import provider
 from tests.conftest import ims_world, needs_ims, needs_recordings
 
 
@@ -86,8 +87,8 @@ def test_twin_summary_is_real_data(world):
     assert t["ranking"][0]["id"] == "A-G1" and 0 <= t["health_pct"] <= 100
 
 
-def test_claude_loop_uses_the_spec_settings():
-    """A fake client: one tool call, then a final answer. Model, tools, betas and effort as specified."""
+def test_llm_loop_uses_the_spec_settings():
+    """A fake client: one tool call, then a final answer. Model, tools and effort as specified."""
 
     class FakeLive:
         def __init__(self):
@@ -116,16 +117,16 @@ def test_claude_loop_uses_the_spec_settings():
         calls.append(kw)
         return tool_turn if len(calls) == 1 else final
 
-    client = SimpleNamespace(beta=SimpleNamespace(messages=SimpleNamespace(create=create)))
-    out = oa.run_claude(FakeLive(), "Loom 1 kaisa hai?", "A", "hi_latn", client)
+    client = SimpleNamespace(messages=SimpleNamespace(create=create))
+    out = oa.run_llm(FakeLive(), "Loom 1 kaisa hai?", "A", "hi_latn", client)
     assert (
-        out["engine"] == "claude"
+        out["engine"] == "granite"
         and out["reply"].startswith("Loom 1")
         and out["steps"][0]["tool"] == "get_machine_health"
     )
     k = calls[0]
-    assert k["model"] == "claude-fable-5-2" and "thinking" not in k and "tool_choice" not in k
-    assert k["betas"] == ["server-side-fallback-2026-07-01"] and k["fallbacks"] == "default"
+    assert k["model"] == provider.chat_model() and "thinking" not in k and "tool_choice" not in k
+    assert "betas" not in k and "fallbacks" not in k and k["output_config"] == {"effort": "high"}
     turns = [m for m in calls[1]["messages"] if m["role"] == "user" and isinstance(m["content"], list)]
     assert turns and turns[0]["content"][0]["type"] == "tool_result"  # the tool result went back to the model
 

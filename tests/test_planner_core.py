@@ -10,6 +10,7 @@ from types import SimpleNamespace as NS
 import pytest
 
 from edge.baseline import BaselineStore
+from server import provider
 from server.maint import agent as ag
 from server.maint.store import Store
 from server.maint.tools import Network, Transport
@@ -49,7 +50,7 @@ def turn(*blocks, stop=None, inp=1000, out=200):
 
 
 class Script:
-    """A mock Anthropic client: returns the scripted turns in order and records every request."""
+    """A mock LLM client (the shape server/provider.GraniteClient has): scripted turns, every request recorded."""
 
     def __init__(self, *turns):
         self.turns, self.calls = list(turns), []
@@ -127,7 +128,7 @@ def test_interrupted_event_and_decision_resume_after_restart(world):
     world.make()
     ev = alarm(world)
     world.store.set_event(ev.idem, status="running")  # crashed mid-turn
-    did = world.store.start_decision(ev.idem, "alarm", None, "C-G1", "claude", "m")
+    did = world.store.start_decision(ev.idem, "alarm", None, "C-G1", "granite", "m")
     bus2 = EventBus(world.store)
     Planner(world.store, world.agent, bus2, factories=FACTORIES, health_of=world.health.get)
     assert world.store.decision(did)["status"] == "interrupted"
@@ -145,12 +146,12 @@ def test_without_a_key_the_fixed_plan_runs_and_no_llm_is_called(world):
     case = world.agent.observe("C-G1", HEALTH)
     assert case["plan"] == ag.PLAN_FIX  # the deterministic plan, as before the planner
     out = p.handle(alarm(world))
-    assert out["engine"] == "rules" and "no ANTHROPIC_API_KEY" in out["reason"]
+    assert out["engine"] == "rules" and "no local LLM" in out["reason"]
 
 
 def test_llm_error_falls_back_to_rules_and_hands_the_case_over(world):
     class Down(Script):
-        def _beta(self, **kw):
+        def _plain(self, **kw):
             raise ConnectionError("offline")
 
     p = world.make(Down())
@@ -179,7 +180,7 @@ def test_alarm_ask_then_owner_says_1_then_book(world):
     p = world.make(client)
     first = p.handle(alarm(world))
     case = world.store.case("C-G1#1")
-    assert case["plan"] == ag.PLAN_PLANNER and first["engine"] == "claude"
+    assert case["plan"] == ag.PLAN_PLANNER and first["engine"] == "granite"
     assert [c["tool"] for c in first["calls"]] == [
         "get_machine_health",
         "find_mechanics",
@@ -199,7 +200,7 @@ def test_alarm_ask_then_owner_says_1_then_book(world):
     booked = sent(world, "book_job")
     assert len(booked) == 1 and booked[0]["technician"] == "T1" and booked[0]["approval_ref"] == "wa:1"
     d = world.store.decision(second["decision"])
-    assert d["input_tokens"] > 0 and d["cost_inr"] > 0 and d["model"] == "claude-haiku-5-5"
+    assert d["input_tokens"] > 0 and d["cost_inr"] == 0 and d["model"] == provider.chat_model()  # local: ₹0
     assert world.store.verify_audit()["ok"]
 
 
@@ -333,6 +334,7 @@ def test_turn_limit_and_token_budget(world, monkeypatch):
 
 def test_per_case_rupee_cap_hands_the_case_to_rules(world, monkeypatch):
     monkeypatch.setenv("DHADKAN_PLANNER_CASE_CAP_INR", "1")
+    monkeypatch.setenv("DHADKAN_LOCAL_INR_PER_MTOK", "100")  # price the local model so the cap can bite
     monkeypatch.setenv("DHADKAN_PLANNER_MAX_TOKENS", "10000000")
     big = [turn(tool("get_machine_health", machine_id="C-G1"), inp=200_000, out=20_000) for _ in range(5)]
     p = world.make(Script(*big))
@@ -347,31 +349,34 @@ def test_model_routing_by_event(world):
     c = Script()
     p = world.make(c)
     p.handle(alarm(world))
-    assert c.calls[0]["model"] == "claude-sonnet-5-5" and c.calls[0]["endpoint"] == "beta"
-    assert c.calls[0]["fallbacks"] == "default" and c.calls[0]["betas"] == [llm.FALLBACK_BETA]
+    assert c.calls[0]["model"] == provider.chat_model() and c.calls[0]["endpoint"] == "plain"
+    assert "fallbacks" not in c.calls[0] and "betas" not in c.calls[0]
     assert c.calls[0]["output_config"] == {"effort": "medium"} and "tool_choice" not in c.calls[0]
     assert all(t["strict"] for t in c.calls[0]["tools"])
     p.handle(world.bus.emit("daily_tick", idem="day:1"))
-    assert c.calls[1]["model"] == "claude-haiku-5-5" and c.calls[1]["endpoint"] == "plain"
-    assert "fallbacks" not in c.calls[1]
+    assert c.calls[1]["output_config"] == {"effort": "low"} and c.calls[1]["endpoint"] == "plain"
     p.handle(
         world.bus.emit(
             "owner_voice_note", machine="C-G1", factory="C", idem="v:1", payload={"text": "khat khat"}
         )
     )
-    assert c.calls[2]["model"] == "claude-fable-5-2" and c.calls[2]["output_config"] == {"effort": "high"}
+    assert c.calls[2]["model"] == provider.chat_model() and c.calls[2]["output_config"] == {"effort": "high"}
 
 
 def test_models_come_from_env(world, monkeypatch):
-    monkeypatch.setenv("DHADKAN_MODEL_PLAN", "claude-opus-5-5")
+    monkeypatch.setenv("DHADKAN_MODEL_PLAN", "granite4:small-h")
     c = Script()
     world.make(c).handle(alarm(world))
-    assert c.calls[0]["model"] == "claude-opus-5-5"
+    assert c.calls[0]["model"] == "granite4:small-h"
 
 
-def test_cost_in_rupees_from_usage():
+def test_cost_in_rupees_from_usage(monkeypatch):
     u = NS(input_tokens=1_000_000, output_tokens=0)
-    assert llm.cost_inr("claude-sonnet-5-5", u) == round(2.0 * llm.usd_to_inr(), 4)
+    assert llm.cost_inr(provider.chat_model(), u) == 0  # a local model costs nothing per token
+    monkeypatch.setenv("DHADKAN_LOCAL_INR_PER_MTOK", "3")
+    assert llm.cost_inr(provider.chat_model(), u) == 3.0
+    monkeypatch.setitem(llm.PRICES, "priced-model", (2.0, 10.0))
+    assert llm.cost_inr("priced-model", u) == round(2.0 * llm.usd_to_inr(), 4)
 
 
 # ---------------------------------------------------------------- memory and preferences

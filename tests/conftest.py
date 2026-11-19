@@ -16,7 +16,7 @@ from fastapi.testclient import TestClient
 
 from edge.config import MODELS, RAW
 
-# Tests never call a real model, even when a developer's .env holds ANTHROPIC_API_KEY: the planner and the
+# Tests never call a real model, even when a developer's Ollama is running: the planner and the
 # owner agent run their rules; LLM paths are tested with scripted mock clients (tests/test_planner_core.py).
 # `.\dev.ps1 eval-agent` is the live run.
 os.environ["DHADKAN_LLM"] = "0"

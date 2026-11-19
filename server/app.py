@@ -19,7 +19,6 @@ rules agent once B-F1 matches (or after 20 readings).
 import asyncio
 import io
 import json
-import os
 import threading
 import time
 from collections.abc import AsyncIterator
@@ -41,7 +40,7 @@ from edge.config import HOP, MODELS, N_MELS, RUNS, SR
 from edge.outbox import Outbox
 from edge.runtime import EdgeModel
 
-from . import agent, costs, diagnosis, folk, forecast, registry, report, route
+from . import agent, costs, diagnosis, folk, forecast, provider, registry, report, route
 from . import explain as sound
 from .config import NODE_DB, VOICE_NOTE, WEB_DIST
 from .notify import env, whatsapp
@@ -624,7 +623,8 @@ class Live:
             "similar_machine": SIMILAR_MACHINE,
             "nominal_rpm": cfg.get("nominal_rpm", {}),
             "rpm_note": cfg.get("_rpm_note", ""),
-            "has_key": bool(os.environ.get("ANTHROPIC_API_KEY")),
+            "has_llm": provider.available(),
+            "llm": {"provider": "ollama", "model": provider.chat_model()},
             "note": cfg.get("_note", ""),
             "eval": latest_eval(),
         }
@@ -681,7 +681,7 @@ class Live:
         lang = None
         if not text:
             text, lang = folk.transcribe(str(VOICE_NOTE), language=self.c.factories[factory]["language"])
-        llm = folk.claude_label if os.environ.get("ANTHROPIC_API_KEY") else None
+        llm = folk.llm_label if provider.available() else None
         lab = folk.label_text(text, folk.load_lexicon(), llm)
         with self.lock:
             wid = registry.add_weak_label(self.c.reg, factory, machine, text, lang, lab)
@@ -778,7 +778,7 @@ class Live:
     def run_agent(self, engine: str = "rules") -> dict[str, Any]:
         with self.lock:
             before = self.c.db.execute("SELECT COALESCE(MAX(id), 0) FROM tool_calls").fetchone()[0]
-            run_id, note = agent.run_claude(self.c) if engine == "claude" else agent.run_rules(self.c)
+            run_id, note = agent.run_llm(self.c) if engine == provider.NAME else agent.run_rules(self.c)
             for t in self.c.db.execute(
                 "SELECT id, tool, input FROM tool_calls WHERE id>? ORDER BY id", (before,)
             ):
@@ -1147,10 +1147,10 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
     @app.post("/api/agent")
     async def run_agent(body: AgentIn) -> dict[str, Any]:
         busy()
-        if body.engine not in ("rules", "claude"):
-            raise HTTPException(400, "engine is rules or claude")
-        if body.engine == "claude" and not os.environ.get("ANTHROPIC_API_KEY"):
-            raise HTTPException(400, "ANTHROPIC_API_KEY is not set")
+        if body.engine not in ("rules", provider.NAME):
+            raise HTTPException(400, f"engine is rules or {provider.NAME}")
+        if body.engine == provider.NAME and not provider.available():
+            raise HTTPException(400, "no local LLM: start Ollama and pull " + provider.chat_model())
         return await asyncio.to_thread(live.run_agent, body.engine)
 
     @app.post("/api/reply")

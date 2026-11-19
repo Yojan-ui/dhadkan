@@ -2,7 +2,7 @@
 
 import pytest
 
-from server import fix
+from server import fix, provider
 from tests.conftest import OWNER_A, ims_world, needs_ims
 
 MECHANIC_A = "+91 90000 33333"
@@ -51,7 +51,7 @@ def test_dealer_batch_requests_and_numbers_check():
     ]
     reqs = fix.dealer_batch_requests(rows, {"bhosari-bearing": "hi_latn"})
     p = reqs[0]["params"]
-    assert p["model"] == "claude-fable-5-2" and "fallbacks" not in p and "thinking" not in p
+    assert p["model"] == provider.chat_model() and "fallbacks" not in p and "thinking" not in p
     assert p["output_config"]["effort"] == "low" and "1-3 machines" in p["messages"][0]["content"]
     facts = fix.forecast_text(rows)
     assert fix.numbers_kept("6205 bearing: 1-3 machines in 14 days", facts)

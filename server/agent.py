@@ -4,8 +4,8 @@ It has four tools and no others. None of them can stop, slow or switch off a
 machine; the agent only recommends, and an owner's yes/no reply decides
 whether the technician comes. Every tool call is logged to node.db.
 
-    python -m dhadkan.agent            # Claude decides the order (needs ANTHROPIC_API_KEY)
-    python -m dhadkan.agent --rules    # same tools in a fixed order, no LLM
+    python -m server.agent             # Granite decides the order (local Ollama; rules when it is down)
+    python -m server.agent --rules     # same tools in a fixed order, no LLM
 """
 
 import argparse
@@ -17,11 +17,10 @@ from typing import Any
 
 from edge import adapt
 
-from . import alerts, costs, forecast, registry, route
+from . import alerts, costs, forecast, provider, registry, route
 from .config import PARTS
 from .sim import Cluster
 
-MODEL = "claude-fable-5-2"  # spec: Claude Fable 5.2; effort low for drafting
 RISK_HORIZON_DAYS = 2.0  # rupees at risk = chance of reaching the fault level within 2 days x breakdown cost
 WATCH = 0.95  # risk at which a machine is shown as "watch" (display only)
 DAYS = alerts.DAY["en"]
@@ -318,7 +317,7 @@ def days_rising(hist: list[dict[str, Any]]) -> int:
 
 
 def run_rules(cluster: Cluster) -> tuple[str, str]:
-    """No LLM: the same tools in a fixed order. Logged exactly like the Claude run."""
+    """No LLM: the same tools in a fixed order. Logged exactly like the Granite run."""
     run_id = "rules-" + uuid.uuid4().hex[:8]
     t = Tools(cluster, run_id, "rules")
     ranking = t.call("get_risk_ranking", {})
@@ -342,12 +341,13 @@ def run_rules(cluster: Cluster) -> tuple[str, str]:
     return run_id, "\n".join(note[:4])
 
 
-def run_claude(cluster: Cluster, client: Any = None, max_turns: int = 12) -> tuple[str, str]:
-    import anthropic
-
-    client = client or anthropic.Anthropic()
-    run_id = "claude-" + uuid.uuid4().hex[:8]
-    t = Tools(cluster, run_id, "claude")
+def run_llm(cluster: Cluster, client: Any = None, max_turns: int = 12) -> tuple[str, str]:
+    """Granite chooses the order of the same four tools; no local LLM -> the fixed order (run_rules)."""
+    client = client or provider.make_client()
+    if client is None:
+        return run_rules(cluster)
+    run_id = provider.NAME + "-" + uuid.uuid4().hex[:8]
+    t = Tools(cluster, run_id, provider.NAME)
     now = cluster.now()
     messages = [
         {
@@ -357,14 +357,12 @@ def run_claude(cluster: Cluster, client: Any = None, max_turns: int = 12) -> tup
         }
     ]
     for _ in range(max_turns):
-        resp = client.beta.messages.create(
-            model=MODEL,
-            max_tokens=16000,
+        resp = client.messages.create(
+            model=provider.chat_model(),
+            max_tokens=4000,
             system=SYSTEM,
             tools=TOOLS,
             messages=messages,
-            betas=["server-side-fallback-2026-07-01"],
-            fallbacks="default",
             output_config={"effort": "low"},
         )
         if resp.stop_reason == "refusal":
@@ -408,7 +406,7 @@ def main() -> None:
     ap.add_argument("--rules", action="store_true", help="fixed order, no LLM")
     args = ap.parse_args()
     c = Cluster()
-    run_id, note = run_rules(c) if args.rules else run_claude(c)
+    run_id, note = run_rules(c) if args.rules else run_llm(c)
     print(run_id)
     print(note)
 

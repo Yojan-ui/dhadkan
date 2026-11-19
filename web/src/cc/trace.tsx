@@ -20,7 +20,7 @@ const EVENT_WORD: Record<string, string> = {
 };
 
 export function engineWord(engine: string, model: string | null) {
-  if (engine.startsWith("claude")) return model ?? "Claude";
+  if (engine.startsWith("granite")) return model ? `Granite · ${model}` : "Granite";
   return "rules (fixed plan)";
 }
 

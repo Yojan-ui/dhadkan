@@ -1,8 +1,8 @@
-"""The planner: on every event, build the picture, let Claude choose tool calls, run them through the gate.
+"""The planner: on every event, build the picture, let Granite choose tool calls, run them through the gate.
 
     planner = Planner(store, agent, bus, client=llm.make_client(), factories=..., health_of=...)
     bus.subscribe(planner.handle)          # every event, in order, once
-    out = planner.handle(event)            # {"decision": id, "engine": "claude" | "rules", "reply": ...}
+    out = planner.handle(event)            # {"decision": id, "engine": "granite" | "rules", "reply": ...}
 
 One brain: alarms from the brain's tick, owner replies (WhatsApp, the owner screen, the command centre),
 voice notes, mechanic replies and the agent's own events (repair done, verify result, network back,
@@ -14,14 +14,14 @@ What code does before the LLM sees the event (never left to the model):
   * a measurement reply (recording, hand check) is re-scored and the case's confidence updated;
   * preferences the owner states ("Sunday", "budget ₹2,000") are noted by simple rules as well.
 
-The LLM turn (Claude through server/planner/llm.py) is bounded: turns, tokens per event, rupees per case.
+The LLM turn (Granite on the local Ollama, through server/planner/llm.py) is bounded: turns, tokens per event, rupees per case.
 Every tool call goes through ToolBox.dispatch (schema, factory scope, grounding of outgoing text) and
 every action through MaintenanceAgent.act (idempotency key, approval gate when created and when sent,
 offline queue, hash-chained audit). The final reply is checked by server/planner/grounding: a number,
 ₹ amount or part number that no tool returned rejects it, the rules reply is used instead, and the
 rejection is logged.
 
-Without ANTHROPIC_API_KEY (or offline, over budget, or after an LLM error) the event goes to the rules:
+Without a local LLM (Ollama not reachable, DHADKAN_LLM=0, over budget, or after an LLM error) the event goes to the rules:
 the owner gets the template reply (owner_agent.run_rules) and a planner-driven case is handed to the
 fixed plan (maint/agent), which continues exactly as it always has.
 
@@ -37,6 +37,7 @@ import time
 from collections.abc import Callable
 from typing import Any
 
+from server import provider
 from server.maint.agent import MaintenanceAgent
 from server.maint.store import Store
 from server.notify import env
@@ -156,7 +157,7 @@ class Planner:
             tier = llm.tier_for(ev.type, ev.payload | {"unsure": self._unsure(ev, case)})
             model, effort = llm.model_for(tier)
             did = self.s.start_decision(ev.idem, ev.type, cid, ev.machine or (case or {}).get("machine"),
-                                        "rules" if reason else "claude", None if reason else model)  # fmt: skip
+                                        "rules" if reason else provider.NAME, None if reason else model)  # fmt: skip
         out: dict[str, Any] | None = None
         if not reason:
             try:
@@ -179,7 +180,7 @@ class Planner:
 
     def _no_llm_reason(self, case: dict[str, Any] | None) -> str | None:
         if not self.llm_on:
-            return "no ANTHROPIC_API_KEY (rules)"
+            return "no local LLM: Ollama not reachable or DHADKAN_LLM=0 (rules)"
         if case is not None:
             cap = llm.setting("DHADKAN_PLANNER_CASE_CAP_INR", 50)
             spent = self.s.llm_cost_inr(case["id"])
@@ -472,7 +473,7 @@ class Planner:
         sources = [r["result"] for r in box.results] + [ctx]
         g = grounding.check(res.reply, sources, box.extra_grounding()) if res.reply else {"ok": True}
         status = {"end": "done", "refusal": "refusal"}.get(res.stop, "budget")
-        reply, engine = res.reply, "claude"
+        reply, engine = res.reply, provider.NAME
         if not g["ok"]:
             reject("reply", {"unknown_numbers": g["unknown_numbers"], "unknown_parts": g["unknown_parts"]})
             status = "grounding_rejected"
@@ -480,7 +481,7 @@ class Planner:
                 self.rules_reply(ev) if self.rules_reply and ev.payload.get("channel") == "chat" else None
             )
             reply = (legacy or {}).get("reply", "")
-            engine = "claude+rules"
+            engine = provider.NAME + "+rules"
         changed = [c["tool"] for c in res.calls if (c["ok"] and STEP_OF.get(c["tool"]) in ("ask owner", "act"))
                    or c["tool"] in ("remember", "request_measurement")]  # fmt: skip
         outcome = (res.reply.split("\n")[0][:240] if res.reply and g["ok"] else

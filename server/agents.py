@@ -59,7 +59,7 @@ OPEN = ("monitoring", "investigating", "analysing", "planning", "executing", "aw
 STEP_AGENT: dict[str, tuple[str, str, list[str]]] = {
     "recall": ("memory", "analysing", ["repairs.history", "cases.history", "baseline.versions"]),
     "plan_inspection": ("planning", "planning", ["factory.schedule", "cases.open", "service_hours"]),
-    "planner": ("planning", "planning", ["server/planner (Claude, gated tools)"]),
+    "planner": ("planning", "planning", ["server/planner (Granite, gated tools)"]),
     "request_measurement": ("execution", "executing", ["notify.owner"]),
     "notify_watch": ("execution", "executing", ["notify.owner(digest)"]),
     "await_change": ("observation", "monitoring", ["baseline.observe"]),

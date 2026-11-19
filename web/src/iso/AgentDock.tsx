@@ -158,9 +158,9 @@ export function AgentDock({ factory }: { factory: string }) {
                       </li>
                     ))}
                     <li className="dim">
-                      {t.meta.engine.startsWith("claude")
-                        ? `${t.meta.model ?? "Claude"} · ${(t.meta.tokens ?? 0).toLocaleString("en-IN")} tokens · ${rupees(t.meta.cost_inr ?? 0)}`
-                        : "rules (offline / no key)"}{" "}
+                      {t.meta.engine.startsWith("granite")
+                        ? `Granite ${t.meta.model ?? ""} (local) · ${(t.meta.tokens ?? 0).toLocaleString("en-IN")} tokens · ${rupees(t.meta.cost_inr ?? 0)}`
+                        : "rules (offline / no local LLM)"}{" "}
                       · {t.meta.lang}
                       {t.meta.fallback_reason ? ` · fallback: ${t.meta.fallback_reason}` : ""}
                     </li>
