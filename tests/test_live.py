@@ -183,3 +183,16 @@ def test_demo_error_says_where_it_happened():
     except TypeError as e:
         msg = demo_error(e)
     assert msg.startswith("TypeError at ") and "(boom)" in msg and "subscriptable" in msg
+
+
+def test_demo_refuses_a_port_that_is_taken():
+    import socket
+
+    from server.demo import port_in_use
+
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        s.listen()
+        port = s.getsockname()[1]
+        assert port_in_use(port)
+    assert not port_in_use(port)
