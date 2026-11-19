@@ -169,6 +169,42 @@ To send for real, copy `.env.example` to `.env` and fill in one provider:
 | Twilio WhatsApp Sandbox | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | the judge first sends the sandbox join code; media needs `PUBLIC_BASE_URL` |
 | Twilio SMS (fallback) | `TWILIO_SMS_FROM` | used when WhatsApp fails |
 
+If Meta keys are set, Meta is used first. Set `WA_PROVIDER=twilio` to use the Twilio sandbox anyway
+(for example while Meta asks for business verification, error 131031), or `WA_PROVIDER=meta` to never use Twilio.
+
+### WhatsApp alerts on the Twilio sandbox, step by step
+
+1. In Twilio Console, open **Try out WhatsApp**. From your phone, send the `join ...` code it shows to its
+   **From** number.
+2. In `.env`:
+   ```
+   WA_PROVIDER=twilio
+   TWILIO_ACCOUNT_SID=AC...                    # Twilio Console home page
+   TWILIO_AUTH_TOKEN=...                       # Twilio Console home page, click Show
+   TWILIO_WHATSAPP_FROM=whatsapp:+17372508034  # the From number on Try out WhatsApp (yours may differ)
+   DHADKAN_DEMO_TO=+91XXXXXXXXXX               # your phone, the one that joined the sandbox
+   PUBLIC_BASE_URL=https://<your-tunnel>       # from step 3, no trailing slash
+   ```
+3. Start Dhadkan (`npm run demo`, port 8600) and a tunnel in a second terminal: `ngrok http 8600`.
+   Put the `https://...` link in `PUBLIC_BASE_URL` and restart.
+4. On **Try out WhatsApp > Receive a message** (older layout: *Sandbox settings*), set the incoming
+   message URL to `https://<your-tunnel>/webhooks/twilio`, method **POST**, and save. This is how your
+   "1 / 2 / 3" replies reach Dhadkan.
+5. When Loom 1's replayed bearing crosses its alarm level, the alert arrives on your phone. Reply **1** to book.
+
+The sandbox only delivers to phones that joined it, a join lasts 3 days, and messages Dhadkan starts reach a
+phone only within 24 hours of that phone's last message to the sandbox. Send "hi" first before a demo.
+
+### What sends a WhatsApp message
+
+| event | when it goes out |
+|---|---|
+| A machine's health score crosses its own alarm level, severity **Stop now** or **Replace** | immediately, even at night |
+| Severity **Repair soon** | immediately, or held until quiet hours (21:00–07:00) or a power cut end |
+| Severity **Watch** | once a day in the 19:00 digest |
+| Owner replies **1** | the factory's mechanic gets the job |
+| No reply 2 hours after a **Stop now** alert | the factory's supervisor gets it |
+
 With no keys, every message is built, logged and shown as **dry run**: nothing is sent, and the UI
 says so. Reply webhooks:
 - `/webhooks/whatsapp` (Meta): GET verify, POST signed with `X-Hub-Signature-256`

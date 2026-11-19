@@ -284,3 +284,19 @@ def test_voice_notes_are_parsed_from_both_providers():
             "MediaUrl0": "https://api.twilio.com/m/1", "MediaContentType0": "audio/ogg"}  # fmt: skip
     t = wa.parse_twilio(form)[0]
     assert t["text"] is None and t["audio"] == {"url": "https://api.twilio.com/m/1", "mime": "audio/ogg"}
+
+
+def test_provider_switch(monkeypatch):
+    for k, v in {"WA_TOKEN": "t", "WA_PHONE_NUMBER_ID": "1", "TWILIO_ACCOUNT_SID": "s", "TWILIO_AUTH_TOKEN": "a",
+                 "TWILIO_WHATSAPP_FROM": "whatsapp:+17372508034"}.items():  # fmt: skip
+        monkeypatch.setenv(k, v)
+    assert wa.from_env()[0].name == "whatsapp_meta"  # auto: Meta first
+    monkeypatch.setenv("WA_PROVIDER", "twilio")  # Meta keys kept, Meta account blocked
+    w = wa.from_env()[0]
+    assert w.name == "whatsapp_twilio" and w.sender == "whatsapp:+17372508034"
+    monkeypatch.setenv("WA_PROVIDER", "meta")
+    monkeypatch.delenv("WA_TOKEN")
+    assert wa.from_env()[0].name == "dry_run"  # meta asked for but not configured: never Twilio
+    monkeypatch.setenv("WA_PROVIDER", "telegram")
+    with pytest.raises(ValueError):
+        wa.from_env()

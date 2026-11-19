@@ -185,17 +185,27 @@ class DryRun:
         return {"provider": self.name, "ids": []}
 
 
+WA_PROVIDERS = ("auto", "meta", "twilio")
+
+
 def from_env() -> tuple[Any, Any]:
     """(WhatsApp provider, SMS provider) from configuration; DryRun where keys are missing.
 
+    WA_PROVIDER picks the WhatsApp provider: auto (default: Meta if its keys are set, else Twilio),
+    meta, or twilio. twilio lets Meta keys stay in .env while the Meta account is blocked or unverified.
     DHADKAN_DRY_RUN=1 forces DryRun for both even when keys are set (recordings, rehearsals)."""
     if env.get("DHADKAN_DRY_RUN") == "1":
         return DryRun(), DryRun()
+    choice = (env.get("WA_PROVIDER") or "auto").strip().lower()
+    if choice not in WA_PROVIDERS:
+        raise ValueError(f"WA_PROVIDER={choice!r}: use one of {', '.join(WA_PROVIDERS)}")
+    meta_ok = bool(env.get("WA_TOKEN") and env.get("WA_PHONE_NUMBER_ID"))
+    twilio_ok = bool(env.get("TWILIO_ACCOUNT_SID") and env.get("TWILIO_AUTH_TOKEN"))
     wa: Any = DryRun()
-    if env.get("WA_TOKEN") and env.get("WA_PHONE_NUMBER_ID"):
+    if meta_ok and choice in ("auto", "meta"):
         wa = MetaCloud(env.get("WA_TOKEN") or "", env.get("WA_PHONE_NUMBER_ID") or "",
                        env.get("WA_API_VERSION", "v21.0") or "v21.0", env.get("WA_TEMPLATE"))  # fmt: skip
-    elif env.get("TWILIO_ACCOUNT_SID") and env.get("TWILIO_AUTH_TOKEN"):
+    elif twilio_ok and choice in ("auto", "twilio"):
         wa = TwilioWhatsApp(env.get("TWILIO_ACCOUNT_SID") or "", env.get("TWILIO_AUTH_TOKEN") or "",
                             env.get("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886") or "")  # fmt: skip
     sms: Any = DryRun()
