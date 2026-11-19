@@ -33,6 +33,7 @@ import json
 import os
 import re
 import statistics
+import sys
 import tempfile
 import time
 from collections.abc import Callable, Iterator
@@ -908,6 +909,8 @@ def run(live: bool = False, only: str | None = None) -> dict[str, Any]:
 
 
 def main() -> None:
+    if hasattr(sys.stdout, "reconfigure"):  # the Windows console codepage cannot print Hindi or ₹
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--live", action="store_true", help="run on Granite (needs Ollama with the model pulled)")
     ap.add_argument("--only", help="run the scenarios whose name contains this")

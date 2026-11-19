@@ -176,14 +176,15 @@ def planner_section() -> list[str]:
             f"| failure scenarios that reached a new plan | {s['replan_success']} |",
             f"| tool calls per case | {s['steps_per_case']} |",
             f"| tokens per alarm | {s['tokens_per_alarm']:,} |",
-            f"| LLM cost per alarm (routed models, list prices) | ₹{s['inr_per_alarm']} |",
+            f"| LLM cost per alarm (local Granite: ₹0 per token unless DHADKAN_LOCAL_INR_PER_MTOK is set) | ₹{s['inr_per_alarm']} |",
             f"| planner decision latency p50 / p95 | {lat} |",
             f"| scenarios with an intact audit chain | {s['audit_intact']} of {s['scenarios']} |", "",
             ("Failed: " + ", ".join(fails) + "." if fails else "Every scenario passed its check."),
             "In mock mode the tool choices come from a scripted policy, so this measures the planner's code (gate,",
-            "grounding, re-planning, bounds, languages), not Claude's judgement; tokens are estimated from",
-            "characters and the latency is code only. A live run (`--live`, needs `ANTHROPIC_API_KEY`) measures",
-            "Claude on the same scenarios and has not been run for this record.", ""]  # fmt: skip
+            "grounding, the Guardian, KB retrieval, A2A, re-planning, bounds, languages), not Granite's judgement;",
+            "tokens are estimated from characters and the latency is code only. A live run (`--live`, needs Ollama",
+            "with the Granite model) measures Granite on the same scenarios and has not been run for this record.",
+            ""]  # fmt: skip
 
 
 def bench_section() -> list[str]:

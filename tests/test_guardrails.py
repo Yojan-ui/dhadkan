@@ -203,7 +203,8 @@ def test_no_cloud_llm_sdk_anywhere_in_the_code():
     root = Path(__file__).resolve().parents[1]
     files = [*root.glob("server/**/*.py"), *root.glob("scripts/**/*.py"), *root.glob("edge/**/*.py"),
              *root.glob("web/src/**/*.ts*"), root / "requirements.txt"]  # fmt: skip
-    bad = re.compile(r"\banthropic\b|\bopenai\b|claude-[a-z]|generativeai", re.IGNORECASE)
+    # plain substrings: \b would miss ANTHROPIC_API_KEY (the underscore is a word character)
+    bad = re.compile(r"anthropic|openai|claude|generativeai", re.IGNORECASE)
     hits = [f"{f.relative_to(root)}:{i}" for f in files for i, line in
             enumerate(f.read_text(encoding="utf-8").splitlines(), 1) if bad.search(line)]  # fmt: skip
     assert hits == []

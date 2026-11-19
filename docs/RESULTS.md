@@ -210,10 +210,10 @@ less often than they should on some bearings. The threshold borrowed from other 
 large factor for some (failure levels differ ~20x). The dashboard therefore shows a range with its
 meaning, says 'not enough data' after restarts and gaps, and never shows a failure date.
 
-## 4a. Claude Fable 5.2 vs the rules on labelled faults, and cost per alert
+## 4a. Granite (local Ollama) vs the rules on labelled faults, and cost per alert
 
-**Not run.** `python -m scripts.eval_understand` needs `ANTHROPIC_API_KEY` (it costs money), and no
-record exists yet. Until then, nothing here claims that Claude helps: in the product, every alert
+**Not run.** `python -m scripts.eval_understand` needs Ollama with the Granite model (slow on a CPU),
+and no record exists yet. Until then, nothing here claims that Granite helps: in the product, every alert
 works without it (rules, marked 'expert check pending').
 
 ## 5. The flour-mill demonstration (one recorded story, not a field result)
@@ -265,9 +265,9 @@ Record: `docs/runs/bench_20261116T131158Z.json` on macOS-26.6.2-arm64-arm-64bit 
 
 Not measured: phone and ESP32 latency, memory and battery (no Android app; ESP32 firmware untested).
 
-## 8. The event-driven planner (server/planner) on 36 scenarios
+## 8. The event-driven planner (server/planner) on 40 scenarios
 
-Record: `docs/runs/planner_20261119T003927Z.json` (`python -m server.planner.evaluate`, `.\dev.ps1 eval-agent`). Mode: **mock**. MOCK: a scripted policy (server/planner/evaluate.PolicyLLM), not Claude; tokens estimated from characters; latency is code only. Data: demo factory C (DEMO data), synthetic summary readings, simulated clock.
+Record: `docs/runs/planner_20261119T204139Z.json` (`python -m server.planner.evaluate`, `.\dev.ps1 eval-agent`). Mode: **mock**. MOCK: a scripted policy (server/planner/evaluate.PolicyLLM), not the model; tokens estimated from characters; latency is code only. Data: demo factory C (DEMO data), synthetic summary readings, simulated clock.
 
 Scenarios: one alarm in Hindi, Marathi, Gujarati, Tamil, English and Hinglish; the owner approving,
 saying *baad mein*, or answering on two channels while offline; three alarms competing for one
@@ -279,22 +279,22 @@ mid-turn; a retried webhook; the owner's autonomy policy; chat questions in five
 
 | measure | value |
 |---|---|
-| scenarios passed | 36 of 36 |
+| scenarios passed | 40 of 40 |
 | approval-gate violations (paid action delivered without an approved approval of that case) | 0 |
-| grounding rejections (a number or part no tool returned; the rules reply was used) | 2 |
+| grounding rejections (a number or part no tool returned; the rules reply was used) | 3 |
 | owner messages in the owner's language (owner_agent.detect_lang) | 100% of 50 |
 | failure scenarios that reached a new plan | 8 of 8 |
-| tool calls per case | 7.76 |
-| tokens per alarm | 18,153 |
-| LLM cost per alarm (routed models, list prices) | ₹4.532 |
-| planner decision latency p50 / p95 | 200 / 661 ms |
-| scenarios with an intact audit chain | 36 of 36 |
+| tool calls per case | 7.08 |
+| tokens per alarm | 23,182 |
+| LLM cost per alarm (local Granite: ₹0 per token unless DHADKAN_LOCAL_INR_PER_MTOK is set) | ₹0.004 |
+| planner decision latency p50 / p95 | 2576 / 2947 ms |
+| scenarios with an intact audit chain | 40 of 40 |
 
 Every scenario passed its check.
 In mock mode the tool choices come from a scripted policy, so this measures the planner's code (gate,
-grounding, re-planning, bounds, languages), not Claude's judgement; tokens are estimated from
-characters and the latency is code only. A live run (`--live`, needs `ANTHROPIC_API_KEY`) measures
-Claude on the same scenarios and has not been run for this record.
+grounding, the Guardian, KB retrieval, A2A, re-planning, bounds, languages), not Granite's judgement;
+tokens are estimated from characters and the latency is code only. A live run (`--live`, needs Ollama
+with the Granite model) measures Granite on the same scenarios and has not been run for this record.
 
 ## 4. What works, what doesn't
 
