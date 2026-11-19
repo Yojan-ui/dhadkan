@@ -1,0 +1,10 @@
+{
+  "_source": "DEMO DATA: invented partner agents for the demonstration (server/a2a/demo_agents.py, .\\dev.ps1 demo-agents). Not real businesses.",
+  "_note": "The allow-list of A2A agents Dhadkan may call. Add a friend's agent by adding a row with its JSON-RPC URL (its agent card is read from <url>/.well-known/agent-card.json). Nothing an agent says is trusted: it cannot ground a rupee figure or approve anything.",
+  "partners": [
+    {"id": "ramesh_workshop", "name": "Ramesh Motor Works (DEMO agent)", "role": "mechanic workshop",
+     "url": "http://127.0.0.1:8701/mechanic", "skills": ["availability"]},
+    {"id": "bhosari_dealer", "name": "Bhosari Bearings & Belts (DEMO agent)", "role": "parts dealer",
+     "url": "http://127.0.0.1:8701/dealer", "skills": ["part_stock"]}
+  ]
+}

@@ -20,6 +20,8 @@ from edge.config import MODELS, RAW
 # owner agent run their rules; LLM paths are tested with scripted mock clients (tests/test_planner_core.py).
 # `.\dev.ps1 eval-agent` is the live run.
 os.environ["DHADKAN_LLM"] = "0"
+# no partner-agent (A2A) calls on alarms unless a test turns them on (tests/test_a2a.py)
+os.environ["DHADKAN_A2A_PREFETCH"] = "0"
 
 OWNER_A, SUPERVISOR_A = "+91 90000 11111", "+91 90000 22222"
 # a coarser replay than the UI's (~110 readings); the alarm still comes from the real curve

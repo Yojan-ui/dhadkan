@@ -84,7 +84,7 @@ def test_autonomy_comes_from_the_profile_not_the_prompt(tmp_path, monkeypatch):
                          tool("book_job", case_id="C-G1#1", technician="T1", day="2026-11-17")), turn(text("x")))  # fmt: skip
     p = w.make(client)
     out = p.handle(w.bus.emit("alarm", machine="C-G1", factory="C", idem="a:1"))
-    assert out["calls"][0]["result"]["gate"] == "approval_required" and not sent(w, "book_job")
+    assert out["calls"][0]["result"]["gate"] == "guardian" and not sent(w, "book_job")
     w.agent.t.factories = {"C": {**w.agent.t.factories["C"], **POLICY}}
     p.client = Script(
         turn(tool("book_job", case_id="C-G1#1", technician="T1", day="2026-11-17")), turn(text("x"))

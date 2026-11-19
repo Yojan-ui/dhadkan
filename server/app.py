@@ -1099,6 +1099,9 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
     app.include_router(mill_api.router())
     app.include_router(ingest.router())
     app.include_router(cc_api.router(brain))
+    from .a2a import router as a2a_router
+
+    app.include_router(a2a_router.router(live))
 
     def busy() -> None:
         if live.replay["on"]:

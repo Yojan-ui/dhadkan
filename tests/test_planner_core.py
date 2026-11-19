@@ -12,12 +12,13 @@ import pytest
 from edge.baseline import BaselineStore
 from server import provider
 from server.maint import agent as ag
+from server.maint.agent import ApprovalRequired
 from server.maint.store import Store
 from server.maint.tools import Network, Transport
 from server.planner import grounding, llm
 from server.planner.agent import Planner, preferences
 from server.planner.events import EventBus
-from server.planner.tools import SPECS, ToolBox
+from server.planner.tools import SPECS, Env, ToolBox
 
 T0 = datetime(2026, 11, 16, 9, 0).timestamp()  # a Monday
 H = 3600.0
@@ -209,7 +210,18 @@ def test_book_without_approval_is_refused_by_the_gate(world):
                     turn(text("Could not book.")))  # fmt: skip
     p = world.make(client)
     out = p.handle(alarm(world))
-    assert out["calls"][0]["result"]["gate"] == "approval_required" and not sent(world, "book_job")
+    # two independent layers: the Guardian refuses before the tool runs ...
+    assert out["calls"][0]["result"]["gate"] == "guardian" and not sent(world, "book_job")
+    v = [
+        r["detail"]
+        for r in world.store.audit("C-G1#1")
+        if r["event"] == "verdict" and r["detail"]["target"] == "book_job"
+    ]
+    assert v and not v[0]["ok"] and v[0]["reasons"][0]["rule"] == "no_logged_approval"
+    # ... and the tool's own gate still refuses when called past the Guardian
+    box = ToolBox(Env(store=world.store, agent=world.agent, factory="C"))
+    with pytest.raises(ApprovalRequired):
+        box.t_book_job("C-G1#1", "T1", "2026-11-17")
     assert any(r["event"] == "blocked_without_approval" for r in world.store.audit("C-G1#1"))
 
 

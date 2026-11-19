@@ -118,7 +118,10 @@ def test_planner_paid_actions_are_gated_when_created_and_when_sent(tmp_path, mon
                     turn(tool("book_job", case_id="C-G1#1", technician="T1", day="2026-11-17")), turn(text("x")))  # fmt: skip
     p = w.make(client)
     out = p.handle(alarm(w))  # at creation: refused
-    assert [c["result"].get("gate") for c in out["calls"]] == ["approval_required", "approval_required"]
+    assert [c["result"].get("gate") for c in out["calls"]] == [
+        "guardian",
+        "guardian",
+    ]  # before the tool's gate
     p.handle(w.bus.emit("health_change", machine="C-G1", factory="C", idem="h:1"))
     w.net.online = False  # approved, queued offline ...
     p.handle(

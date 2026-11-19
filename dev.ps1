@@ -10,7 +10,7 @@
 
   Tasks: setup data demo-data train results demo demo-ims serve dev test lint fmt clean compare rul
          mill mill-pack eval-agent llm-check kb-build
-         kb-search help.  $env:PORT overrides the port (default 8600).
+         kb-search demo-agents help.  $env:PORT overrides the port (default 8600).
   Exits non-zero when any step fails.
 #>
 param(
@@ -109,6 +109,7 @@ switch ($Task) {
     "rul" { Assert-Venv; Invoke-Native $Py @("-m", "edge.rul") }
     "llm-check" { Assert-Venv; Invoke-Native $Py @("-m", "server.llm_check") }
     "kb-build" { Assert-Venv; Invoke-Native $Py @("-m", "server.kb", "build") }
+    "demo-agents" { Assert-Venv; Invoke-Native $Py (@("-m", "server.a2a.demo_agents") + $Rest) }
     "kb-search" { Assert-Venv; Invoke-Native $Py (@("-m", "server.kb", "search") + $Rest) }
     "mill" { Assert-Venv; Invoke-Native $Py @("-m", "server.flourmill", "--auto") }
     "mill-pack" { Assert-Venv; Invoke-Native $Py @("-m", "server.flourmill", "--pack") }

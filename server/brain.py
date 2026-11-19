@@ -487,6 +487,17 @@ def planner_trace(store: Store, planner: Planner, case_id: str | None = None, ma
                                     for c in d["tool_calls"] or []],
                           "reply": d["reply"], "outcome": d["outcome"],
                           "grounding_ok": (d["grounding"] or {}).get("ok", True),
+                          "knowledge": list((d["grounding"] or {}).get("knowledge") or []),
+                          "guardian": [{"target": v.get("target"), "ok": bool(v.get("ok")),
+                                        "reasons": [f"{r['rule']}: {r['detail']}" for r in v.get("reasons", [])]}
+                                       for v in (d["grounding"] or {}).get("guardian") or []],
+                          "a2a": [{"partner": c["input"].get("partner"), "question": str(c["input"].get("question", ""))[:160],
+                                   "said": str((c["result"] or {}).get("said") or (c["result"] or {}).get("error")
+                                               or (c["result"] or {}).get("clipped", ""))[:240]}
+                                  for c in d["tool_calls"] or [] if c["tool"] == "ask_partner_agent"]
+                                 + [{"partner": o.get("agent"), "question": str(o.get("question", ""))[:160],
+                                     "said": str(o.get("said") or o.get("error") or "")[:240]}
+                                    for o in (d["grounding"] or {}).get("a2a_prefetch") or []],
                           "input_tokens": d["input_tokens"], "output_tokens": d["output_tokens"],
                           "cost_inr": d["cost_inr"], "latency_ms": d["latency_ms"]})  # fmt: skip
         c = store.case(cid) if cid != "-" else None

@@ -5,7 +5,7 @@ PYTHON  ?= $(shell command -v python3.12 2>/dev/null || command -v python3 2>/de
 PORT    ?= 8600
 WEB_SRC := $(shell find web/src web/index.html web/public -type f 2>/dev/null) web/package.json web/vite.config.ts
 
-.PHONY: setup data demo-data train results demo demo-ims serve dev test lint fmt clean compare rul mill mill-pack eval-agent llm-check kb-build kb-search
+.PHONY: setup data demo-data train results demo demo-ims serve dev test lint fmt clean compare rul mill mill-pack eval-agent llm-check kb-build kb-search demo-agents
 
 setup:                       ## venv, Python and web dependencies
 	@$(PYTHON) -c 'import sys; sys.exit(0 if sys.version_info[:2] >= (3, 12) else "Python 3.12+ needed: make setup PYTHON=/path/to/python3.12")'
@@ -70,6 +70,9 @@ eval-agent:                  ## the planner's scenarios on the mock policy; LIVE
 
 llm-check:                   ## is Granite answering through Ollama? provider, model, latency, one real tool call
 	$(PY) -m server.llm_check
+
+demo-agents:                 ## two DEMO partner agents over A2A on :8701 (INJECT=1: the dealer tries a prompt injection)
+	$(PY) -m server.a2a.demo_agents $(if $(INJECT),--inject,)
 
 kb-build:                    ## embed the knowledge base (kb/*.md, faults.yaml) with granite-embedding
 	$(PY) -m server.kb build
