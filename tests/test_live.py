@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from edge.config import MODELS
 from server import app as app_mod
 from server import folk
+from tests.conftest import needs_recordings
 
 pytestmark = pytest.mark.skipif(
     not (MODELS / "fan" / "model.tflite").exists(), reason="needs trained models (python -m edge.train)"
@@ -36,6 +37,7 @@ def test_meta_and_empty_state(client):
     assert s["tick"] == -1 and s["clock"] is None and all(m["latest"] is None for m in s["machines"])
 
 
+@needs_recordings
 def test_step_frame_and_audio(app, client):
     assert client.post("/api/step", json={"n": 1}).json() == {"tick": 0}
     lv = app.state.live
@@ -61,6 +63,7 @@ def test_step_frame_and_audio(app, client):
     assert client.get("/api/audio/NOPE/live.wav").status_code == 404
 
 
+@needs_recordings
 def test_fault_to_route_to_reply(app, client):
     lv = app.state.live
     client.post("/api/step", json={"n": 3})
@@ -123,6 +126,7 @@ def test_publish_needs_label_and_replay_locks_actions(app, client):
     assert client.post("/api/agent", json={"engine": "gpt"}).status_code == 400
 
 
+@needs_recordings
 def test_websocket_sends_state_then_frames(tmp_path):
     app = app_mod.create_app(tmp_path / "n.db", tmp_path / "r.db", stream=True)
     with TestClient(app) as c:
@@ -137,6 +141,7 @@ def test_websocket_sends_state_then_frames(tmp_path):
     assert all(set(m) == {"risk", "energy", "spec"} for m in f["machines"].values())
 
 
+@needs_recordings
 def test_replay_script(tmp_path, monkeypatch):
     monkeypatch.setattr(folk, "transcribe", lambda path, language=None, **k: (NOTE, language))
     lv = app_mod.Live(tmp_path / "n.db", tmp_path / "r.db")
@@ -155,6 +160,7 @@ def test_replay_script(tmp_path, monkeypatch):
     assert onset["synthetic"] is True
 
 
+@needs_recordings
 def test_fingerprint_waits_in_outbox_while_shed_is_offline(app, client):
     lv = app.state.live
     client.post("/api/step", json={"n": 2})

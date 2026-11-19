@@ -4,6 +4,7 @@ import pytest
 
 from server import agent, registry
 from server.sim import Cluster
+from tests.conftest import needs_recordings
 
 CFG = {
     "start": "2026-11-09T06:00:00",
@@ -171,6 +172,7 @@ def test_single_stray_match_is_not_early(cluster):
     assert r["B-P2"]["status"] == "ok"
 
 
+@needs_recordings
 def test_new_machine_learns_before_it_can_alarm(tmp_path):
     """A machine raises no alarm and gets no rupees at risk while it is still learning its normal."""
     import copy

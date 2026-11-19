@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from server import owner_agent as oa
-from tests.conftest import ims_world, needs_ims
+from tests.conftest import ims_world, needs_ims, needs_recordings
 
 
 def test_inr_lakh_crore_and_ist():
@@ -76,6 +76,7 @@ def test_tamil_question_gets_a_tamil_reply(world):
 
 
 @needs_ims
+@needs_recordings
 def test_twin_summary_is_real_data(world):
     _, client, live, _ = world
     t = client.get("/api/twin").json()

@@ -5,6 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from server.app import create_app
+from tests.conftest import needs_recordings
 
 LEARN = 23  # 7 learning days at 8 h per reading, plus a margin
 
@@ -29,6 +30,7 @@ def learned(tmp_path):
     return c, tmp_path
 
 
+@needs_recordings
 def test_telemetry_is_measured_only(learned):
     c, _ = learned
     s = c.get("/api/cc/state").json()
@@ -40,6 +42,7 @@ def test_telemetry_is_measured_only(learned):
     assert "not measured" in s["performance"]["note"]
 
 
+@needs_recordings
 def test_blower_fault_runs_through_every_agent_to_a_verified_repair_and_survives_restart(learned):
     c, tmp = learned
     assert c.post("/api/cc/scenario", json={"machine": "C-F2", "mode": "fault"}).json()["simulated"]
@@ -103,6 +106,7 @@ def test_blower_fault_runs_through_every_agent_to_a_verified_repair_and_survives
     assert c2.app.state.brain.store.verify_audit()["ok"]
 
 
+@needs_recordings
 def test_offline_messages_wait_and_go_out_once(learned):
     c, _ = learned
     assert c.post("/api/link", json={"up": False}).status_code == 200

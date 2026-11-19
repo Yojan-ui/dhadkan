@@ -4,6 +4,7 @@ reading, and every simulated state is labelled."""
 from fastapi.testclient import TestClient
 
 from server.app import create_app
+from tests.conftest import needs_recordings
 
 
 def client(tmp_path) -> TestClient:
@@ -14,6 +15,7 @@ def machine(c: TestClient, mid: str) -> dict:
     return next(m for m in c.get("/api/state").json()["machines"] if m["id"] == mid)
 
 
+@needs_recordings
 def test_running_machine_is_live_with_no_simulated_flag(tmp_path):
     c = client(tmp_path)
     c.post("/api/step", json={"n": 1})
@@ -21,6 +23,7 @@ def test_running_machine_is_live_with_no_simulated_flag(tmp_path):
     assert op == {**op, "running": True, "sensor": "live", "ticks_since": 0, "simulated": False}
 
 
+@needs_recordings
 def test_stopped_is_confirmed_and_lost_sensor_is_unknown(tmp_path):
     c = client(tmp_path)
     c.post("/api/step", json={"n": 1})
@@ -38,6 +41,7 @@ def test_stopped_is_confirmed_and_lost_sensor_is_unknown(tmp_path):
     assert "A-P1" not in frame and "A-P2" not in frame and "A-F1" in frame  # no fake live stream
 
 
+@needs_recordings
 def test_restore_resumes_readings_and_bad_values_are_refused(tmp_path):
     c = client(tmp_path)
     c.post("/api/step", json={"n": 1})

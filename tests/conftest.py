@@ -14,7 +14,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from edge.config import MODELS
+from edge.config import MODELS, RAW
 
 # Tests never call a real model, even when a developer's .env holds ANTHROPIC_API_KEY: the planner and the
 # owner agent run their rules; LLM paths are tested with scripted mock clients (tests/test_planner_core.py).
@@ -28,6 +28,13 @@ TEST_READINGS = 40
 needs_ims = pytest.mark.skipif(
     not (MODELS / "ims_replay.json").exists() or not (MODELS / "ims_demo_pack.npz").exists(),
     reason="needs edge/models/ims_replay.json and ims_demo_pack.npz (python -m edge.ims)",
+)
+
+# The MIMII/DCASE clips the simulated machines play live in data/raw (several GB, not in git). Without them
+# those machines send no readings, so tests that step them and expect readings skip instead of failing.
+needs_recordings = pytest.mark.skipif(
+    next(RAW.rglob("*.wav"), None) is None if RAW.exists() else True,
+    reason="needs the MIMII recordings in data/raw (.\\dev.ps1 demo-data)",
 )
 
 
