@@ -302,10 +302,13 @@ edge/     features, autoencoder + TFLite, train.py, adapt.py (learning, drift, n
 server/   app.py, faults.yaml + diagnosis.py, understand.py (Granite), owner_alerts.py, notify/ (WhatsApp, SMS, policy,
           queue, media), fix.py, prove.py, onboard.py, forecast.py, imsdemo.py, agent.py, folk.py, registry.py, route.py,
           maint/ (case store, approval gate, fixed plan, sync), planner/ (events, Granite planner, tools, grounding, Guardian, evaluate), kb.py (RAG), a2a/ (A2A)
-web/      React + Vite + react-three-fiber: 3D cluster screen, owner and mechanic phone screens, Demo mode
-scripts/  eval_understand.py (Granite vs rules), score_recording.py (field recordings)
+web/      React + Vite + react-three-fiber: 3D cluster screen, owner and mechanic phone screens, Demo mode,
+          the live recorder PWA (?view=record: a phone or the laptop mic feeds a real machine)
+scripts/  eval_understand.py (Granite vs rules), score_recording.py (field recordings), tunnel.py (HTTPS + QR for
+          the phone), live_trial.py (measured live trial)
 tools/    demo_gif.py
-docs/     JUDGES.md, ARCHITECTURE.md, RESULTS.md (generated), PITCH.md, DEMO_SCRIPT.md, WHATSAPP_TEMPLATES.md,
+docs/     JUDGES.md, ARCHITECTURE.md, RESULTS.md (generated), PITCH.md, DEMO_SCRIPT.md, DEMO_LIVE.md (a real fan),
+          DEMO_GRANITE.md, GRANITE.md, WHATSAPP_TEMPLATES.md,
           FIELD_NOTES.md, runs/ (every evaluation record cited anywhere)
 tests/    pytest
 ```
