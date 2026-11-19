@@ -141,6 +141,18 @@ class BaselineStore:
         self._models = {k: v for k, v in self._models.items() if k[0] != machine}
         return archive
 
+    def finish_learning(self, machine: str, now: float | None = None, note: str | None = None) -> int | None:
+        """End the learning period now (the caller decides when: e.g. the live recorder after N clean clips,
+        whatever the phone's clock says). Fits v1 on the clean readings; None if still too few."""
+        m = self.machine(machine)
+        if m["state"] != "learning":
+            return None
+        ids = [r["id"] for r in self.db.execute(
+            "SELECT id FROM summaries WHERE machine=? AND clean=1 ORDER BY ts, id", (machine,))]  # fmt: skip
+        if len(ids) < MIN_ROWS:
+            return None
+        return self._new_version(machine, ids, "learning_complete", "active", note=note, now=now)
+
     def set_hold(self, machine: str, hold: bool) -> None:
         """While a machine has an open anomaly case, nothing it records is learned from."""
         self.db.execute("UPDATE machines SET hold=? WHERE machine=?", (int(hold), machine))

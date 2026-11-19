@@ -12,8 +12,8 @@ What it computes, and writes to docs/runs/live_<UTC>.json:
   * normal period (learned normal -> fault_on): readings, risk median / 95th percentile / max, readings at
     or above the alarm level, and false alarms = times the health rule (server/health.assess, the same
     one the brain uses) reached "inspect" or above, which is when the planner gets an alarm event;
-  * fault period (fault_on -> fault_off or the end): the same numbers, the score jump (median fault risk /
-    median normal risk), and the detection delay in seconds from the mark to the end of the first clip at
+  * fault period (fault_on -> fault_off or the end): the same numbers, the score jump (median fault risk minus
+    median normal risk, in multiples of the alarm level), and the detection delay in seconds from the mark to the end of the first clip at
     or above the alarm level, and to the end of the clip that raised the alarm.
 Nothing is written without live readings and a fault_on mark. The recipe: docs/DEMO_LIVE.md.
 """
@@ -81,7 +81,12 @@ def compute(hist: list[dict[str, Any]], marks: list[dict[str, Any]], machine: st
         "normal": {**_stats([h["risk"] for h in normal]), "seconds": round(normal[-1]["ts"] - normal[0]["ts"] + CLIP_S) if normal else 0,
                    "false_alarms": int(normal_alarms)},
         "fault": {**_stats([h["risk"] for h in fault]), "seconds": round(fault[-1]["ts"] - fault[0]["ts"] + CLIP_S) if fault else 0},
-        "score_jump": round(fm / nm, 2) if nm and fm else None,
+        # risk is in units of the alarm level and can be negative (quieter than the median normal), so the
+        # jump is a difference, not a ratio
+        "score_jump": {"normal_median": round(nm, 3) if nm is not None else None,
+                       "fault_median": round(fm, 3) if fm is not None else None,
+                       "difference": round(fm - nm, 2) if nm is not None and fm is not None else None,
+                       "unit": "x the machine's own alarm level"},
         "detection_delay_s": {
             "first_clip_over_alarm": round(first_over["ts"] + CLIP_S - on, 1) if first_over else None,
             "alarm_raised": round(first_alarm["ts"] + CLIP_S - on, 1) if first_alarm else None,
@@ -136,7 +141,8 @@ def main() -> int:
     print(f"normal: {n['n']} readings over {n['seconds']} s, median risk {n.get('median')}, max {n.get('max')}, "
           f"false alarms {n['false_alarms']}")  # fmt: skip
     print(
-        f"fault:  {f['n']} readings, median risk {f.get('median')}, max {f.get('max')}, score jump {res['score_jump']}x"
+        f"fault:  {f['n']} readings, median risk {f.get('median')}, max {f.get('max')}, "
+        f"score jump +{res['score_jump']['difference']} x its alarm level"
     )
     print(
         f"detection: first clip over the alarm level after {d['first_clip_over_alarm']} s, alarm after {d['alarm_raised']} s"

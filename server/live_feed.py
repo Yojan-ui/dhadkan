@@ -37,8 +37,10 @@ from edge.summary import S
 QUICK_LEARN_S = 120  # demo: about two minutes of clips
 CLIP_S = 10
 QUICK_CLIPS = max(MIN_ROWS, QUICK_LEARN_S // CLIP_S)  # 12 clips of 10 s
-# the learning period, from the first clip's start to the last one's: 12 clips 10 s apart span 110 s
-QUICK_DAYS = (QUICK_CLIPS - 1) * CLIP_S / 86400
+# Learning ends when the feed says so (BaselineStore.finish_learning), counted in clean clips and timed on
+# the server's clock: a phone whose clock is minutes off must not keep the machine learning forever. The
+# store's own time-based end is pushed out of the way.
+BY_FEED_DAYS = 3650.0
 QUICK_LABEL = "short learning period, demo"
 SLICES = 20  # must match server/app.py SLICES (the stream's slices per reading)
 SHAPE = {"pump": "pump", "fan": "motor", "gearbox": "loom", "valve": "motor", "slider": "motor"}
@@ -75,7 +77,7 @@ class LiveFeed:
         if spec["id"] not in c.machines:
             c.machines[spec["id"]] = spec
             c.cfg["machines"].append(spec)
-        self.b.base.register(spec["id"], spec["type"], learning_days=QUICK_DAYS, now=time.time())
+        self.b.base.register(spec["id"], spec["type"], learning_days=BY_FEED_DAYS, now=time.time())
         self.b.store.add_machine(spec["id"], spec["name"], spec["factory"], "flour_mill", spec["type"],
                                  float(spec.get("motor_hp") or 1), "blower" if spec["type"] == "fan" else "mill")  # fmt: skip
 
@@ -108,11 +110,11 @@ class LiveFeed:
         """The recorder takes over this machine: learn its normal again from live clips only."""
         if mid not in self.b.c.machines:
             raise KeyError(mid)
-        days = QUICK_DAYS if quick else float(self.b.c.cfg.get("learning_days", 7))
+        days = 0.0 if quick else float(self.b.c.cfg.get("learning_days", 7))
         target = QUICK_CLIPS if quick else max(MIN_ROWS, 30)
         now = time.time()
         with self.b.lock:
-            archive = self.b.base.restart(mid, days, now=now)
+            archive = self.b.base.restart(mid, BY_FEED_DAYS, now=now)
             self.db.execute("INSERT INTO live_machines (machine, device, quick, learning_days, target, started, marks)"
                             " VALUES (?,?,?,?,?,?,'[]') ON CONFLICT(machine) DO UPDATE SET device=excluded.device,"
                             " quick=excluded.quick, learning_days=excluded.learning_days, target=excluded.target,"
@@ -166,7 +168,10 @@ class LiveFeed:
         if not self.is_live(mid):
             raise KeyError(mid)
         b = self.b
-        ts = time.time() if ts is None else float(ts)
+        now = time.time()
+        ts = (
+            now if ts is None else min(float(ts), now + 5)
+        )  # a phone clock ahead of ours: never in the future
         rid = f"{device}:{seq}"
         with b.lock:
             q = summary.quality(audio)
@@ -175,6 +180,8 @@ class LiveFeed:
             obs = b.base.observe(mid, row, q, ts=ts, source="live", reading_id=rid)
             if obs.get("duplicate"):
                 return {"duplicate": True, "id": obs["id"], **self.status(mid)}
+            if obs["state"] == "learning":
+                obs = self._maybe_learned(mid, obs, now)
             for ev in obs.get("events") or []:
                 if ev.get("kind") == "baseline_learned":
                     quick = bool(self.rows[mid]["quick"])
@@ -202,6 +209,26 @@ class LiveFeed:
         return {"duplicate": False, "id": obs["id"], "observation": obs["state"], "risk": obs.get("risk"),
                 "quality": q, "health": {k: h.get(k) for k in ("status", "urgency", "severity", "confidence")},
                 **self.status(mid)}  # fmt: skip
+
+    def _maybe_learned(self, mid: str, obs: dict[str, Any], now: float) -> dict[str, Any]:
+        """Learning is over after `target` clean clips (and, for the standard setting, its learning days on
+        the server's clock). Quick learn is noted on the version itself."""
+        row = self.rows[mid]
+        clean = sum(
+            1 for h in self.b.base.history(mid) if h["source"] == "live" and h["clean"] and h["risk"] is None
+        )
+        long_enough = now - float(row["started"]) >= float(row["learning_days"] or 0) * 86400
+        if clean < int(row["target"] or QUICK_CLIPS) or not long_enough:
+            return obs
+        v = self.b.base.finish_learning(mid, now=now, note=QUICK_LABEL if row["quick"] else None)
+        if v is None:
+            return obs
+        return {
+            **obs,
+            "state": "monitoring",
+            "version": v,
+            "events": [{"kind": "baseline_learned", "version": v, "n": clean}],
+        }
 
     def slices(self, mid: str, audio: np.ndarray, risk: float | None) -> dict[str, Any]:
         """The stream's view of a live clip (same shape as server/app.slices): log-mel columns against this

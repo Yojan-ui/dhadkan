@@ -225,6 +225,18 @@ def test_trial_measurement_counts_false_alarms_and_detection_delay():
     assert res["normal"]["false_alarms"] == 0  # one stray clip is not an alarm (2 of 3 needed)
     assert res["fault"]["n"] == 4 and res["detection_delay_s"]["first_clip_over_alarm"] == 10.0
     assert res["detection_delay_s"]["alarm_raised"] == 20.0 and res["detected"]
-    assert res["score_jump"] > 5
+    assert res["score_jump"]["difference"] > 2.5 and res["score_jump"]["normal_median"] == 0.5
     with pytest.raises(ValueError):
         live_trial.compute(hist, [], "A-F1")  # no mark: nothing measured
+
+
+def test_a_phone_clock_behind_the_server_still_finishes_learning(world):
+    """Learning ends after the clean clips, counted by the server, not when the phone's clock says so."""
+    app, c = world
+    c.post("/api/ingest/live/start", json={"machine": MID, "device": "phone-1", "quick": True})
+    rng = np.random.default_rng(8)
+    learn(c, rng, time.time() - 300)  # every clip stamped 5 minutes before the recorder started
+    st = c.get(f"/api/ingest/live/{MID}").json()
+    assert st["state"] == "monitoring"
+    v = app.state.brain.base.versions(MID)[0]
+    assert v["n_rows"] == QUICK_CLIPS and v["note"] == QUICK_LABEL
