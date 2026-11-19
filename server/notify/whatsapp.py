@@ -178,7 +178,15 @@ class TwilioWhatsApp(_Twilio):
         # WhatsApp refuses template variables with new lines, tabs or more than 4 spaces in a row
         flat = re.sub(r"\s*\n\s*", " · ", text.strip())
         flat = re.sub(r"[\t ]{2,}", " ", flat)
-        variables = self.content_vars or json.dumps({"1": flat[:1000]}, ensure_ascii=False)
+        variables = json.dumps({"1": flat[:1000]}, ensure_ascii=False)
+        if self.content_vars:
+            # a fixed template (e.g. the trial sandbox's): "{text}" in any value becomes the alert text
+            try:
+                fixed = json.loads(self.content_vars)
+                variables = json.dumps({k: str(v).replace("{text}", flat[:900]) for k, v in fixed.items()},
+                                       ensure_ascii=False)  # fmt: skip
+            except (ValueError, AttributeError):
+                variables = self.content_vars
         data = {
             "From": self.sender,
             "To": to,

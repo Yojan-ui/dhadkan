@@ -2,11 +2,16 @@
 
     python -m tools.twilio_template            # create it, ask WhatsApp to approve it, save it in .env, send a test
     python -m tools.twilio_template --status   # check whether WhatsApp has approved it yet, and send a test
+    python -m tools.twilio_template --trial    # Twilio trial account: put alerts into the sandbox's ready-made template
 
 Reads TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_WHATSAPP_FROM / DHADKAN_DEMO_TO from .env. The template is
 "Dhadkan alert: {{1}}" (category Utility); Dhadkan puts each alert's text into {{1}}. It writes
 TWILIO_CONTENT_SID=<HX...> into .env and empties TWILIO_CONTENT_VARIABLES (so {{1}} carries the alert).
 Some Twilio senders deliver a new template only after WhatsApp approves it (minutes to a day): run --status later.
+
+Trial accounts can't create templates (Twilio says 401 / 20003). --trial keeps the sandbox template already in
+TWILIO_CONTENT_SID (Appointment Reminders, "Your appointment is coming up on {{1}} at {{2}}...") and sets
+TWILIO_CONTENT_VARIABLES={"1":"{text}","2":"Dhadkan"}, so the alert text lands in {{1}}. It reads oddly, but it works.
 """
 
 import argparse
@@ -82,27 +87,46 @@ def status(http: httpx.Client, sid: str) -> str:
     return st + (f" ({wa['rejection_reason']})" if wa.get("rejection_reason") else "")
 
 
-def test_send(sid: str) -> None:
+def test_send(sid: str, content_vars: str | None = None) -> None:
     to = env.get("DHADKAN_DEMO_TO")
     if not to:
         print("Set DHADKAN_DEMO_TO=+91... in .env to get a test message.")
         return
     t = whatsapp.TwilioWhatsApp(env.get("TWILIO_ACCOUNT_SID") or "", env.get("TWILIO_AUTH_TOKEN") or "",
-                                env.get("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886") or "", content_sid=sid)  # fmt: skip
+                                env.get("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886") or "", content_sid=sid,
+                                content_vars=content_vars)  # fmt: skip
     try:
         res = t.send(to, "TEST " + SAMPLE, [])
-        print(
-            f"Test message sent to {to} ({res['ids'][0]}). Check WhatsApp: it should start with 'Dhadkan alert:'."
-        )
+        look = "the Loom 1 alert inside it" if content_vars else "it should start with 'Dhadkan alert:'"
+        print(f"Test message sent to {to} ({res['ids'][0]}). Check WhatsApp: {look}.")
     except (ValueError, ConnectionError) as e:
         print(f"Test message not sent yet: {e}")
         print("If WhatsApp hasn't approved the template yet, run this again later with --status.")
 
 
+TRIAL_VARS = '{"1":"{text}","2":"Dhadkan"}'
+
+
+def trial() -> None:
+    sid = env.get("TWILIO_CONTENT_SID")
+    if not sid:
+        sys.exit("Put the sandbox template's HX... id in .env as TWILIO_CONTENT_SID first (Twilio Console, "
+                 "Messaging > Try it out > Send a WhatsApp message, the Content Template box).")  # fmt: skip
+    set_env({"TWILIO_CONTENT_VARIABLES": TRIAL_VARS})
+    print(f"Saved in .env: TWILIO_CONTENT_VARIABLES={TRIAL_VARS} (alerts go into {{{{1}}}} of {sid}).")
+    test_send(sid, TRIAL_VARS)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--status", action="store_true", help="check approval and send a test")
+    ap.add_argument(
+        "--trial", action="store_true", help="trial account: use the sandbox template already in .env"
+    )
     args = ap.parse_args()
+    if args.trial:
+        trial()
+        return
     http = _client()
     if args.status:
         sid = env.get("TWILIO_CONTENT_SID") or create(http)

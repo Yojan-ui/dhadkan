@@ -208,6 +208,12 @@ Newer Twilio sandbox numbers refuse free text (error 21654 "ContentSid Required"
 WhatsApp to approve it, saves `TWILIO_CONTENT_SID` in `.env` and sends a test. If the test waits on approval,
 run it again later with `--status`.
 
+On a **Twilio trial account** that command fails with 401 / 20003 (trial accounts can't create templates).
+Put the sandbox's ready-made template id (Appointment Reminders, `HX...`) in `TWILIO_CONTENT_SID` and run
+`.venv/bin/python -m tools.twilio_template --trial`. It sets `TWILIO_CONTENT_VARIABLES={"1":"{text}","2":"Dhadkan"}`,
+so each alert lands in `{{1}}`: "Your appointment is coming up on *Loom 1 ...* at Dhadkan." Odd wording, real
+alert. Upgrading the Twilio account (a one-time top-up, about $20) removes this limit.
+
 The sandbox only delivers to phones that joined it, a join lasts 3 days, and messages Dhadkan starts reach a
 phone only within 24 hours of that phone's last message to the sandbox. Send "hi" first before a demo.
 
