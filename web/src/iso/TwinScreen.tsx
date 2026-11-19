@@ -89,7 +89,17 @@ function SidePanel({ m, onClose }: { m: Machine; onClose: () => void }) {
       <header>
         <HealthRing m={m} size={44} />
         <div>
-          <h2>{m.name}</h2>
+          <h2>
+            {m.name} {m.live && <b className="live-badge">LIVE</b>}
+          </h2>
+          {m.live && (
+            <p className="small live-note">
+              {m.live.state === "learning"
+                ? `learning from the live recorder: ${m.live.progress.clips}/${m.live.progress.target} clips`
+                : `live recorder · ${m.live.readings} clips`}
+              {m.live.label ? ` · ${m.live.label}` : ""}
+            </p>
+          )}
           <p className="dim small">
             {meta.factories.find((x) => x.id === m.factory)?.name} · {m.type} · {m.id}
           </p>

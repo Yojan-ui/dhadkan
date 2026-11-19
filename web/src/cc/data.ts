@@ -27,6 +27,8 @@ export interface Row {
   sensor: "ok" | "lost";
   source: string | null;
   case: string | null;
+  /** fed by the live recorder, not the simulator */
+  live?: CcLive | null;
 }
 export interface AgentRun {
   id: number;
@@ -166,6 +168,13 @@ export interface CCState {
   last_tick_ms: number | null;
 }
 // The planner's trace (server/brain.planner_trace): per case, event -> reasoning -> tools -> approvals.
+export interface CcLive {
+  quick: boolean;
+  label: string | null;
+  state: "learning" | "monitoring";
+  progress: { clips: number; target: number };
+  readings: number;
+}
 export interface PlannerTool {
   tool: string;
   ok: boolean;

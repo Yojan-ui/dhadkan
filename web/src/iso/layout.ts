@@ -8,6 +8,7 @@ const SLOTS: [number, number][] = [
   [2.6, -3.2],
   [-2.6, 3.4],
   [2.6, 3.4],
+  [0, 0.1], // a fifth machine (registered from the live recorder) stands in the middle of the bay
 ];
 
 export function machinePositions(machines: Machine[]): Record<string, [number, number, number]> {
@@ -18,7 +19,7 @@ export function machinePositions(machines: Machine[]): Record<string, [number, n
     const bx = BAY_X[f] ?? 0;
     list.forEach((m, i) => {
       const [dx, dz] = SLOTS[i % SLOTS.length];
-      out[m.id] = [bx + dx, FLOOR.h / 2, dz + Math.floor(i / SLOTS.length) * 6];
+      out[m.id] = [bx + dx, FLOOR.h / 2, dz + Math.floor(i / SLOTS.length) * 7];
     });
   }
   return out;

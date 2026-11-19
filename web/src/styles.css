@@ -1347,3 +1347,32 @@ body:has(.lite) {
   display: grid;
   gap: 4px;
 }
+
+/* LIVE: a machine fed by the live recorder (a phone or the laptop mic), not by the simulator */
+.live-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+.live-note {
+  color: #e5484d;
+  margin: 2px 0 0;
+}
+@keyframes live-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-badge {
+    animation: none;
+  }
+}

@@ -99,6 +99,7 @@ export function TelemetryTable({
               <td className="mono">
                 <Dot cls={m.sensor === "lost" || m.run === "stopped" ? "dim" : healthClass(m.health)} />
                 {m.id}
+                {m.live && <b className="live-badge">LIVE</b>}
                 {compact && <div className="muted tiny">{m.name}</div>}
               </td>
               {!compact && <td>{m.name}</td>}

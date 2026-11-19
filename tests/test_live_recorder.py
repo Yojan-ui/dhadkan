@@ -197,3 +197,15 @@ def test_baseline_restart_archives_and_learns_again(tmp_path):
     archive = s.restart("m", learning_days=1e-9, now=100.0)
     assert s.history("m") == [] and s.versions("m") == [] and s.machine("m")["state"] == "learning"
     assert len(s.history(archive)) == 12 and s.versions(archive)  # archived, not deleted
+
+
+def test_the_twin_ranks_a_live_machine_on_its_live_readings(world):
+    _, c = world
+    c.post("/api/ingest/live/start", json={"machine": MID, "device": "phone-1", "quick": True})
+    rng = np.random.default_rng(7)
+    t = learn(c, rng, time.time())
+    reading(c, 300, clip(rng, fault=True), t)
+    tw = c.get(f"/api/twin?focus={MID}").json()
+    row = next(r for r in tw["ranking"] if r["id"] == MID)
+    assert row["live"] and row["risk"] >= 1.0 and tw["trend"] and tw["trend"][-1] == row["risk"]
+    assert sum(1 for r in tw["ranking"] if r["id"] == MID) == 1  # not also ranked from the simulator
