@@ -86,6 +86,28 @@ def test_twilio_whatsapp_form_and_public_media_only(tmp_path):
     assert form.get_list("MediaUrl") == ["https://h/x.ogg"]  # Twilio can only fetch public media
 
 
+def test_twilio_falls_back_to_content_template_when_free_text_is_refused():
+    seen = []
+
+    def handler(req):
+        form = httpx.QueryParams(req.content.decode())
+        seen.append(form)
+        if "ContentSid" not in form:
+            return httpx.Response(400, json={"code": 21654, "message": "ContentSid Required", "status": 400})
+        return httpx.Response(201, json={"sid": "SM2"})
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    t = wa.TwilioWhatsApp("AC1", "tok", "whatsapp:+17372508034", client=client, content_sid="HX123")
+    assert t.send(TO, "Loom 1 bearing", [])["ids"] == ["SM2"]
+    assert seen[1]["ContentSid"] == "HX123" and json.loads(seen[1]["ContentVariables"]) == {
+        "1": "Loom 1 bearing"
+    }
+
+    no_template = wa.TwilioWhatsApp("AC1", "tok", "whatsapp:+17372508034", client=client)
+    with pytest.raises(ValueError, match="TWILIO_CONTENT_SID"):
+        no_template.send(TO, "x", [])
+
+
 # ---------------------------------------------------------------- webhooks
 def test_meta_signature():
     body = b'{"object":"whatsapp_business_account"}'

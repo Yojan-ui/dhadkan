@@ -22,6 +22,7 @@ import json
 import os
 import threading
 import time
+import traceback
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
 from datetime import datetime, timedelta
@@ -916,7 +917,8 @@ class Live:
             self.demo["phase"] = "stopped"
             raise
         except Exception as e:
-            self.demo["phase"] = f"error: {e}"
+            self.demo["phase"] = f"error: {demo_error(e)}"
+            traceback.print_exc()  # the full traceback in the terminal that runs the server
             raise
         finally:
             self.demo["on"] = False
@@ -1045,6 +1047,17 @@ class ReplyIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     message_id: int
     reply: str
+
+
+def demo_error(e: BaseException) -> str:
+    """'TypeError at server/x.py:12 (fn): message', so a crash shown in the panel says where it happened."""
+    tb = traceback.extract_tb(e.__traceback__)
+    ours = [f for f in tb if "/server/" in f.filename or "/edge/" in f.filename] or tb
+    if not ours:
+        return f"{type(e).__name__}: {e}"
+    f = ours[-1]
+    where = Path(f.filename)
+    return f"{type(e).__name__} at {where.parent.name}/{where.name}:{f.lineno} ({f.name}): {e}"
 
 
 class DemoIn(BaseModel):

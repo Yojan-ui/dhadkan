@@ -170,3 +170,83 @@ def test_fingerprint_waits_in_outbox_while_shed_is_offline(app, client):
     assert back["pending"] == 0 and back["published"][0]["machine"] == "A-F1"
     assert [e["kind"] for e in lv.events].count("published") == 1
     assert lv.c.reg.execute("SELECT COUNT(*) FROM fingerprints").fetchone()[0] == 1
+
+
+def test_demo_error_says_where_it_happened():
+    from server.app import demo_error
+
+    def boom():
+        return None["x"]  # type: ignore[index]
+
+    try:
+        boom()
+    except TypeError as e:
+        msg = demo_error(e)
+    assert msg.startswith("TypeError at ") and "(boom)" in msg and "subscriptable" in msg
+
+
+def test_demo_refuses_a_port_that_is_taken():
+    import socket
+
+    from server.demo import port_in_use
+
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        s.listen()
+        port = s.getsockname()[1]
+        assert port_in_use(port)
+    assert not port_in_use(port)
+
+
+def test_clip_pools_are_safe_from_many_threads(tmp_path, monkeypatch):
+    """step() asks for clip pools from 8 threads at once; a half-built cache was KeyError 'A-P1'."""
+    import sys
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    from edge import data
+    from server.sim import Cluster
+
+    c = Cluster(tmp_path / "n.db", tmp_path / "r.db")
+    cond = sorted(data.HEADLINE_CONDITIONS)[0]
+
+    def slow_clips(t):
+        out = []
+        for m in c.cfg["machines"]:
+            if m["type"] == t:
+                for lab in (0, 1):
+                    out.append(
+                        data.Clip(tmp_path / f"{m['id']}_{lab}.wav", t, m["source"], "test", lab, cond)
+                    )
+                    time.sleep(0.002)  # widen the window the old code raced in
+        return out
+
+    monkeypatch.setattr(data, "clips_for", slow_clips)
+    old = sys.getswitchinterval()
+    sys.setswitchinterval(1e-6)  # switch threads as often as possible, so a half-built cache is seen
+    try:
+        ids = {m["id"] for m in c.cfg["machines"]}
+        for _ in range(20):
+            c._pools = None
+            with ThreadPoolExecutor(max_workers=8) as ex:
+                seen = list(ex.map(lambda _: set(c.pools()), range(16)))
+            assert all(s == ids for s in seen)
+    finally:
+        sys.setswitchinterval(old)
+
+
+def test_machine_keeps_its_clips_after_demo_mode(tmp_path, monkeypatch):
+    """Pools first built during Demo mode used to leave out the IMS machine for good."""
+    from edge import data
+    from server.app import IMS_MACHINE
+    from server.sim import Cluster
+
+    c = Cluster(tmp_path / "n.db", tmp_path / "r.db")
+    cond = sorted(data.HEADLINE_CONDITIONS)[0]
+    monkeypatch.setattr(data, "clips_for", lambda t: [
+        data.Clip(tmp_path / f"{m['id']}_{lab}.wav", t, m["source"], "test", lab, cond)
+        for m in c.cfg["machines"] if m["type"] == t for lab in (0, 1)])  # fmt: skip
+    c.ims[IMS_MACHINE] = object()
+    c.pools()
+    del c.ims[IMS_MACHINE]
+    assert IMS_MACHINE in c.pools()
