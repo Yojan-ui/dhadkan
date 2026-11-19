@@ -37,7 +37,7 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-from server import provider
+from server import kb, provider
 from server.maint.agent import MaintenanceAgent
 from server.maint.store import Store
 from server.notify import env
@@ -61,17 +61,22 @@ SYSTEM = (
     "question to the owner (ask_owner with a stop_noted option). Nothing that costs money happens without "
     "the owner's approval: ask with ask_owner (an approve_booking option names the technician and day), and "
     "call book_job only after the event tells you the owner approved that visit. Use only numbers, rupee "
-    "amounts, dates and part numbers that a tool returned; never estimate your own. Rupees in Indian format; "
+    "amounts, dates and part numbers that a tool returned or that a knowledge chunk states; never estimate "
+    "your own. Rupees in Indian format; "
     "times in IST.\n"
     "Messages to the owner (ask_owner, tell_owner, request_measurement) are WhatsApp: short, plain, in the "
     "owner's language and script as given in the event (hi_latn = Hindi in Roman script), like a trusted "
     "mechanic. Do not repeat a question that is already open. Demo and mock data are labelled; do not "
     "present them as real.\n"
+    "The event carries `knowledge`: chunks retrieved from the maintenance knowledge base for this machine "
+    "and fault (search_knowledge finds more). Base hand checks and repair steps on them, and end your closing "
+    "note with the ids you relied on in square brackets, e.g. [kb/bearing_wear.md#hand-check-machine-off].\n"
     "End the turn with one short paragraph: if the event is a chat message from the owner, that paragraph is "
     "your reply to them, in their language; otherwise it is a note for the factory's log saying what you "
     "decided and why."
 )
 STEP_OF = {"get_machine_health": "observe", "get_spectrogram": "observe", "diagnose_fault": "diagnose",
+           "search_knowledge": "diagnose",
            "request_measurement": "diagnose", "recall": "plan", "remember": "plan", "find_mechanics": "plan",
            "propose_slots": "plan", "check_parts": "plan", "compare_options": "plan", "triage": "plan",
            "ask_owner": "ask owner", "tell_owner": "ask owner", "book_job": "act", "order_part": "act",
@@ -438,7 +443,26 @@ class Planner:
              "technician": x["context"].get("technician"), "visit_day": x["context"].get("visit_day")}
             for x in self.s.cases(open_only=True) if not f or self.s.machine(x["machine"])["factory"] == f
         ]  # fmt: skip
+        ctx["knowledge"] = self.knowledge(ev, case)
         return ctx
+
+    def knowledge(self, ev: Event, case: dict[str, Any] | None) -> list[dict[str, Any]]:
+        """RAG: the knowledge-base chunks for this event's machine and fault (the fault card first when the
+        fault is named). Keyword search when Ollama is down; [] when the event names no machine."""
+        mid = ev.machine or (case or {}).get("machine")
+        if not mid:
+            return []
+        try:
+            mtype = self.s.machine(mid).get("mtype")
+        except KeyError:
+            mtype = None
+        fault = (case or {}).get("context", {}).get("fault") or ev.payload.get("fault")
+        text = str(ev.payload.get("text") or "")
+        try:
+            return kb.brief(kb.for_case(mtype, fault, text), width=700)
+        except Exception as e:  # the KB must never stop the planner
+            self.s.log("planner", "kb_error", (case or {}).get("id"), error=f"{type(e).__name__}: {e}"[:200])
+            return []
 
     def agent_now(self) -> Any:
         from datetime import datetime
@@ -450,6 +474,9 @@ class Planner:
         with self.lock:
             ctx = self.context(ev, case, effects)
             f = ctx["factory"]["id"]
+            if ctx["knowledge"]:  # which chunks the model was given, for the trace and the evaluation
+                self.s.log("planner", "kb_retrieved", case and case["id"], decision=did,
+                           chunks=[k["id"] for k in ctx["knowledge"]])  # fmt: skip
             spent = self.s.llm_cost_inr(case["id"]) if case else 0.0
 
         def reject(tool: str, rec: dict[str, Any]) -> None:

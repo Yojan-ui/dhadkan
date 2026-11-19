@@ -2,6 +2,7 @@
 
 Read (no side effects):
     get_machine_health, get_spectrogram, diagnose_fault   what the sound says (server/health, owner_agent)
+    search_knowledge(query, fault, machine_type)          RAG over kb/*.md guides and the faults.yaml cards (server/kb)
     recall                                               this machine's cases, repairs, notes; the owner's preferences
     find_mechanics(skill, area, need_by)                 several candidates: distance, days free, rating, past outcomes
     propose_slots(machine_id, duration_h, prefer_day)    visit windows: production lost, order-book clashes, power cuts, shift fit
@@ -32,7 +33,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from server import costs as cost_model
-from server import route
+from server import kb, route
 from server.maint.agent import RANK, ApprovalRequired, MaintenanceAgent, Waiting
 from server.maint.store import Store
 from server.maint.tools import OWNER_WORD, PARTS, ROOT, Unavailable, _load, cost_range, inspection_cost
@@ -94,6 +95,7 @@ SPECS: list[dict[str, Any]] = [
     {"name": "get_machine_health", "description": "Status, urgency, confidence with reasons, plain-word evidence, recent risk, time to the maintenance threshold.", "input_schema": _schema(MID)},
     {"name": "get_spectrogram", "description": "Which frequency band changed most versus this machine's own normal, in words.", "input_schema": _schema(MID)},
     {"name": "diagnose_fault", "description": "The named fault and its card (faults.yaml) if the sound names one; otherwise the likely faults for this kind of machine.", "input_schema": _schema(MID)},
+    {"name": "search_knowledge", "description": "Search the maintenance knowledge base (kb/ guides and the faults.yaml fault cards): symptoms, safe hand checks with the machine off, what the mechanic does, prevention, typical rupee ranges with their sources. Returns chunks with ids; cite the ids you rely on.", "input_schema": _schema({"query": S, "fault": {**NS, "description": "faults.yaml key, e.g. bearing_wear, or null"}, "machine_type": {**NS, "description": "pump, fan, valve, slider, gearbox, or null"}})},
     {"name": "recall", "description": "This machine's earlier cases and repairs (who fixed it, did it hold), notes about it, and the owner's preferences.", "input_schema": _schema(MID)},
     {"name": "remember", "description": "Keep a note for later: scope 'machine:<id>' (e.g. 'belt replaced in March') or 'owner:<factory>' (e.g. 'prefers Sunday visits', 'budget limit Rs 2000'). Only facts the owner or a tool said.", "input_schema": _schema({"scope": S, "note": S})},
     {"name": "find_mechanics", "description": "Candidates with this skill (a faults.yaml key or 'inspection'): distance from the factory, days free until need_by, rating, past repair outcomes here. DEMO technicians.", "input_schema": _schema({"skill": S, "area": {**NS, "description": "prefer this area, or null"}, "need_by": {**S, "description": "YYYY-MM-DD"}})},
@@ -334,6 +336,12 @@ class ToolBox:
         return {"fault": named, "likely_faults": likely, "machine_type": m["mtype"],
                 "summary": f"named: {named}" if named else
                 f"sound does not name the fault; likely for a {m['kind']}: {', '.join(likely)} (inspection decides)"}  # fmt: skip
+
+    def t_search_knowledge(self, query: str, fault: str | None, machine_type: str | None) -> dict[str, Any]:
+        hits = kb.search(query, k=4, fault=fault, machine_type=machine_type)
+        return {"chunks": kb.brief(hits), "method": hits[0]["method"] if hits else "none",
+                "source": "knowledge base: kb/*.md guides and server/faults.yaml (prices TYPICAL, NOT A QUOTE)",
+                "summary": f"{len(hits)} chunks: " + ", ".join(h["id"] for h in hits)}  # fmt: skip
 
     def t_recall(self, machine_id: str) -> dict[str, Any]:
         m = self._machine(machine_id)

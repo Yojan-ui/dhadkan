@@ -14,6 +14,7 @@ web/dist/
 .DS_Store
 .env
 data/alerts/
+data/kb/
 
 # --- secrets: keys live only in a local .env (see .env.example) ---
 .env.*

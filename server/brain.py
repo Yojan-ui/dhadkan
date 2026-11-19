@@ -36,7 +36,7 @@ from edge.baseline import BaselineStore
 from edge.detectors import AE_COL, WIDTH
 from edge.summary import S
 
-from . import health
+from . import health, kb
 from .agents import OPEN, Activity
 from .config import NODE_DB
 from .maint import agent as ag
@@ -101,6 +101,8 @@ class Brain:
             self.agent.driver = "planner"
             self._stop = threading.Event()
             threading.Thread(target=self._planner_worker, name="planner", daemon=True).start()
+            # the knowledge-base vectors, off the start-up path (keyword search until they are ready)
+            threading.Thread(target=kb.ensure_index, name="kb-index", daemon=True).start()
         live.brain = self
         if backfill:
             self.backfill()
