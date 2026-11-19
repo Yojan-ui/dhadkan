@@ -134,6 +134,17 @@ make train     # anomaly models, CWRU fault classifier, IMS calibration, docs/RE
 make demo      # web app + API on :8600, opens the browser
 ```
 
+`npm run demo` needs this setup first. If it says `.venv/bin/python: No such file or directory`, run
+`make setup` once. It needs Python 3.12. On a Mac with conda, from inside the dhadkan folder:
+
+```bash
+conda create -y -n py312 python=3.12          # once
+conda activate py312
+make setup PYTHON="$(which python)"           # creates .venv and installs everything (several minutes)
+conda deactivate
+npm run demo
+```
+
 Trained models and evaluation records are committed, so `make setup && make demo` runs without
 `make data` and `make train`, except the audio and vibration replay, which reads the raw files.
 
