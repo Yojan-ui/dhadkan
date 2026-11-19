@@ -13,6 +13,7 @@ Fault modes per machine:
 import contextlib
 import json
 import sqlite3
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -71,27 +72,37 @@ class Cluster:
         self._scorers = {}  # one interpreter per machine, so a reading's 12 clips score in parallel
         self._pool = ThreadPoolExecutor(max_workers=8)
         self._pools = None
+        self._pools_lock = threading.Lock()  # step() reads clips from 8 threads at once
         self.on_step: list[Any] = []  # callbacks(tick, {machine: (audio, result)}) after every reading
 
     # -- clips ------------------------------------------------------------
     def pools(self) -> dict[str, dict[int, list[Path]]]:
-        """Held-out test clips per machine. Machines sharing a source split its clips."""
-        if self._pools is None:
-            by_source = {}
+        """Held-out test clips per machine. Machines sharing a source split its clips.
+
+        Built once, under a lock and published whole: step() asks from 8 threads at once, and a half-built
+        dict seen by another thread was a KeyError (e.g. 'A-P1'). Every machine gets its pool, including one
+        Demo mode currently plays from NASA IMS, so it still has clips after Demo mode stops."""
+        if self._pools is not None:
+            return self._pools
+        with self._pools_lock:
+            if self._pools is not None:
+                return self._pools
+            by_source: dict[str, dict[int, list[Path]]] = {}
             for t in sorted({m["type"] for m in self.cfg["machines"]}):
                 for c in data.clips_for(t):
                     if c.split == "test" and c.condition in data.HEADLINE_CONDITIONS:
                         by_source.setdefault(c.unit, {0: [], 1: []})[c.label].append(c.path)
-            sharing = {}
+            sharing: dict[str, list[str]] = {}
             for m in self.cfg["machines"]:
                 sharing.setdefault(m["source"], []).append(m["id"])
-            self._pools = {}
+            pools: dict[str, dict[int, list[Path]]] = {}
             for m in self.cfg["machines"]:
-                if m["id"] in self.ims:  # Demo mode: this machine plays NASA IMS snapshots, not clips
+                src = by_source.get(m["source"])
+                if src is None:  # recordings not downloaded (make demo-data); audio() says so
                     continue
                 k, i = len(sharing[m["source"]]), sharing[m["source"]].index(m["id"])
-                src = by_source[m["source"]]
-                self._pools[m["id"]] = {lab: src[lab][i::k] or src[lab] for lab in (0, 1)}
+                pools[m["id"]] = {lab: src[lab][i::k] or src[lab] for lab in (0, 1)}
+            self._pools = pools
         return self._pools
 
     def model(self, mtype: str) -> EdgeModel:
@@ -159,7 +170,10 @@ class Cluster:
         """Rebuild the exact 10 s the machine played at `tick` (also used for spectrograms)."""
         if mid in self.ims:  # Demo mode: a real run-to-failure, read from NASA IMS snapshots
             return self.ims[mid].audio(tick), self.ims[mid].clip(tick)
-        pool = self.pools()[mid]
+        pool = self.pools().get(mid)
+        if pool is None:
+            src = self.machines[mid]["source"]
+            raise FileNotFoundError(f"no recordings for {mid} ({src}): run make demo-data")
         normal = pool[0][tick % len(pool[0])]
         if mode == "normal":
             return features.load(normal), normal.name

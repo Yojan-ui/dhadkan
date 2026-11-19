@@ -15,6 +15,7 @@ Keys are read from the environment / .env (see .env.example); nothing is hard-co
 import base64
 import hashlib
 import hmac
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
@@ -157,12 +158,40 @@ class _Twilio:
         return str(_post(self.http, self.url, data=data)["sid"])
 
 
+# Twilio refuses free text with these when the phone hasn't messaged in 24 h (or the sender needs templates)
+TWILIO_NEEDS_TEMPLATE = ('"code":21654', '"code":63016', '"code":63112')
+
+
 class TwilioWhatsApp(_Twilio):
+    """Free text first. If Twilio says a template is required, the Content template TWILIO_CONTENT_SID
+    (HX...) is sent instead, with TWILIO_CONTENT_VARIABLES (JSON) or else {"1": the alert text}."""
+
     name = "whatsapp_twilio"
+
+    def __init__(self, sid: str, token: str, sender: str, client: httpx.Client | None = None,
+                 content_sid: str | None = None, content_vars: str | None = None) -> None:  # fmt: skip
+        super().__init__(sid, token, sender, client)
+        self.content_sid, self.content_vars = content_sid, content_vars
+
+    def _send_template(self, to: str, text: str) -> str:
+        variables = self.content_vars or json.dumps({"1": text[:1000]}, ensure_ascii=False)
+        data = {"From": self.sender, "To": to, "ContentSid": self.content_sid or "", "ContentVariables": variables}
+        return str(_post(self.http, self.url, data=data)["sid"])
 
     def send(self, to: str, text: str, media: list[Media], lang: str = "en", **_: Any) -> dict[str, Any]:
         urls = [m.public_url for m in media if m.public_url]  # Twilio fetches media from a public URL
-        return {"provider": self.name, "ids": [self._send(f"whatsapp:+{_number(to)}", text, urls)]}
+        dest = f"whatsapp:+{_number(to)}"
+        try:
+            return {"provider": self.name, "ids": [self._send(dest, text, urls)]}
+        except ValueError as e:
+            if not any(code in str(e) for code in TWILIO_NEEDS_TEMPLATE):
+                raise
+            if not self.content_sid:
+                raise ValueError(
+                    f"{e}. Twilio wants a template: send any WhatsApp message to the sandbox number from this phone "
+                    "(opens a 24 h window), or set TWILIO_CONTENT_SID in .env"
+                ) from e
+            return {"provider": self.name, "ids": [self._send_template(dest, text)]}
 
 
 class TwilioSMS(_Twilio):
@@ -207,7 +236,9 @@ def from_env() -> tuple[Any, Any]:
                        env.get("WA_API_VERSION", "v21.0") or "v21.0", env.get("WA_TEMPLATE"))  # fmt: skip
     elif twilio_ok and choice in ("auto", "twilio"):
         wa = TwilioWhatsApp(env.get("TWILIO_ACCOUNT_SID") or "", env.get("TWILIO_AUTH_TOKEN") or "",
-                            env.get("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886") or "")  # fmt: skip
+                            env.get("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886") or "",
+                            content_sid=env.get("TWILIO_CONTENT_SID"),
+                            content_vars=env.get("TWILIO_CONTENT_VARIABLES"))  # fmt: skip
     sms: Any = DryRun()
     if env.get("TWILIO_ACCOUNT_SID") and env.get("TWILIO_AUTH_TOKEN") and env.get("TWILIO_SMS_FROM"):
         sms = TwilioSMS(env.get("TWILIO_ACCOUNT_SID") or "", env.get("TWILIO_AUTH_TOKEN") or "",
