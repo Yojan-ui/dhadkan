@@ -215,7 +215,9 @@ def test_clip_pools_are_safe_from_many_threads(tmp_path, monkeypatch):
         for m in c.cfg["machines"]:
             if m["type"] == t:
                 for lab in (0, 1):
-                    out.append(data.Clip(tmp_path / f"{m['id']}_{lab}.wav", t, m["source"], "test", lab, cond))
+                    out.append(
+                        data.Clip(tmp_path / f"{m['id']}_{lab}.wav", t, m["source"], "test", lab, cond)
+                    )
                     time.sleep(0.002)  # widen the window the old code raced in
         return out
 

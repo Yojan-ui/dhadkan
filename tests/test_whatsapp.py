@@ -99,7 +99,9 @@ def test_twilio_falls_back_to_content_template_when_free_text_is_refused():
     client = httpx.Client(transport=httpx.MockTransport(handler))
     t = wa.TwilioWhatsApp("AC1", "tok", "whatsapp:+17372508034", client=client, content_sid="HX123")
     assert t.send(TO, "Loom 1 bearing", [])["ids"] == ["SM2"]
-    assert seen[1]["ContentSid"] == "HX123" and json.loads(seen[1]["ContentVariables"]) == {"1": "Loom 1 bearing"}
+    assert seen[1]["ContentSid"] == "HX123" and json.loads(seen[1]["ContentVariables"]) == {
+        "1": "Loom 1 bearing"
+    }
 
     no_template = wa.TwilioWhatsApp("AC1", "tok", "whatsapp:+17372508034", client=client)
     with pytest.raises(ValueError, match="TWILIO_CONTENT_SID"):

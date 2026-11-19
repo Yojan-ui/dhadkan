@@ -175,7 +175,12 @@ class TwilioWhatsApp(_Twilio):
 
     def _send_template(self, to: str, text: str) -> str:
         variables = self.content_vars or json.dumps({"1": text[:1000]}, ensure_ascii=False)
-        data = {"From": self.sender, "To": to, "ContentSid": self.content_sid or "", "ContentVariables": variables}
+        data = {
+            "From": self.sender,
+            "To": to,
+            "ContentSid": self.content_sid or "",
+            "ContentVariables": variables,
+        }
         return str(_post(self.http, self.url, data=data)["sid"])
 
     def send(self, to: str, text: str, media: list[Media], lang: str = "en", **_: Any) -> dict[str, Any]:
