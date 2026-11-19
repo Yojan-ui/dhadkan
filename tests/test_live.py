@@ -170,3 +170,16 @@ def test_fingerprint_waits_in_outbox_while_shed_is_offline(app, client):
     assert back["pending"] == 0 and back["published"][0]["machine"] == "A-F1"
     assert [e["kind"] for e in lv.events].count("published") == 1
     assert lv.c.reg.execute("SELECT COUNT(*) FROM fingerprints").fetchone()[0] == 1
+
+
+def test_demo_error_says_where_it_happened():
+    from server.app import demo_error
+
+    def boom():
+        return None["x"]  # type: ignore[index]
+
+    try:
+        boom()
+    except TypeError as e:
+        msg = demo_error(e)
+    assert msg.startswith("TypeError at ") and "(boom)" in msg and "subscriptable" in msg
