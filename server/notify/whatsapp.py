@@ -16,6 +16,7 @@ import base64
 import hashlib
 import hmac
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
@@ -174,7 +175,10 @@ class TwilioWhatsApp(_Twilio):
         self.content_sid, self.content_vars = content_sid, content_vars
 
     def _send_template(self, to: str, text: str) -> str:
-        variables = self.content_vars or json.dumps({"1": text[:1000]}, ensure_ascii=False)
+        # WhatsApp refuses template variables with new lines, tabs or more than 4 spaces in a row
+        flat = re.sub(r"\s*\n\s*", " · ", text.strip())
+        flat = re.sub(r"[\t ]{2,}", " ", flat)
+        variables = self.content_vars or json.dumps({"1": flat[:1000]}, ensure_ascii=False)
         data = {
             "From": self.sender,
             "To": to,

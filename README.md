@@ -203,6 +203,11 @@ If Meta keys are set, Meta is used first. Set `WA_PROVIDER=twilio` to use the Tw
    "1 / 2 / 3" replies reach Dhadkan.
 5. When Loom 1's replayed bearing crosses its alarm level, the alert arrives on your phone. Reply **1** to book.
 
+Newer Twilio sandbox numbers refuse free text (error 21654 "ContentSid Required"). Run
+`.venv/bin/python -m tools.twilio_template` once: it creates the template "Dhadkan alert: {{1}}", asks
+WhatsApp to approve it, saves `TWILIO_CONTENT_SID` in `.env` and sends a test. If the test waits on approval,
+run it again later with `--status`.
+
 The sandbox only delivers to phones that joined it, a join lasts 3 days, and messages Dhadkan starts reach a
 phone only within 24 hours of that phone's last message to the sandbox. Send "hi" first before a demo.
 
