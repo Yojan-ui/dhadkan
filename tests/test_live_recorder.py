@@ -209,3 +209,22 @@ def test_the_twin_ranks_a_live_machine_on_its_live_readings(world):
     row = next(r for r in tw["ranking"] if r["id"] == MID)
     assert row["live"] and row["risk"] >= 1.0 and tw["trend"] and tw["trend"][-1] == row["risk"]
     assert sum(1 for r in tw["ranking"] if r["id"] == MID) == 1  # not also ranked from the simulator
+
+
+def test_trial_measurement_counts_false_alarms_and_detection_delay():
+    from scripts import live_trial
+
+    t0 = 1_000_000.0
+    # one stray clip over 1 in normal running, then the fault
+    risks = [0.3, 0.5, 1.2, 0.4, 0.6, 0.5, 0.4, 3.1, 3.5, 2.8, 4.0]
+    hist = [{"id": i, "ts": t0 + 10 * i, "risk": r, "running": 1, "excluded": None, "after_gap": 0, "quality": "{}"}
+            for i, r in enumerate(risks)]  # fmt: skip
+    on = t0 + 70  # the coin went on at the 8th clip's start
+    res = live_trial.compute(hist, [{"label": "fault_on", "ts": on}], "A-F1", baseline_rows=12)
+    assert res["normal"]["n"] == 7 and res["normal"]["at_or_above_alarm"] == 1
+    assert res["normal"]["false_alarms"] == 0  # one stray clip is not an alarm (2 of 3 needed)
+    assert res["fault"]["n"] == 4 and res["detection_delay_s"]["first_clip_over_alarm"] == 10.0
+    assert res["detection_delay_s"]["alarm_raised"] == 20.0 and res["detected"]
+    assert res["score_jump"] > 5
+    with pytest.raises(ValueError):
+        live_trial.compute(hist, [], "A-F1")  # no mark: nothing measured
