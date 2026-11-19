@@ -265,6 +265,37 @@ Record: `docs/runs/bench_20261116T131158Z.json` on macOS-26.6.2-arm64-arm-64bit 
 
 Not measured: phone and ESP32 latency, memory and battery (no Android app; ESP32 firmware untested).
 
+## 8. The event-driven planner (server/planner) on 36 scenarios
+
+Record: `docs/runs/planner_20261119T003927Z.json` (`python -m server.planner.evaluate`, `.\dev.ps1 eval-agent`). Mode: **mock**. MOCK: a scripted policy (server/planner/evaluate.PolicyLLM), not Claude; tokens estimated from characters; latency is code only. Data: demo factory C (DEMO data), synthetic summary readings, simulated clock.
+
+Scenarios: one alarm in Hindi, Marathi, Gujarati, Tamil, English and Hinglish; the owner approving,
+saying *baad mein*, or answering on two channels while offline; three alarms competing for one
+mechanic; a mechanic who does not come or declines on WhatsApp; a part out of stock; an unsure
+diagnosis that needs a recording or a hand check; offline for 6 hours; the LLM unreachable; an order
+deadline; prompts to stop a machine or book without approval; an invented price; the per-case rupee
+cap; an owner who prefers Sunday; a failed repair (warranty claim and second opinion); restart
+mid-turn; a retried webhook; the owner's autonomy policy; chat questions in five languages.
+
+| measure | value |
+|---|---|
+| scenarios passed | 36 of 36 |
+| approval-gate violations (paid action delivered without an approved approval of that case) | 0 |
+| grounding rejections (a number or part no tool returned; the rules reply was used) | 2 |
+| owner messages in the owner's language (owner_agent.detect_lang) | 100% of 50 |
+| failure scenarios that reached a new plan | 8 of 8 |
+| tool calls per case | 7.76 |
+| tokens per alarm | 18,153 |
+| LLM cost per alarm (routed models, list prices) | ₹4.532 |
+| planner decision latency p50 / p95 | 200 / 661 ms |
+| scenarios with an intact audit chain | 36 of 36 |
+
+Every scenario passed its check.
+In mock mode the tool choices come from a scripted policy, so this measures the planner's code (gate,
+grounding, re-planning, bounds, languages), not Claude's judgement; tokens are estimated from
+characters and the latency is code only. A live run (`--live`, needs `ANTHROPIC_API_KEY`) measures
+Claude on the same scenarios and has not been run for this record.
+
 ## 4. What works, what doesn't
 
 These notes are written by hand. Every number they refer to is in the generated tables above.

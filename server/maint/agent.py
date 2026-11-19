@@ -19,6 +19,14 @@ Guardrails, enforced here and tested:
     owner; their answer is logged and nothing else happens.
   * book_job (a paid visit) and order_part (a purchase) refuse to run without an APPROVED approval
     of the right kind for the same case (ApprovalRequired).
+  * The owner's autonomy policy (factory profile, off by default) is read here, in the gate, never from a
+    prompt: {"autonomy": {"auto_approve_under_inr": 1500, "mechanic": "T1"}} lets a booking of THAT
+    mechanic whose visit costs at most that much be approved without asking; the approval is logged as
+    decided by "autonomy_policy". Purchases and production stops are never auto-approved.
+
+Re-planning (events from server/planner): a technician who declines or does not come is excluded and
+another is found; a repair that verifies as failed logs a warranty claim against the signed repair
+record and opens a follow-up case for a second opinion (the failed technician excluded).
 """
 
 import time
@@ -64,6 +72,7 @@ PLAN_MEASURE = ["recall", "request_measurement", "await_change"]
 PLAN_MONITOR = ["recall", "notify_watch", "await_change"]
 PLAN_FIX = ["recall", "plan_inspection", "find_technician", "check_parts", "estimate_cost", "request_approval", "await_approval",
             "book_job", "await_repair", "request_post_repair_readings", "verify_repair"]  # fmt: skip
+PLAN_PLANNER = ["recall", "planner"]  # the LLM planner chooses the rest, through act() and its gate
 GATED = {"book_job": "booking", "order_part": "purchase"}
 PRIORITY = {"notify_owner_urgent"}
 
@@ -132,12 +141,24 @@ class Tools:
 
 class MaintenanceAgent:
     def __init__(self, store: Store, baselines: BaselineStore, tools: Tools | None = None,
-                 clock: Any = time.time, a: dict[str, Any] | None = None, activity: Any = None) -> None:  # fmt: skip
+                 clock: Any = time.time, a: dict[str, Any] | None = None, activity: Any = None,
+                 emit: Any = None) -> None:  # fmt: skip
         self.s, self.b, self.t = store, baselines, tools or Tools()
         self.clock = clock
         self.s.clock = clock
         self.a = {**ASSUMPTIONS, **(a or {})}
         self.activity = activity  # server/agents.Activity: which named agent ran which step (optional)
+        self.emit_hook = emit  # server/planner EventBus.emit (optional): what happened, for the planner
+        self.driver = "rules"  # "planner": new cases get PLAN_PLANNER and the LLM planner decides
+
+    def emit(self, type_: str, **kw: Any) -> None:
+        """Tell the planner what happened. Never fails the step that emits."""
+        if self.emit_hook is None:
+            return
+        try:
+            self.emit_hook(type_, source="agent", **kw)
+        except Exception as e:
+            self.s.log("system", "emit_failed", kw.get("case_id"), type=type_, error=str(e)[:200])
 
     # ---------------------------------------------------------------- observe / reason
     def observe(self, machine: str, health: dict[str, Any], reading_ref: Any = None) -> dict[str, Any] | None:
@@ -149,10 +170,9 @@ class MaintenanceAgent:
             n = len(self.s.cases(machine)) + 1
             cid = f"{machine}#{n}"
             ctx = {"history": [self._snap(health, reading_ref)], "opened_risk": health.get("recent_risk", []),
-                   "declined": [], "none_streak": 0}  # fmt: skip
-            case = self.s.create_case(
-                cid, machine, urgency, health.get("severity", "none"), plan_for(urgency), ctx
-            )
+                   "declined": [], "none_streak": 0, "driver": self.driver}  # fmt: skip
+            plan = PLAN_PLANNER if self.driver == "planner" else plan_for(urgency)
+            case = self.s.create_case(cid, machine, urgency, health.get("severity", "none"), plan, ctx)
             self.b.set_hold(machine, True)  # nothing recorded during a case is learned as normal
             self.s.log("agent", "case_opened", cid, urgency=urgency, severity=health.get("severity"),
                        evidence=health.get("evidence"), confidence=health.get("confidence"))  # fmt: skip
@@ -169,7 +189,16 @@ class MaintenanceAgent:
         fields: dict[str, Any] = {"context": ctx}
         if health.get("severity") and health["severity"] != "none":
             fields["severity"] = health["severity"]
-        in_fix = "book_job" in case["plan"]
+        in_fix = "book_job" in case["plan"] or bool(ctx.get("booked"))
+        if self._planner_driven(case):  # the planner re-plans on the health_change event; only record it
+            if RANK[urgency] > RANK[case["urgency"]]:
+                fields["urgency"] = urgency
+                self.s.log("agent", "escalated", case["id"], frm=case["urgency"], to=urgency, by="planner")
+            if not in_fix and ctx["none_streak"] >= self.a["resolve_after"]:
+                self.s.update_case(case["id"], case["version"], **fields)
+                return self._close(case["id"], "resolved_without_action",
+                                   why=f"back to normal for {ctx['none_streak']} readings")  # fmt: skip
+            return self.s.update_case(case["id"], case["version"], **fields)
         if RANK[urgency] > RANK[case["urgency"]]:
             fields["urgency"] = urgency
             if RANK[urgency] >= RANK["inspect"] and not in_fix:
@@ -189,6 +218,85 @@ class MaintenanceAgent:
             return self._close(case["id"], "resolved_without_action",
                                why=f"back to normal for {ctx['none_streak']} readings")  # fmt: skip
         return self.s.update_case(case["id"], case["version"], **fields)
+
+    def _planner_driven(self, case: dict[str, Any]) -> bool:
+        """True while the LLM planner drives this case (not yet handed back to the fixed plan)."""
+        live_steps = [s for s in self.s.steps(case["id"]) if s["status"] not in ("done", "skipped")]
+        return any(s["name"] == "planner" for s in live_steps)
+
+    def handoff(self, cid: str, reason: str) -> dict[str, Any]:
+        """Give a planner-driven case to the fixed plan (no key, offline, over budget, an LLM error).
+
+        The fixed plan starts after recall; its approvals reuse the same ids (case:booking), so an
+        approval the owner already gave still counts, and its actions are idempotent."""
+        c = self.s.case(cid)
+        if not self._planner_driven(c):
+            return c
+        for st in self.s.steps(cid):
+            if st["name"] == "planner" and st["status"] not in ("done", "skipped"):
+                self.s.set_step(cid, st["idx"], status="skipped", error=f"handed to the fixed plan: {reason}")
+        if c["context"].get("repair"):
+            rest = ["request_post_repair_readings", "verify_repair"]
+        elif c["context"].get("booked"):
+            rest = ["await_repair", "request_post_repair_readings", "verify_repair"]
+        else:
+            rest = plan_for(c["urgency"])[1:]
+        self.s.extend_plan(cid, rest)
+        c = self.s.case(cid)
+        self.s.update_case(cid, c["version"], context=c["context"] | {"driver": "rules", "handoff": reason})
+        self.s.log("agent", "handoff_to_rules", cid, reason=reason, steps=rest)
+        return self.s.case(cid)
+
+    def replan_technician(self, cid: str, technician: str, why: str) -> dict[str, Any]:
+        """A technician declined or did not come: exclude them and find another.
+
+        Fixed plan: find_technician and book_job run again (the owner's approval of a visit for this case
+        still stands, as when a booking is refused). Planner-driven: the booking is cleared and the planner
+        decides (a new technician needs the owner's approval of that visit, or the autonomy policy)."""
+        c = self.s.case(cid)
+        ctx = c["context"]
+        declined = sorted({*ctx.get("declined", []), technician})
+        ctx = ctx | {"declined": declined, "booked": False, "visit_day": None, "technician": None}
+        self.s.update_case(cid, c["version"], context=ctx)
+        if not self._planner_driven(c):
+            for st in self.s.steps(cid):
+                if st["name"] in ("find_technician", "book_job", "await_repair") and st["status"] in (
+                    "done", "waiting", "failed", "retry"):  # fmt: skip
+                    self.s.set_step(cid, st["idx"], status="pending", error=f"re-plan: {why}")
+        self._owner(c, f"replan:{technician}", f"{technician} cannot do the visit for {self._name(c)} ({why}). "
+                                                "Finding another mechanic.")  # fmt: skip
+        self.s.log("agent", "replanned_technician", cid, technician=technician, why=why)
+        return self.s.case(cid)
+
+    def warranty_and_second_opinion(self, c: dict[str, Any], res: dict[str, Any], rep: dict[str, Any],
+                                    repair_id: int) -> str:  # fmt: skip
+        """A repair that verified as failed: log a warranty claim citing the repair record, and open a
+        follow-up case for a second opinion with the failed technician excluded. Returns the new case id."""
+        m = c["machine"]
+        claim = {"case": c["id"], "repair_id": repair_id, "technician": rep["technician"], "work": rep["work"],
+                 "before_median_risk": res["before_median_risk"], "after_median_risk": res["after_median_risk"],
+                 "against_baseline_version": 1, "logged": self.clock()}  # fmt: skip
+        self.s.log("agent", "warranty_claim", c["id"], **claim)
+        cid = f"{m}#{len(self.s.cases(m)) + 1}"
+        ctx = {"history": c["context"].get("history", [])[-5:], "declined": [rep["technician"]], "none_streak": 0,
+               "follow_up_of": c["id"], "warranty_claim": claim, "driver": self.driver}  # fmt: skip
+        if c["context"].get("fault"):
+            ctx["fault"] = c["context"]["fault"]
+        plan = PLAN_PLANNER if self.driver == "planner" else ["recall", *PLAN_FIX[1:]]
+        self.s.create_case(cid, m, "maintenance", c["severity"], plan, ctx)
+        self.b.set_hold(m, True)
+        self.s.log("agent", "case_opened", cid, urgency="maintenance", reason="second opinion after a failed repair",
+                   follow_up_of=c["id"])  # fmt: skip
+        self._owner(self.s.case(cid), "warranty", f"{self._name(c)}: the repair by {rep['technician']} did not work. "
+                    "A warranty claim is logged against the repair record; I will find a second mechanic.")  # fmt: skip
+        return cid
+
+    def verify_after_repair(self, cid: str) -> None:
+        """Verification is the deterministic layer's job, also for planner-driven cases: ask for readings,
+        then compare with baseline v1 (adds the two steps once)."""
+        c = self.s.case(cid)
+        if "verify_repair" not in c["plan"]:
+            self.s.extend_plan(cid, ["request_post_repair_readings", "verify_repair"])
 
     @staticmethod
     def _snap(health: dict[str, Any], ref: Any) -> dict[str, Any]:
@@ -210,10 +318,44 @@ class MaintenanceAgent:
         return self.s.case(cid)
 
     # ---------------------------------------------------------------- act (idempotent, gated, offline-safe)
+    def autonomy(self, cid: str) -> dict[str, Any] | None:
+        """The owner's autonomy policy for this case's factory, or None (the default: always ask)."""
+        m = self.s.machine(self.s.case(cid)["machine"])
+        pol = (self.t.factories.get(m["factory"]) or {}).get("autonomy")
+        if not pol or not pol.get("mechanic") or not pol.get("auto_approve_under_inr"):
+            return None
+        return dict(pol)
+
+    def auto_approve(self, cid: str, kind: str, technician: str | None) -> dict[str, Any] | None:
+        """An approval decided by the owner's policy, or None. Only bookings of the named mechanic whose
+        visit cost (inspection range, high end) is within the limit; never a purchase, never a stop."""
+        if kind != "book_job":  # order_part, production_stop and anything else: always the owner
+            return None
+        pol = self.autonomy(cid)
+        if pol is None or technician != pol["mechanic"]:
+            return None
+        cost = inspection_cost()
+        if cost["high_inr"] > float(pol["auto_approve_under_inr"]):
+            self.s.log("agent", "autonomy_declined", cid, reason="visit cost above the owner's limit",
+                       high_inr=cost["high_inr"], limit=pol["auto_approve_under_inr"])  # fmt: skip
+            return None
+        pending = [a for a in self.s.approvals(cid, status="requested") if a["kind"] == "booking"]
+        aid = pending[-1]["id"] if pending else f"{cid}:booking:auto"
+        if not pending:
+            self.s.request_approval(aid, cid, "booking", f"Visit by {technician} (owner's autonomy policy)",
+                                    (cost["low_inr"], cost["high_inr"]))  # fmt: skip
+        ref = f"policy: {technician} under Rs {pol['auto_approve_under_inr']}"
+        self.s.decide(aid, "approved", "autonomy_policy", "policy", ref)
+        self.s.log("autonomy_policy", "auto_approved", cid, approval=aid, technician=technician,
+                   high_inr=cost["high_inr"], limit=pol["auto_approve_under_inr"])  # fmt: skip
+        return self.s.approval(aid)
+
     def act(self, cid: str, kind: str, purpose: str, payload: dict[str, Any]) -> dict[str, Any]:
         if kind in GATED:
             need = GATED[kind]
             ok = [a for a in self.s.approvals(cid, status="approved") if a["kind"] == need]
+            if not ok and (auto := self.auto_approve(cid, kind, payload.get("technician"))):
+                ok = [auto]
             if not ok:
                 self.s.log("agent", "blocked_without_approval", cid, kind=kind, need=need)
                 raise ApprovalRequired(f"{kind} needs the owner's approved '{need}' for case {cid}")
@@ -264,6 +406,15 @@ class MaintenanceAgent:
 
     def sync(self) -> dict[str, int]:
         """Resend queued actions that are due (called by tick; the network may be back)."""
+        online = self.t.network.check()
+        was = self.s.meta("net_online")
+        if was != ("1" if online else "0"):
+            self.s.meta("net_online", "1" if online else "0")
+            if online and was == "0":
+                n = len(self.s.queued_actions())
+                self.emit("network_restored", payload={"queued_actions": n},
+                          idem=f"net:{self.s.meta('net_flips') or 0}")  # fmt: skip
+            self.s.meta("net_flips", str(int(self.s.meta("net_flips") or 0) + 1))
         sent = waiting = 0
         for a in self.s.queued_actions():
             if a["next_try"] > self.clock():
@@ -290,11 +441,29 @@ class MaintenanceAgent:
         ctx = c["context"] | {"repair": {"technician": technician, "work": work, "at": self.clock()}}
         self.s.update_case(cid, c["version"], context=ctx)
         self.s.log("technician", "repair_reported", cid, technician=technician, work=work)
+        if self._planner_driven(self.s.case(cid)):
+            self.verify_after_repair(cid)
+        self.emit("repair_done", case_id=cid, machine=c["machine"], idem=f"repair:{cid}",
+                  payload={"technician": technician, "work": work})  # fmt: skip
 
     # ---------------------------------------------------------------- run
     def tick(self) -> list[dict[str, Any]]:
         self.sync()
+        self._no_shows()
         return [self.run_case(c["id"]) for c in self.s.cases(open_only=True)]
+
+    def _no_shows(self) -> None:
+        """A booked visit whose day has passed with no repair reported: the mechanic did not come."""
+        today = datetime.fromtimestamp(self.clock()).date().isoformat()
+        for c in self.s.cases(open_only=True):
+            ctx = c["context"]
+            day, tech = ctx.get("visit_day"), ctx.get("technician")
+            booked = ctx.get("booked") or any(
+                s["name"] == "book_job" and s["status"] == "done" for s in self.s.steps(c["id"])
+            )
+            if booked and day and tech and day < today and "repair" not in ctx:
+                self.emit("mechanic_no_show", case_id=c["id"], machine=c["machine"],
+                          idem=f"noshow:{c['id']}:{tech}:{day}", payload={"technician": tech, "day": day})  # fmt: skip
 
     def run_case(self, cid: str) -> dict[str, Any]:
         for _ in range(50):  # a tick runs steps until one waits
@@ -302,6 +471,8 @@ class MaintenanceAgent:
             if c["closed"]:
                 break
             open_steps = [s for s in self.s.steps(cid) if s["status"] not in ("done", "skipped")]
+            # the planner marker never blocks deterministic steps queued behind it (verification)
+            open_steps = [s for s in open_steps if s["name"] != "planner"] or open_steps
             # telling the owner about an urgent change never waits behind another step
             step = next(
                 (s for s in open_steps if s["name"] in PRIORITY), open_steps[0] if open_steps else None
@@ -447,6 +618,9 @@ class MaintenanceAgent:
     def _step_await_change(self, c: dict[str, Any], st: dict[str, Any]) -> dict[str, Any]:
         raise Waiting("watching: closes when normal again, escalates if it grows")
 
+    def _step_planner(self, c: dict[str, Any], st: dict[str, Any]) -> dict[str, Any]:
+        raise Waiting("the planner decides the next step (server/planner); nothing runs here")
+
     def _step_notify_owner_urgent(self, c: dict[str, Any], st: dict[str, Any]) -> dict[str, Any]:
         aid = f"{c['id']}:production_stop"
         self.s.request_approval(aid, c["id"], "production_stop",
@@ -501,6 +675,9 @@ class MaintenanceAgent:
                     "order_needed": bool(rows) and not any(r["in_stock"] for r in rows),
                 }
             )
+            if out[-1]["order_needed"]:
+                self.emit("part_out_of_stock", case_id=c["id"], machine=c["machine"], idem=f"oos:{c['id']}:{f}",
+                          payload={"fault": f, "machine_type": m["mtype"], "parts": [r["part"] for r in rows]})  # fmt: skip
         return {"candidates": out, "note": "the inspection decides which part, if any, is needed"}
 
     @staticmethod
@@ -576,6 +753,9 @@ class MaintenanceAgent:
             find = next(s for s in self.s.steps(c["id"]) if s["name"] == "find_technician")
             self.s.set_step(c["id"], find["idx"], status="pending")
             self.s.log("agent", "technician_unavailable", c["id"], technician=ctx["technician"], error=str(e))
+            self.emit("mechanic_reply", case_id=c["id"], machine=c["machine"],
+                      idem=f"declined:{c['id']}:{ctx['technician']}:{ctx['visit_day']}",
+                      payload={"technician": ctx["technician"], "answer": "declined", "day": ctx["visit_day"]})  # fmt: skip
             raise Waiting(f"{ctx['technician']} not available; looking for another") from e
         self._owner(c, f"booked:{ctx['technician']}:{ctx['visit_day']}",
                     f"Booked {self.t.technicians.get(ctx['technician'])['name']} for {self._name(c)} on {ctx['visit_day']}.")  # fmt: skip
@@ -608,11 +788,19 @@ class MaintenanceAgent:
         r_after = v1.risk(self.b.vectors([h["id"] for h in after[: self.a["verify_readings"] * 2]]))
         r_before = v1.risk(self.b.vectors([h["id"] for h in before[-12:]]))
         res = prove.verify_repair(np.asarray(r_before).tolist(), np.asarray(r_after).tolist())
-        self.s.add_repair(machine=m, case_id=c["id"], technician=rep["technician"], work=rep["work"], done=rep["at"],
-                          outcome=res["outcome"], before_median=res["before_median_risk"],
-                          after_median=res["after_median_risk"], against_version=1)  # fmt: skip
+        repair_id = self.s.add_repair(machine=m, case_id=c["id"], technician=rep["technician"], work=rep["work"],
+                                      done=rep["at"], outcome=res["outcome"], before_median=res["before_median_risk"],
+                                      after_median=res["after_median_risk"], against_version=1)  # fmt: skip
         words = {"fixed": "back to its original normal", "partly": "better, but not back to normal",
                  "failed": "not better: the repair did not work (possibly a wrong or poor part)"}[res["outcome"]]  # fmt: skip
         self._owner(c, "verified", f"{self._name(c)} after the repair: {words}.")
         self._close(c["id"], f"repair_{res['outcome']}", verification=res)
+        follow = (
+            self.warranty_and_second_opinion(c, res, rep, repair_id) if res["outcome"] == "failed" else None
+        )
+        self.emit("verify_result", case_id=follow or c["id"], machine=m, idem=f"verify:{c['id']}",
+                  payload={"outcome": res["outcome"], "technician": rep["technician"], "verified_case": c["id"],
+                           "follow_up_case": follow,
+                           "before_median_risk": res["before_median_risk"],
+                           "after_median_risk": res["after_median_risk"]})  # fmt: skip
         return res

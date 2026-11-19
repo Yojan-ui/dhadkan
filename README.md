@@ -30,13 +30,28 @@ npm run demo      # backend + web app; the NASA IMS bearing run-to-failure plays
 - **HUD panels, all from the live readings** (`/api/twin`): status chips, anomaly score per shift,
   machines by risk, live spectrum and spectrogram, focus-machine trend, ₹ at risk in the next 2 days
   (7-segment readout), overall health gauge, actions and the agent's checklist.
-- **The owner's agent** ([server/owner_agent.py](server/owner_agent.py)) runs observe → diagnose → plan →
-  ask owner → act → verify with ten tools: get_machine_health, get_spectrogram, diagnose_fault,
-  find_local_mechanic, check_part_stock, estimate_cost_inr, schedule_repair, send_whatsapp,
-  verify_repair, log_warranty_claim.
-  - It uses Claude Fable 5.2 (tool use) when `ANTHROPIC_API_KEY` is set, and rules otherwise or offline.
-  - It acts on an alarm by itself.
-  - Anything that costs money waits for the owner's "1 = Haan" on WhatsApp. No tool can stop a machine.
+- **One event-driven planner** ([server/planner/](server/planner/)) is the agent. Alarms, health changes,
+  owner replies (WhatsApp, owner screen, command centre, chat), voice notes, mechanic replies and no-shows,
+  parts out of stock, repair results, the network coming back and a daily tick are typed events, stored
+  once each. On every event Claude gets the case, the machine's memory, the owner's preferences, the
+  factory's order book and the other open cases, and chooses its own tool calls:
+  - `find_mechanics` (distance, free days, rating, past outcomes), `propose_slots` (₹ of production lost,
+    order-book clashes, power cuts, shift fit), `check_parts` (dealers, equivalent part numbers),
+    `compare_options` (₹ of fixing now vs waiting, from the time-to-threshold range), `triage` (cases
+    competing for one mechanic), `request_measurement` (a 10 s recording, a hand check or a photo, in the
+    owner's language), `recall` / `remember`, `ask_owner` (numbered WhatsApp question), `book_job`.
+  - Models by event (`.env`): Haiku 5.5 for routine acks, Sonnet 5.5 for planning, Fable 5.2 for unsure
+    diagnoses and failed repairs. Bounded per event (turns, tokens) and per case (₹ of LLM cost).
+  - **Code decides what is allowed**: every action goes through the maintenance agent's approval gate
+    (checked when created and when sent) and the hash-chained audit; only the owner's own numbered reply
+    approves anything; a reply with a ₹ amount, number or part number that no tool returned is rejected
+    and the rules reply is sent instead. No tool can stop a machine; a stop is only a question.
+  - Without `ANTHROPIC_API_KEY`, offline, or over budget, the fixed plan (rules) runs exactly as before.
+  - Re-planning: a no-show or a decline finds another mechanic; out of stock looks for an equivalent; a
+    failed repair logs a warranty claim and opens a second opinion. An owner can allow auto-approval of
+    one named mechanic under a ₹ limit in the factory profile (off by default, enforced in the gate).
+  - The trace (event → reasoning → tool calls → approval → outcome, tokens, ₹) is on the command
+    centre's *AI Agents* page and under each agent reply in the twin's dock.
 - **Agent chat** (bottom dock): ask by typing or by voice note, in Hindi, Marathi, Gujarati, Tamil,
   Kannada, Telugu, English or Hinglish ("Loom 4 ki awaaz kyun badal gayi?"). It replies in the same
   language and shows its tool steps. Amounts are in ₹ lakh/crore and times in IST.
@@ -132,7 +147,11 @@ make setup     # .venv (Python 3.12) + pip, npm ci
 make data      # real data: DCASE 2020 Task 2 dev, NASA IMS, CWRU, MIMII DUE gearbox (see "Limitations" for the subset)
 make train     # anomaly models, CWRU fault classifier, IMS calibration, docs/RESULTS.md
 make demo      # web app + API on :8600, opens the browser
+make eval-agent  # the planner's scenarios: against Claude with ANTHROPIC_API_KEY, else the mock policy
 ```
+
+On native Windows (PowerShell, no make): `.\dev.ps1 setup`, `.\dev.ps1 demo`, `.\dev.ps1 test`,
+`.\dev.ps1 eval-agent`; `.\dev.ps1 help` lists every task.
 
 Trained models and evaluation records are committed, so `make setup && make demo` runs without
 `make data` and `make train`, except the audio and vibration replay, which reads the raw files.
@@ -261,8 +280,14 @@ The summary below is written by `python -m edge.results` from the records in `do
   intermittent for fan id_00 (B-F1, A-F1: a fault reading every few cycles, so the case stays at "measure
   again") and persistent for fan id_02 (C-F1, C-F2), which the scenario uses. Performance counts only
   "reported running per reading cycle"; there is no production counter, so no OEE.
-- **The agents' reasoning is deterministic code, not an LLM.** Each run's one-line reasoning is written by
-  the step that did the work. Claude is optional elsewhere (diagnosis wording) and never makes a decision.
+- **The planner has not been run against Claude for the record.** Its evaluation (RESULTS.md 8, 36
+  scenarios, 0 gate violations) uses a scripted mock policy, so it measures the planner's code (gate,
+  grounding, re-planning, bounds, languages), not Claude's judgement; `make eval-agent` with a key is the
+  live run. Without a key the planner hands every case to the fixed plan. The named agents on the
+  command centre's board are deterministic modules: their one-line reasoning is written by code.
+- **The planner's world is demo data.** Orders (`data/demo/orders.json`), technicians, ratings and
+  dealer stock with equivalent parts are invented and labelled; production lost per hour and breakdown
+  costs are assumptions (`data/sim/costs.json`). A photo request is stored, not analysed.
 - **ESP32 node untested on hardware.** `hardware/esp32_vibration` is written; the server side is
   tested with a simulated device only.
 - **The agent cannot control a machine.** No tool stops, slows or switches one; paid actions need the
@@ -275,7 +300,8 @@ data/     real.py (DCASE 2020, NASA IMS, CWRU, demo subset), download.py (MIMII 
 edge/     features, autoencoder + TFLite, train.py, adapt.py (learning, drift, noisy shed), listen_eval.py (RMS baseline,
           edge cost), faulttype.py (CWRU), ims.py (run-to-failure + demo pack), results.py
 server/   app.py, faults.yaml + diagnosis.py, understand.py (Claude), owner_alerts.py, notify/ (WhatsApp, SMS, policy,
-          queue, media), fix.py, prove.py, onboard.py, forecast.py, imsdemo.py, agent.py, folk.py, registry.py, route.py
+          queue, media), fix.py, prove.py, onboard.py, forecast.py, imsdemo.py, agent.py, folk.py, registry.py, route.py,
+          maint/ (case store, approval gate, fixed plan, sync), planner/ (events, Claude planner, tools, grounding, evaluate)
 web/      React + Vite + react-three-fiber: 3D cluster screen, owner and mechanic phone screens, Demo mode
 scripts/  eval_understand.py (Claude vs rules), score_recording.py (field recordings)
 tools/    demo_gif.py

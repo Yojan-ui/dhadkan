@@ -1,0 +1,14 @@
+{
+  "_source": "DEMO DATA: invented orders for the demonstration. Not real customers, quantities or deadlines.",
+  "_note": "due_weekday/due_time resolve to the next such day at or after 'now' (the factory clock), so the demo always has a deadline ahead. hours_needed = running hours of the listed machines still needed before the deadline (assumption).",
+  "orders": [
+    {"id": "C-ATTA-500", "factory": "C", "customer": "Sharma Sweets (demo)", "item": "atta", "qty": 500, "unit": "kg",
+     "due_weekday": "Fri", "due_time": "18:00", "machines": ["C-G1"], "hours_needed": 10},
+    {"id": "A-CLOTH-1200", "factory": "A", "customer": "Surat Textiles (demo)", "item": "grey cloth", "qty": 1200, "unit": "m",
+     "due_weekday": "Sat", "due_time": "12:00", "machines": ["A-G1"], "hours_needed": 30},
+    {"id": "B-CASING-40", "factory": "B", "customer": "Kirloskar dealer (demo)", "item": "pump casings machined", "qty": 40, "unit": "pcs",
+     "due_weekday": "Thu", "due_time": "17:00", "machines": ["B-G1", "B-P1"], "hours_needed": 16},
+    {"id": "MILL-ATTA-500", "factory": "Shree Ganesh Aata Chakki (demo data)", "customer": "Sharma Sweets (demo)", "item": "atta", "qty": 500, "unit": "kg",
+     "due_weekday": "Fri", "due_time": "18:00", "machines": ["chakki-1"], "hours_needed": 10}
+  ]
+}

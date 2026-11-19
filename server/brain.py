@@ -10,6 +10,12 @@ Per tick, per machine that produced a reading:
     Orchestrator  opens / escalates a case, runs its steps through the other agents (server/maint/agent)
 Then the outbox and the audit replica sync if the link is up (the link switch in the top bar).
 
+Events (server/planner/events): an urgency change is a health_change event, a rise to inspect or above
+an alarm, a new factory day a daily_tick; owner decisions, replies, voice notes and the agent's own
+events (repair done, verify result, ...) join them. The planner (server/planner/agent) handles each one:
+with ANTHROPIC_API_KEY on a worker thread (Claude chooses the tool calls, outside the tick lock), without
+one at the end of the tick (the rules: the fixed plan runs exactly as before).
+
 State lives in data/brain_edge.db (readings, baselines), data/brain_maint.db (cases, steps, actions,
 approvals, repairs, agent runs, audit) and data/brain_cloud.db (the cloud replica). The clock is the
 factory clock of the simulation. Readings are recorded MIMII clips replayed by the simulator, so they
@@ -37,6 +43,9 @@ from .maint import agent as ag
 from .maint.store import Store
 from .maint.sync import Cloud, SyncClient
 from .maint.tools import Network, Transport
+from .planner import llm as planner_llm
+from .planner.agent import Planner
+from .planner.events import Event, EventBus
 
 RISK_THRESHOLD = health.ASSUMPTIONS["severe"]
 BACKFILL_TICKS = 60
@@ -79,11 +88,69 @@ class Brain:
         self.sync = SyncClient(self.store, self.agent, self._cloud_send, node="cluster-node")
         self.health: dict[str, dict[str, Any]] = {}
         self.version = 0
+        # the planner: one event-driven brain over the agent (Claude when keyed, the fixed plan otherwise)
+        self.bus = EventBus(self.store, lock=self.lock)
+        self.agent.emit_hook = self.bus.emit
+        tech = cfg.get("technician", {})
+        self.planner = Planner(self.store, self.agent, self.bus, client=planner_llm.make_client(),
+                               factories=self.factories, health_of=self.health.get, live=live,
+                               route_cfg={"start_xy": tech.get("xy_km", [0, 0]), "hours": tech.get("hours_per_day", 7),
+                                          "kmph": cfg.get("road_kmph", 22)},
+                               lock=self.lock, rules_reply=self._rules_reply, score_audio=self._score_audio)  # fmt: skip
+        if self.planner.llm_on:
+            self.agent.driver = "planner"
+            self._stop = threading.Event()
+            threading.Thread(target=self._planner_worker, name="planner", daemon=True).start()
+        live.brain = self
         if backfill:
             self.backfill()
         for mid in self.c.machines:  # health from what is already stored, before the next reading arrives
             self.health[mid] = self.assess(mid)
         self.c.on_step.append(self.on_tick)
+
+    # ------------------------------------------------------------------ planner plumbing
+    def _planner_worker(self) -> None:
+        """With an LLM: events are handled here, so a slow model call never holds the tick lock."""
+        while not self._stop.is_set():
+            self.bus.wake.wait(5.0)
+            self.bus.wake.clear()
+            with contextlib.suppress(Exception):
+                if self.bus.drain():
+                    self.version += 1
+                    self.live.version += 1
+
+    def ingest(self, type_: str, **kw: Any) -> dict[str, Any] | None:
+        """An event from outside the tick (owner reply, voice note, mechanic). Without an LLM it is handled
+        at once; with one the worker picks it up."""
+        ev = self.bus.emit(type_, **kw)
+        if ev is None:
+            return None
+        if self.planner.llm_on:
+            return {"queued": ev.idem}
+        return self.bus.handle(ev)
+
+    def _rules_reply(self, ev: Event) -> dict[str, Any] | None:
+        """The rules reply to the owner (owner_agent.run_rules: tools in a fixed order, templates)."""
+        from . import owner_agent
+
+        mid = ev.machine
+        text = str(ev.payload.get("text") or (self.c.machines[mid]["name"] if mid in self.c.machines else ""))
+        if not text:
+            return None
+        lang = str(ev.payload.get("lang") or owner_agent.detect_lang(text))
+        return owner_agent.run_rules(self.live, text, ev.factory, lang)
+
+    def _score_audio(self, mid: str, path: str) -> float | None:
+        """A recording the owner sent back: scored against this machine's own normal (1.0 = its alarm)."""
+        from edge import features
+
+        model = self.base.model(mid)
+        if model is None:
+            return None
+        audio = features.load(path)
+        row = np.full(WIDTH, np.nan)
+        row[: summary.DIM] = summary.summarise(audio)
+        return float(np.asarray(model.risk(row[None, :]))[0])
 
     def _cloud_send(self, op: str, payload: dict[str, Any]) -> dict[str, Any]:
         if not self.live.link_up:
@@ -174,6 +241,12 @@ class Brain:
                     self.agent.observe(mid, h, reading_ref=f"{mid}@{tick}")
                 if prev != h["urgency"]:
                     changed.append(f"{mid}: {prev or '-'} -> {h['urgency']}")
+                    self._emit_health(tick, mid, prev, h)
+            day = self.c.now().date().isoformat()
+            if self.store.meta("planner_day") != day:
+                self.store.meta("planner_day", day)
+                self.bus.emit("daily_tick", idem=f"day:{day}", payload={"day": day,
+                              "open_cases": len(self.store.cases(open_only=True))}, source="brain")  # fmt: skip
             self.store.db.commit()
             quiet = [m for m in self.c.machines if m not in out]
             self.activity.record("observation", f"tick {tick}: read {len(seen)} machines", "completed",
@@ -193,9 +266,23 @@ class Brain:
                                                 else "no rising trend with enough data"), tools=["rul.estimate"])  # fmt: skip
             self.agent.tick()
             self.sync.run()
+            if not self.planner.llm_on:
+                self.bus.drain()  # rules: cheap, deterministic, in the tick
             self.version += 1
             self.live.version += 1
             self.last_tick_ms = round((time.perf_counter() - t0) * 1000, 1)
+        if self.planner.llm_on:
+            self.bus.wake.set()
+
+    def _emit_health(self, tick: int, mid: str, prev: str | None, h: dict[str, Any]) -> None:
+        f = self.c.machines[mid]["factory"]
+        case = self.store.open_case(mid)
+        base = {"machine": mid, "factory": f, "case_id": case and case["id"], "source": "brain"}
+        p = {"from": prev, "to": h["urgency"], "status": h["status"], "confidence": h.get("confidence"),
+             "evidence": (h.get("evidence") or [])[:3]}  # fmt: skip
+        self.bus.emit("health_change", idem=f"health:{mid}:{tick}", payload=p, **base)
+        if ag.RANK.get(h["urgency"], 0) >= ag.RANK["inspect"] > ag.RANK.get(prev or "none", 0):
+            self.bus.emit("alarm", idem=f"alarm:{mid}:{tick}", payload=p, **base)
 
     # ------------------------------------------------------------------ people
     def decide(self, approval_id: str, decision: str, by: str, channel: str) -> dict[str, Any]:
@@ -205,6 +292,12 @@ class Brain:
             out = self.agent.decide(
                 approval_id, decision, by=by, channel=channel, ref=f"{channel}:{int(time.time())}"
             )
+            a = self.store.approval(approval_id) or {}
+            case = self.store.case(a["case_id"]) if a.get("case_id") else None
+            self.ingest("owner_reply", case_id=a.get("case_id"), machine=case and case["machine"],
+                        factory=case and self.c.machines.get(case["machine"], {}).get("factory"),
+                        idem=f"decide:{approval_id}:{decision}:{channel}", source="owner",
+                        payload={"approval_id": approval_id, "decision": decision, "channel": channel, "by": by})  # fmt: skip
             self.agent.tick()
             self.version += 1
             self.live.version += 1
@@ -345,7 +438,16 @@ class Brain:
                     "queued": [{"kind": a["kind"], "attempts": a["attempts"], "error": a["error"]}
                                for a in self.store.queued_actions()],
                     "audit_ok": self.store.verify_audit()["ok"], "cloud_events": self.cloud.count("cluster-node"),
+                    "planner": planner_trace(self.store, self.planner, limit=6),
                     "last_tick_ms": getattr(self, "last_tick_ms", None)}  # fmt: skip
+
+    def planner_trace(
+        self, case_id: str | None = None, machine: str | None = None, limit: int = 8
+    ) -> dict[str, Any]:
+        """Per case: event -> reasoning -> tool calls -> approvals -> outcome, with tokens and rupees
+        (the planner's decisions table; what the command centre and the twin's agent dock show)."""
+        with self.lock:
+            return planner_trace(self.store, self.planner, case_id, machine, limit)
 
     def machine_detail(self, mid: str) -> dict[str, Any]:
         with self.lock:
@@ -356,6 +458,48 @@ class Brain:
                     "cases": [{k: c[k] for k in ("id", "urgency", "state", "outcome", "opened", "closed")} for c in cases],
                     "repairs": self.store.repairs(mid),
                     "agent_runs": [r for r in self.activity.runs(300) if r["machine"] == mid][:30]}  # fmt: skip
+
+
+def planner_trace(store: Store, planner: Planner, case_id: str | None = None, machine: str | None = None,
+                  limit: int = 8) -> dict[str, Any]:  # fmt: skip
+    """The planner's decisions grouped by case, newest cases first."""
+    rows = store.decisions(case_id=case_id, limit=400)
+    if machine:
+        rows = [d for d in rows if d["machine"] == machine]
+    by: dict[str, list[dict[str, Any]]] = {}
+    for d in rows:
+        by.setdefault(d["case_id"] or "-", []).append(d)
+    order = sorted(by, key=lambda k: max(x["id"] for x in by[k]), reverse=True)[:limit]
+    cases = []
+    for cid in order:
+        ds = by[cid]
+        steps = []
+        for d in ds:
+            ev = store.event(d["event"]) or {}
+            steps.append({"decision": d["id"], "at": d["started"], "event": d["event_type"], "source": ev.get("source"),
+                          "said": str((ev.get("payload") or {}).get("text") or "")[:200],
+                          "engine": d["engine"], "model": d["model"], "status": d["status"],
+                          "reasoning": (d["reasoning"] or "")[:600],
+                          "tools": [{"tool": c["tool"], "ok": c["ok"], "input": c["input"],
+                                     "summary": str((c["result"] or {}).get("summary") or (c["result"] or {}).get("error") or "")[:200]}
+                                    for c in d["tool_calls"] or []],
+                          "reply": d["reply"], "outcome": d["outcome"],
+                          "grounding_ok": (d["grounding"] or {}).get("ok", True),
+                          "input_tokens": d["input_tokens"], "output_tokens": d["output_tokens"],
+                          "cost_inr": d["cost_inr"], "latency_ms": d["latency_ms"]})  # fmt: skip
+        c = store.case(cid) if cid != "-" else None
+        cases.append({"case": cid, "machine": (c or {}).get("machine") or ds[-1]["machine"],
+                      "state": (c or {}).get("state"), "driver": (c or {}).get("context", {}).get("driver"),
+                      "approvals": [{k: a[k] for k in ("id", "kind", "status", "decided_by", "channel")}
+                                    for a in store.approvals(cid)] if c else [],
+                      "actions": [dict(r) for r in store.db.execute(
+                          "SELECT kind, status, idem FROM actions WHERE case_id=? ORDER BY created", (cid,))] if c else [],
+                      "steps": steps, "tokens": sum(s["input_tokens"] + s["output_tokens"] for s in steps),
+                      "cost_inr": round(sum(s["cost_inr"] for s in steps), 4)})  # fmt: skip
+    return {"llm": planner.llm_on, "models": {t: planner_llm.model_for(t)[0] for t in planner_llm.TIERS},
+            "pending_events": len(store.events(status="pending")), "cases": cases,
+            "note": "Claude chooses the tool calls" if planner.llm_on
+            else "no ANTHROPIC_API_KEY: the fixed plan runs (rules); decisions are still logged"}  # fmt: skip
 
 
 ACTION = {
@@ -369,7 +513,7 @@ STAGES = [
     ("Observation", []),
     ("Investigation", ["recall"]),
     ("Risk assessment", ["request_measurement", "notify_watch", "await_change", "notify_owner_urgent"]),
-    ("Maintenance planning", ["plan_inspection"]),
+    ("Maintenance planning", ["plan_inspection", "planner"]),
     ("Technician discovery", ["find_technician", "check_parts", "estimate_cost"]),
     ("Owner approval", ["request_approval", "await_approval"]),
     ("Repair", ["book_job", "await_repair"]),

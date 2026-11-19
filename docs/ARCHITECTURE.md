@@ -185,6 +185,58 @@ flowchart LR
   `server/twin.py` (`/api/twin`) computes what the panels show from the live readings: status counts,
   anomaly score per shift, risk ranking, focus trend, ₹ at risk, health share and the agent checklist.
 - `server/owner_agent.py`: the owner's conversational agent (observe → diagnose → plan → ask owner → act →
-  verify) with ten strict tools over the existing tested code. Claude Fable 5.2 tool use when keyed,
-  rules otherwise. Chat and voice notes go through `/api/agent/chat` and `/api/agent/voice`. It books
-  nothing itself: paid steps wait for the owner's reply (server/fix.py), and no tool can stop a machine.
+  verify) rules pass, language detection and ₹ / IST formatting. Since 2026-11-19 its chat and alarms are
+  events into the planner below; `run_claude` remains for callers without the planner.
+
+## The event-driven planner (server/planner/, 2026-11-19)
+
+Before this pass there were two agent systems that did not talk to each other: the maintenance agent
+(`server/maint/agent.py`) ran a fixed step list, and the owner's agent (`server/owner_agent.py`) had one LLM
+loop whose tools took only a machine id, whose prompt dictated the tool order, with no memory, and whose
+alarm handling faked a chat message. Now there is one planner, and the fixed plan is its safety net.
+
+```mermaid
+flowchart LR
+  subgraph Sources["what happens"]
+    BR["brain.on_tick<br/>alarm, health_change, daily_tick"]
+    WA["WhatsApp webhooks<br/>owner_reply, owner_voice_note,<br/>mechanic_reply"]
+    UI["owner chat, owner screen,<br/>command centre decide"]
+    MA["maint/agent<br/>repair_done, verify_result,<br/>mechanic_no_show, part_out_of_stock,<br/>network_restored"]
+  end
+  Sources --> EV["planner/events.py<br/>typed events, stored once<br/>(idempotency key, maint store)"]
+  EV --> CODE["code first:<br/>numbered reply -> decision,<br/>measurement re-score,<br/>re-plan technician, warranty"]
+  CODE --> PL{"ANTHROPIC_API_KEY,<br/>online, under budget?"}
+  PL -->|yes| LLM["planner/agent.py + llm.py<br/>context: case, memory, preferences,<br/>order book, open cases<br/>Haiku / Sonnet / Fable by event<br/>turns, tokens, ₹ per case bounded"]
+  PL -->|no| RULES["fixed plan<br/>maint/agent PLAN_FIX<br/>(handoff)"]
+  LLM -->|"tool calls"| TB["planner/tools.py<br/>schema, factory scope,<br/>grounding of outgoing text"]
+  TB --> GATE["MaintenanceAgent.act<br/>approval gate (created + sent),<br/>autonomy policy, idempotency,<br/>offline queue"]
+  RULES --> GATE
+  GATE --> OUT["notify / book_job / order_part<br/>(no stop: a stop is a question)"]
+  LLM -->|"final reply"| GR["planner/grounding.py<br/>₹, numbers, part numbers<br/>must be in tool results"]
+  GR -->|"rejected"| RULES
+  GATE --> AU["hash-chained audit<br/>+ decisions table<br/>(event, reasoning, tools, tokens, ₹)"]
+  LLM --> AU
+  AU --> TR["trace: command centre AI Agents,<br/>twin agent dock"]
+```
+
+| module | does |
+|---|---|
+| `server/planner/events.py` | 11 typed events; stored in the maintenance store (`events`) under an idempotency key, so a retried webhook or a restart is handled once; `drain()` resumes events left running by a crash |
+| `server/planner/agent.py` | per event: code-side effects first (an owner's numbered reply on a reply channel becomes a decision on the approval that option names; a recording or hand check re-scores the case; preferences are noted; a no-show or decline re-plans), then Claude with the full context, then the grounding check; every turn is a row in `decisions` |
+| `server/planner/llm.py` | model routing from `.env` (`DHADKAN_MODEL_ROUTINE/PLAN/DIAGNOSE`), request shape checked against anthropic 2.8.0 (strict tools, `tool_choice` auto, `output_config.effort`, refusal fallback on the beta endpoint for Sonnet / Fable; plain endpoint for Haiku), prompt caching, ₹ cost from usage, the bounded loop |
+| `server/planner/tools.py` | the decision tools (find_mechanics, propose_slots, check_parts, compare_options, triage, request_measurement, recall / remember, ask_owner, tell_owner, book_job, order_part); data sources labelled on every result |
+| `server/planner/grounding.py` | numbers (Indian-script digits read as digits, 1,56,960 = 156960, percent and lakh forms), ₹ amounts and part numbers in a reply must appear in that run's tool results or the code-built context |
+| `server/planner/evaluate.py` | 36 scenarios against a scripted mock policy (default, no network) or Claude (`--live`); `docs/runs/planner_<UTC>.json`, RESULTS.md 8 |
+
+What stays deterministic, on purpose: verification against baseline v1, the approval gate and its send-time
+re-check, the idempotent action queue, the audit chain, the warranty claim, and the fixed plan that takes a
+case over when the planner cannot (no key, offline, over the ₹ cap, a model refusal, an LLM error). A case
+handed to the fixed plan stays there. Without a key nothing changes from before this pass: cases get the
+fixed plan and the owner's chat gets the rules reply, and each event is still logged as a decision.
+
+Guardrails added (tests in `tests/test_guardrails.py`, `tests/test_planner_core.py`, `tests/test_planner_replan.py`):
+the planner has no tool that controls a machine and its code never touches machine state; only the owner's own
+numbered reply decides an approval (no tool can); `book_job` is refused unless the owner approved *that*
+technician on *that* day (or the autonomy policy allows it), on top of the gate; a chat message is never read
+as a numbered answer; outgoing text and the final reply are grounded; the owner's autonomy policy is read from
+the factory profile in the gate, never from a prompt, and never approves a purchase or a stop.

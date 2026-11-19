@@ -1376,6 +1376,13 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
 
         return await asyncio.to_thread(owner_agent.chat, live, body.text, body.factory, body.lang)
 
+    @app.get("/api/agent/trace")
+    def agent_trace(machine: str | None = None, case: str | None = None) -> dict[str, Any]:
+        """The planner's trace for a machine or case (read-only): event, reasoning, tools, approvals, ₹."""
+        if machine is not None and machine not in live.c.machines:
+            raise HTTPException(404, "unknown machine")
+        return brain.planner_trace(case, machine, limit=4)
+
     @app.post("/api/agent/voice")
     async def agent_voice(
         request: Request, factory: str | None = None, lang: str | None = None

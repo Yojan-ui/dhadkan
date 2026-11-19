@@ -309,6 +309,7 @@ def main() -> None:
     un, unp = newest("understand")
     lines += understand_section(un, unp)
     lines += results_more.mill_section() + results_more.agent_section() + results_more.bench_section()
+    lines += results_more.planner_section()
     lines += (
         (ROOT / "docs" / "results_notes.md").read_text(encoding="utf-8").splitlines()
         if (ROOT / "docs" / "results_notes.md").exists()

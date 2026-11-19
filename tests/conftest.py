@@ -7,6 +7,7 @@ fan id_00's faults (docs/RESULTS.md), so tests must not depend on them alarming.
 """
 
 import asyncio
+import os
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 from edge.config import MODELS
+
+# Tests never call a real model, even when a developer's .env holds ANTHROPIC_API_KEY: the planner and the
+# owner agent run their rules; LLM paths are tested with scripted mock clients (tests/test_planner_core.py).
+# `.\dev.ps1 eval-agent` is the live run.
+os.environ["DHADKAN_LLM"] = "0"
 
 OWNER_A, SUPERVISOR_A = "+91 90000 11111", "+91 90000 22222"
 # a coarser replay than the UI's (~110 readings); the alarm still comes from the real curve

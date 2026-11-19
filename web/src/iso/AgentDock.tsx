@@ -1,7 +1,9 @@
 // Agent chat (bottom dock, collapsible): type or speak in Hindi, Marathi, Gujarati, Tamil, Kannada, Telugu
 // or English; the agent replies in the same language and shows the tool steps it took.
 import { useRef, useState } from "react";
-import { post } from "../api";
+import { get, post } from "../api";
+import type { PlannerCase, PlannerTrace } from "../cc/data";
+import { engineWord, rupees } from "../cc/trace";
 
 interface Step {
   step: string;
@@ -16,11 +18,41 @@ interface Reply {
   steps: Step[];
   heard?: string;
   fallback_reason?: string;
+  case?: string | null;
+  model?: string | null;
+  cost_inr?: number;
+  tokens?: number;
 }
 interface Turn {
   who: "owner" | "agent";
   text: string;
   meta?: Reply;
+  trace?: PlannerCase;
+}
+
+// The planner's decisions for the reply's case: event -> tools -> approvals, tokens and rupees.
+function CaseTrace({ c }: { c: PlannerCase }) {
+  return (
+    <ol className="timeline">
+      <li className="dim">
+        planner trace · {c.case} · {c.tokens.toLocaleString("en-IN")} tokens · {rupees(c.cost_inr)}
+      </li>
+      {c.steps.slice(-4).map((s) => (
+        <li key={s.decision}>
+          <b>{s.event.replace(/_/g, " ")}</b> {engineWord(s.engine, s.model)}
+          {s.tools.length > 0 && <> → {s.tools.map((t) => t.tool + (t.ok ? "" : " (refused)")).join(", ")}</>}
+          {s.outcome ? ` · ${s.outcome}` : ""}
+        </li>
+      ))}
+      {c.approvals.length > 0 && (
+        <li className="dim">
+          {c.approvals
+            .map((a) => `${a.kind}: ${a.status}${a.decided_by ? ` (${a.decided_by})` : ""}`)
+            .join(" · ")}
+        </li>
+      )}
+    </ol>
+  );
 }
 
 const EXAMPLES = ["Loom 1 ki awaaz kyun badal gayi?", "लूम 1 की आवाज़ क्यों बदल गई?", "லூம் 1 ஒலி ஏன் மாறியது?"];
@@ -42,7 +74,16 @@ export function AgentDock({ factory }: { factory: string }) {
     setErr(null);
     try {
       const r = await post<Reply>("/api/agent/chat", { text: q, factory });
-      setTurns((t) => [...t, { who: "agent", text: r.reply, meta: r }]);
+      let trace: PlannerCase | undefined;
+      if (r.case) {
+        try {
+          const t = await get<PlannerTrace>(`/api/agent/trace?case=${encodeURIComponent(r.case)}`);
+          trace = t.cases[0];
+        } catch {
+          trace = undefined; // the reply still shows; the trace is extra
+        }
+      }
+      setTurns((t) => [...t, { who: "agent", text: r.reply, meta: r, trace }]);
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -117,12 +158,15 @@ export function AgentDock({ factory }: { factory: string }) {
                       </li>
                     ))}
                     <li className="dim">
-                      {t.meta.engine === "claude" ? "Claude Fable 5.2" : "rules (offline / no key)"} ·{" "}
-                      {t.meta.lang}
+                      {t.meta.engine.startsWith("claude")
+                        ? `${t.meta.model ?? "Claude"} · ${(t.meta.tokens ?? 0).toLocaleString("en-IN")} tokens · ${rupees(t.meta.cost_inr ?? 0)}`
+                        : "rules (offline / no key)"}{" "}
+                      · {t.meta.lang}
                       {t.meta.fallback_reason ? ` · fallback: ${t.meta.fallback_reason}` : ""}
                     </li>
                   </ol>
                 )}
+                {t.trace && <CaseTrace c={t.trace} />}
               </div>
             ))}
           </div>

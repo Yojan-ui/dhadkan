@@ -9,7 +9,7 @@
   .\dev.ps1 demo-ims     # Digital Twin + NASA IMS bearing failure + agent (what npm run demo runs)
 
   Tasks: setup data demo-data train results demo demo-ims serve dev test lint fmt clean compare rul
-         mill mill-pack help.  $env:PORT overrides the port (default 8600).
+         mill mill-pack eval-agent help.  $env:PORT overrides the port (default 8600).
   Exits non-zero when any step fails.
 #>
 param(
@@ -108,6 +108,19 @@ switch ($Task) {
     "rul" { Assert-Venv; Invoke-Native $Py @("-m", "edge.rul") }
     "mill" { Assert-Venv; Invoke-Native $Py @("-m", "server.flourmill", "--auto") }
     "mill-pack" { Assert-Venv; Invoke-Native $Py @("-m", "server.flourmill", "--pack") }
+    "eval-agent" {
+        # the planner's scenarios: against Claude when ANTHROPIC_API_KEY is set (env or .env), else the mock policy
+        Assert-Venv
+        $hasKey = [bool]$env:ANTHROPIC_API_KEY
+        if (-not $hasKey -and (Test-Path (Join-Path $Root ".env"))) {
+            $hasKey = [bool](Select-String -Path (Join-Path $Root ".env") -Pattern '^\s*ANTHROPIC_API_KEY\s*=\s*\S' -Quiet)
+        }
+        $evalArgs = @("-m", "server.planner.evaluate")
+        if ($hasKey -and $env:DHADKAN_LLM -ne "0") { $evalArgs += "--live"; Write-Host "eval-agent: LIVE (calls Claude, costs money)" }
+        else { Write-Host "eval-agent: no ANTHROPIC_API_KEY, running the mock policy (no network)" }
+        Invoke-Native $Py ($evalArgs + $Rest)
+        Invoke-Native $Py @("-m", "edge.results")
+    }
     "test" {
         Assert-Venv
         Invoke-Native $Py (@("-m", "pytest", "-q") + $Rest)

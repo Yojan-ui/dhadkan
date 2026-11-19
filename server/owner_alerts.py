@@ -5,6 +5,7 @@ in .env); the made-up numbers in data/sim/cluster.json are never messaged. Witho
 alert is logged as `no_contact`; without provider keys it is logged as `dry_run`.
 """
 
+import hashlib
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -12,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from . import diagnosis, forecast, understand
 from .config import DATA, NODE_DB
 from .notify import env, media, policy, whatsapp
-from .notify.service import Notifier
+from .notify.service import Notifier, parse_choice
 
 if TYPE_CHECKING:
     from .app import Live
@@ -271,11 +272,17 @@ class OwnerAlerts:
             self.notifier.send(machine=mid, factory=a["factory"], severity=a["severity"], to=a["to_phone"],
                                lang=a["lang"], body=self.details(mid, a["lang"]), kind="details", parent=a["id"])  # fmt: skip
         self.live.event("owner_reply", machine=mid, choice=choice, text=text)
+        self._to_planner("owner_reply", phone, mid, a["factory"],
+                         {"text": text, "choice": choice, "channel": "whatsapp", "alert": a["id"]})  # fmt: skip
         return {"alert": a["id"], "choice": choice}
 
     def on_message(self, phone: str, text: str) -> dict[str, Any] | None:
-        """Any text: a reply to an open alert first; otherwise the onboarding chat ("Namaste")."""
+        """Any text: a reply to an open alert first; then the mechanic, or an answer to one of the planner's
+        questions; otherwise the onboarding chat ("Namaste")."""
         got = self.on_reply(phone, text)
+        if got is not None:
+            return got
+        got = self._planner_message(phone, text)
         if got is not None:
             return got
         q = self.onboard.handle(phone, text)
@@ -358,7 +365,58 @@ class OwnerAlerts:
         self.live.event(
             "owner_voice", machine=a["machine"], text=text, sound=lab.get("sound"), fault=lab.get("fault")
         )
+        self._to_planner("owner_voice_note", phone, a["machine"], a["factory"],
+                         {"text": text, "audio_path": str(path), "sound": lab.get("sound"), "fault": lab.get("fault"),
+                          "channel": "whatsapp", "alert": a["id"]})  # fmt: skip
         return {"alert": a["id"], "machine": a["machine"], "text": text, "label": lab}
+
+    # -- the planner ------------------------------------------------------------
+    def _to_planner(self, type_: str, phone: str, machine: str | None, factory: str | None,
+                    payload: dict[str, Any]) -> dict[str, Any] | None:  # fmt: skip
+        """One event into the planner (server/planner). Keyed by the message, so a webhook retried by the
+        provider is handled once."""
+        brain = getattr(self.live, "brain", None)
+        if brain is None:
+            return None
+        digits = "".join(c for c in phone if c.isdigit())
+        key = hashlib.sha256(f"{digits}|{payload.get('text')}|{payload.get('alert')}|{int(self.notifier.clock()) // 60}"
+                             .encode()).hexdigest()[:16]  # fmt: skip
+        try:
+            return brain.ingest(type_, machine=machine, factory=factory, payload=payload, source="whatsapp",
+                                idem=f"{type_}:{key}")  # fmt: skip
+        except Exception as e:  # the reply was logged already; the planner must not break the webhook
+            self.live.event("planner_failed", type=type_, error=type(e).__name__)
+            return None
+
+    def _factory_of(self, phone: str, role: str) -> str | None:
+        digits = "".join(c for c in phone if c.isdigit())
+        for f in self.live.c.factories:
+            num = env.get(f"DHADKAN_{role}_{f}")
+            if num and "".join(c for c in num if c.isdigit()) == digits:
+                return str(f)
+        return None
+
+    def _planner_message(self, phone: str, text: str) -> dict[str, Any] | None:
+        """Text that is not a reply to an alert: the factory's mechanic answering a job, or the owner
+        answering one of the planner's numbered questions."""
+        mech = self._factory_of(phone, "MECHANIC")
+        if mech:
+            word = parse_choice(text)
+            answer = {"book": "accepted", "later": "declined"}.get(word or "", "message")
+            got = self._to_planner("mechanic_reply", phone, None, mech, {"text": text, "answer": answer,
+                                                                        "channel": "whatsapp"})  # fmt: skip
+            return {
+                "mechanic": True,
+                "factory": mech,
+                "answer": answer,
+                "planner": got and got.get("decision"),
+            }
+        owner = self._factory_of(phone, "PHONE")
+        brain = getattr(self.live, "brain", None)
+        if owner and brain is not None and brain.store.questions(factory=owner, open_only=True):
+            got = self._to_planner("owner_reply", phone, None, owner, {"text": text, "channel": "whatsapp"})
+            return {"planner": got and got.get("decision"), "factory": owner}
+        return None
 
     def tick(self) -> None:
         """Escalate unanswered Stop-now alerts after 2 h; resend anything waiting for the network."""

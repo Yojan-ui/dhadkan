@@ -12,6 +12,10 @@ Agents and their jobs (the code that does the work is named in WHO):
     verification   post-repair readings against the ORIGINAL normal (baseline v1)       (maint/agent _step_verify_repair)
     orchestrator   opens cases, assigns steps to agents, retries, resumes after restarts (maint/agent MaintenanceAgent)
 
+These are deterministic modules with agent names: their one-line reasoning is written by code. The
+decisions an LLM makes (which tools to call, in what order, and why) are made by server/planner and
+kept in the store's decisions table; the "planner" step here only marks that a case is driven by it.
+
 Every run is a row: agent, task, machine/case, status, the observation it started from, a one-line
 reasoning summary (written by the deterministic code, not an LLM), the tools it called, its result,
 start/end, and its retries. Runs are also written to the hash-chained audit log, so they survive
@@ -55,6 +59,7 @@ OPEN = ("monitoring", "investigating", "analysing", "planning", "executing", "aw
 STEP_AGENT: dict[str, tuple[str, str, list[str]]] = {
     "recall": ("memory", "analysing", ["repairs.history", "cases.history", "baseline.versions"]),
     "plan_inspection": ("planning", "planning", ["factory.schedule", "cases.open", "service_hours"]),
+    "planner": ("planning", "planning", ["server/planner (Claude, gated tools)"]),
     "request_measurement": ("execution", "executing", ["notify.owner"]),
     "notify_watch": ("execution", "executing", ["notify.owner(digest)"]),
     "await_change": ("observation", "monitoring", ["baseline.observe"]),

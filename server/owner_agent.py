@@ -1,8 +1,12 @@
 """The owner's agent: observe -> diagnose -> plan -> ask owner -> act -> verify, India-first.
 
-Claude Fable 5.2 (Anthropic Python SDK, tool use) when ANTHROPIC_API_KEY is set; otherwise a rule-based
-loop that calls the same tools in a fixed order. Either way every step is logged and shown to the owner
-as a timeline.
+On the server the owner's chat and a machine's alarm are events into the one planner (server/planner):
+chat() sends an owner_reply event (channel "chat") and on_alarm() an alarm event, and the planner decides
+(Claude when ANTHROPIC_API_KEY is set). Without a key the planner answers with run_rules below: the same
+tools in a fixed order and template replies. This module keeps the owner-facing pieces: language
+detection, ₹ and IST formatting (inr, ist), the reply templates and the rules pass. run_claude is Claude
+over these tools for a caller without the planner, through the planner's bounded loop and grounding check.
+Either way every step is logged and shown to the owner as a timeline.
 
 Tools (all strict JSON schemas, all backed by tested code; none can stop or control a machine):
   get_machine_health, get_spectrogram, diagnose_fault, find_local_mechanic, check_part_stock,
@@ -424,55 +428,113 @@ def run_rules(live: Any, text: str, factory: str | None, lang: str) -> dict[str,
 def run_claude(
     live: Any, text: str, factory: str | None, lang: str, client: Any, max_turns: int = 8
 ) -> dict[str, Any]:
+    """Claude over the owner-agent tools, for a server without the planner (no brain attached).
+
+    The loop is the planner's (server/planner/llm.run_loop: bounded turns and tokens, strict tools, refusal
+    fallback) with the diagnose model (DHADKAN_MODEL_DIAGNOSE, Claude Fable 5.2 by default), and the reply
+    goes through the same grounding check; a reply with a number no tool returned falls back to the rules."""
+    from .planner import grounding, llm
+
     run_id = "agent-claude-" + uuid.uuid4().hex[:6]
     tools = AgentTools(live, run_id, lang)
     machines = [{"id": mid, "name": m["name"], "type": m["type"]} for mid, m in live.c.machines.items()
                 if not factory or m["factory"] == factory]  # fmt: skip
-    now = live.c.now()
     messages: list[dict[str, Any]] = [{"role": "user", "content": (
-        f"Owner's machines: {json.dumps(machines, ensure_ascii=False)}. Now: {ist(now)}. Owner language: {lang}.\n"
-        f"Owner says: {text}")}]  # fmt: skip
-    reply = ""
-    for _ in range(max_turns):
-        resp = client.beta.messages.create(model=MODEL, max_tokens=4000, system=SYSTEM, tools=TOOLS, messages=messages,
-                                           betas=["server-side-fallback-2026-07-01"], fallbacks="default",
-                                           output_config={"effort": "high"})  # fmt: skip
-        if resp.stop_reason == "refusal":
-            break
-        messages.append({"role": "assistant", "content": resp.content})
-        uses = [b for b in resp.content if getattr(b, "type", None) == "tool_use"]
-        reply = "".join(getattr(b, "text", "") for b in resp.content if getattr(b, "type", None) == "text")
-        if not uses or resp.stop_reason != "tool_use":
-            break
-        results = []
-        for u in uses:
-            out = tools.call(u.name, dict(u.input))
-            results.append(
-                {
-                    "type": "tool_result",
-                    "tool_use_id": u.id,
-                    "content": json.dumps(out, ensure_ascii=False, default=str),
-                }
-            )
-        messages.append({"role": "user", "content": results})
-    if not reply:
+        f"Owner's machines: {json.dumps(machines, ensure_ascii=False)}. Now: {ist(live.c.now())}. "
+        f"Owner language: {lang}.\nOwner says: {text}")}]  # fmt: skip
+    model, effort = llm.model_for("diagnose")
+    res = llm.run_loop(client, model, effort, SYSTEM, TOOLS, messages, tools.call, max_turns=max_turns,
+                       max_tokens=int(llm.setting("DHADKAN_PLANNER_MAX_TOKENS", 40000)))  # fmt: skip
+    if not res.reply:
         return run_rules(live, text, factory, lang)
-    return {"run_id": run_id, "lang": lang, "reply": reply, "steps": tools.steps, "engine": "claude"}
+    names = [m["name"] for m in machines] + [m["id"] for m in machines]
+    g = grounding.check(res.reply, [c["result"] for c in res.calls], [text, *names])
+    if not g["ok"]:
+        live.event("grounding_rejected", run=run_id, unknown=g["unknown_numbers"] + g["unknown_parts"])
+        return run_rules(live, text, factory, lang) | {"grounding": g}
+    return {"run_id": run_id, "lang": lang, "reply": res.reply, "steps": tools.steps, "engine": "claude",
+            "input_tokens": res.input_tokens, "output_tokens": res.output_tokens, "cost_inr": res.cost_inr}  # fmt: skip
+
+
+def _finish(live: Any, out: dict[str, Any], lang: str, t0: float) -> dict[str, Any]:
+    out["seconds"] = round(time.time() - t0, 2)
+    out["checklist"] = [{"step": s, "done": any(x["step"] == s for x in out["steps"])} for s in STEPS]
+    live.event("agent_chat", run=out["run_id"], lang=lang, engine=out["engine"])
+    live.last_agent = out
+    return out
+
+
+def _from_planner(got: dict[str, Any], lang: str, machine: str | None) -> dict[str, Any]:
+    """The planner's decision in the shape the owner screens expect (run_id, reply, steps, engine)."""
+    if got.get("legacy"):
+        return {
+            **got["legacy"],
+            "decision": got["decision"],
+            "planner_engine": got["engine"],
+            "case": got.get("case"),
+        }
+    return {"run_id": f"planner-{got['decision']}", "lang": lang, "reply": got.get("reply") or "",
+            "steps": got.get("steps", []), "engine": got["engine"], "machine": machine or got.get("case"),
+            "decision": got["decision"], "case": got.get("case"), "model": got.get("model"),
+            "cost_inr": got.get("cost_inr", 0.0),
+            "tokens": got.get("input_tokens", 0) + got.get("output_tokens", 0)}  # fmt: skip
+
+
+def _ranking_health(live: Any, mid: str) -> dict[str, Any] | None:
+    """Health in the agent's terms from the classic ranking (Demo mode's IMS machine has no baseline case)."""
+    r = next((x for x in live.ranking() if x["machine_id"] == mid), None)
+    if not r or r.get("status") not in ("alarm", "early_match"):
+        return None
+    return {"urgency": "maintenance", "severity": "marked", "recent_risk": [r.get("risk")], "confidence": "medium",
+            "evidence": [f"score {round(r.get('risk') or 0, 2)}x its alarm level, rising {r.get('days_rising')} days"],
+            "time_to_threshold": None}  # fmt: skip
 
 
 def on_alarm(live: Any, mid: str) -> dict[str, Any]:
-    """The agent's own pass when a machine alarms (no owner message needed): observe -> ... -> ask owner."""
+    """A machine alarmed (no owner message needed): an `alarm` event into the planner, which decides.
+
+    Without a key the planner answers with the rules pass (observe -> diagnose -> plan -> ask owner), as before.
+    """
     f = live.c.machines[mid]["factory"]
     lang = live.alerts.owner_lang(mid)
-    return chat(live, live.c.machines[mid]["name"], f, lang if lang in T["why"] else "hi_latn")
+    lang = lang if lang in T["why"] else "hi_latn"
+    brain = getattr(live, "brain", None)
+    if brain is None:
+        return chat(live, live.c.machines[mid]["name"], f, lang)
+    t0 = time.time()
+    got = brain.ingest("alarm", machine=mid, factory=f, idem=f"alarm:{mid}:{uuid.uuid4().hex[:8]}", source="owner_agent",
+                       payload={"say_to_owner": True, "text": live.c.machines[mid]["name"], "lang": lang,
+                                "health": _ranking_health(live, mid)})  # fmt: skip
+    if not got or "queued" in got:  # the planner's worker handles it (LLM): the timeline fills in as it acts
+        out = {"run_id": f"planner-{(got or {}).get('queued', '-')}", "lang": lang, "reply": "", "steps": [],
+               "engine": "planner (queued)", "machine": mid}  # fmt: skip
+        return _finish(live, out, lang, t0)
+    return _finish(live, _from_planner(got, lang, mid), lang, t0)
 
 
 def chat(
     live: Any, text: str, factory: str | None = None, lang: str | None = None, client: Any = None
 ) -> dict[str, Any]:
-    """One owner message -> the agent's reply and its tool timeline. Claude when keyed; rules otherwise."""
+    """One owner message -> the agent's reply and its tool timeline.
+
+    With the planner attached (the server always has one): an owner_reply event on channel "chat", handled
+    at once by the same planner that handles alarms. Otherwise (or with an explicit `client`): Claude over
+    the owner-agent tools when keyed, the rules when not."""
     lang = lang or detect_lang(text)
     t0 = time.time()
+    brain = getattr(live, "brain", None)
+    if brain is not None and client is None:
+        mid = resolve_machine(live, text, factory)
+        f = factory or (live.c.machines[mid]["factory"] if mid else None)
+        ev = brain.bus.emit("owner_reply", machine=mid, factory=f, idem=f"chat:{uuid.uuid4().hex[:12]}",
+                            source="owner", payload={"text": text, "channel": "chat", "lang": lang})  # fmt: skip
+        assert ev is not None
+        try:
+            got = brain.bus.handle(ev)
+        except Exception as e:  # the rules still answer
+            out = run_rules(live, text, factory, lang) | {"fallback_reason": type(e).__name__}
+            return _finish(live, out, lang, t0)
+        return _finish(live, _from_planner(got, lang, mid), lang, t0)
     key = env.get("ANTHROPIC_API_KEY")
     if client is None and key and env.get("DHADKAN_LLM") != "0":
         import anthropic
@@ -487,8 +549,4 @@ def chat(
     except Exception as e:  # offline, rate limit: the rules still answer
         out = run_rules(live, text, factory, lang)
         out["fallback_reason"] = type(e).__name__
-    out["seconds"] = round(time.time() - t0, 2)
-    out["checklist"] = [{"step": s, "done": any(x["step"] == s for x in out["steps"])} for s in STEPS]
-    live.event("agent_chat", run=out["run_id"], lang=lang, engine=out["engine"])
-    live.last_agent = out
-    return out
+    return _finish(live, out, lang, t0)

@@ -11,5 +11,14 @@
     {"fault": "loose_belt", "type": "pump", "part": "V-belt A-38", "dealer": "Bhosari Bearing House (mock)", "price_inr": 220, "in_stock": true, "lead_days": 0},
     {"fault": "clog", "type": "pump", "part": "Foot valve + strainer 2 in", "dealer": "Bhosari Bearing House (mock)", "price_inr": 550, "in_stock": true, "lead_days": 0},
     {"fault": "clog", "type": "gearbox", "part": "Gear oil EP-90, 5 L", "dealer": "Chakan Industrial Stores (mock)", "price_inr": 1650, "in_stock": true, "lead_days": 0}
+  ],
+  "_alternatives_note": "MOCK: other dealers and equivalent part numbers (same size and type, other makes). No prices: the agent quotes costs only from server/faults.yaml.",
+  "alternatives": [
+    {"fault": "bearing", "type": "gearbox", "part": "Taper roller bearing 30206 (NBC)", "equivalent_to": "Taper roller bearing 30206", "dealer": "Talegaon Bearing Point (mock)", "in_stock": true, "lead_days": 0, "km": 8},
+    {"fault": "bearing", "type": "gearbox", "part": "Taper roller bearing 30206 (SKF)", "equivalent_to": "Taper roller bearing 30206", "dealer": "Bhosari Bearing House (mock)", "in_stock": false, "lead_days": 2, "km": 5},
+    {"fault": "bearing", "type": "pump", "part": "Ball bearing 6205-2RS (NBC, pair)", "equivalent_to": "Ball bearing 6205-2RS (pair)", "dealer": "Chakan Industrial Stores (mock)", "in_stock": true, "lead_days": 0, "km": 14},
+    {"fault": "bearing", "type": "fan", "part": "Pillow block UCP 206 (FBJ)", "equivalent_to": "Pillow block UCP 206", "dealer": "Talegaon Bearing Point (mock)", "in_stock": true, "lead_days": 0, "km": 8},
+    {"fault": "imbalance", "type": "pump", "part": "Impeller 125 mm (bronze, fits the same pump)", "equivalent_to": "Impeller (cast iron, 125 mm)", "dealer": "Bhosari Bearing House (mock)", "in_stock": true, "lead_days": 1, "km": 5},
+    {"fault": "loose_belt", "type": "fan", "part": "V-belt B-42 (Fenner)", "equivalent_to": "V-belt B-42", "dealer": "Pimpri Motor Rewinding (mock)", "in_stock": true, "lead_days": 0, "km": 3}
   ]
 }
