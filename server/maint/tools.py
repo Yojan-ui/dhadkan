@@ -93,8 +93,10 @@ def cost_range(fault: str, hp: float) -> dict[str, Any]:
             "labour_rate_note": "technician rate is an assumption (data/sim/costs.json)"}  # fmt: skip
 
 
-def inspection_cost() -> dict[str, Any]:
-    rate = _load(COSTS)["technician_rate_inr_per_hour"]
+def inspection_cost(tech: dict[str, Any] | None = None) -> dict[str, Any]:
+    """The visit's cost: inspection hours at the technician's own rate (technicians.json rate_inr_per_hour)
+    or, when none is listed, the assumed rate in costs.json."""
+    rate = (tech or {}).get("rate_inr_per_hour") or _load(COSTS)["technician_rate_inr_per_hour"]
     return {"low_inr": INSPECTION_HOURS[0] * rate, "high_inr": INSPECTION_HOURS[1] * rate,
             "basis": f"{INSPECTION_HOURS[0]}-{INSPECTION_HOURS[1]} h at the assumed technician rate"}  # fmt: skip
 

@@ -27,8 +27,9 @@ from typing import Any
 
 from server.maint.store import Store
 
-TYPES = ("alarm", "health_change", "owner_reply", "owner_voice_note", "mechanic_reply", "mechanic_no_show",
-         "part_out_of_stock", "network_restored", "repair_done", "verify_result", "daily_tick")  # fmt: skip
+TYPES = ("alarm", "health_change", "owner_reply", "owner_voice_note", "owner_photo", "investigation_result",
+         "mechanic_reply", "mechanic_no_show", "part_out_of_stock", "network_restored", "repair_done",
+         "verify_result", "daily_tick")  # fmt: skip
 
 
 @dataclass

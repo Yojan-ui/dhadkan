@@ -279,8 +279,27 @@ class OwnerAlerts:
         return {"alert": a["id"], "choice": choice}
 
     def on_message(self, phone: str, text: str) -> dict[str, Any] | None:
-        """Any text: a reply to an open alert first; then the mechanic, or an answer to one of the planner's
-        questions; otherwise the onboarding chat ("Namaste")."""
+        """Any text: a mechanic with a job (server/wa_loops.MechanicDesk) first; the owner's commands
+        ("status", "kitna kharcha", "kab aayega mistri", "band karo"); then a reply to an open alert; then
+        an answer to one of the planner's questions or measurement requests; otherwise onboarding."""
+        brain = getattr(self.live, "brain", None)
+        desk = getattr(brain, "desk", None)
+        if desk is not None and desk.is_mechanic(phone):
+            got = desk.handle(phone, text)
+            if got is not None:
+                return got
+        owner = self.factory_of_owner(phone)
+        if owner and brain is not None:
+            from .wa_loops import command_lang, owner_command
+
+            default = env.get(f"DHADKAN_LANG_{owner}") or self.live.c.factories[owner]["language"]
+            lang = command_lang(text, default)  # answer in the language and script the owner typed
+            cmd = owner_command(brain, owner, text, lang)
+            if cmd is not None:
+                self.notifier.send(machine="-", factory=owner, severity="info", to=phone, lang=lang, body=cmd["reply"],
+                                   kind="chat")  # fmt: skip
+                self.live.event("owner_command", factory=owner, command=cmd["command"])
+                return cmd
         got = self.on_reply(phone, text)
         if got is not None:
             return got
@@ -347,7 +366,7 @@ class OwnerAlerts:
         machine of this owner's latest alert. The owner's words are a weak label, not an inspection."""
         a = self.notifier.latest_for(phone)
         if a is None:
-            return None
+            return self._voice_for_investigation(phone, audio, mime)
         from . import folk, registry
 
         ALERT_DIR.mkdir(parents=True, exist_ok=True)
@@ -372,6 +391,32 @@ class OwnerAlerts:
                           "channel": "whatsapp", "alert": a["id"]})  # fmt: skip
         return {"alert": a["id"], "machine": a["machine"], "text": text, "label": lab}
 
+    def _voice_for_investigation(self, phone: str, audio: bytes, mime: str) -> dict[str, Any] | None:
+        """A recording sent in answer to the planner's request (request_measurement, kind audio): scored
+        like a reading of that machine (planner._audio_reply)."""
+        brain = getattr(self.live, "brain", None)
+        owner = self.factory_of_owner(phone)
+        inv = brain.open_investigation(owner) if brain is not None and owner else None
+        if inv is None:
+            return None
+        mid = inv["case"]["machine"]
+        ALERT_DIR.mkdir(parents=True, exist_ok=True)
+        ext = (
+            ".ogg"
+            if "ogg" in mime
+            else ".wav" if "wav" in mime else ".m4a" if "mp4" in mime or "aac" in mime else ".audio"
+        )
+        path = ALERT_DIR / f"voice_{mid}_{int(time.time())}{ext}"
+        path.write_bytes(audio)
+        self.live.event("owner_voice", machine=mid, text=None, measurement=inv["measurement"]["n"])
+        got = self._to_planner("owner_voice_note", phone, mid, owner,
+                               {"text": "", "audio_path": str(path), "channel": "whatsapp", "alert": f"meas{inv['measurement']['n']}"})  # fmt: skip
+        return {
+            "machine": mid,
+            "measurement": inv["measurement"]["n"],
+            "planner": got and got.get("decision"),
+        }
+
     # -- the planner ------------------------------------------------------------
     def _to_planner(self, type_: str, phone: str, machine: str | None, factory: str | None,
                     payload: dict[str, Any]) -> dict[str, Any] | None:  # fmt: skip
@@ -389,6 +434,44 @@ class OwnerAlerts:
         except Exception as e:  # the reply was logged already; the planner must not break the webhook
             self.live.event("planner_failed", type=type_, error=type(e).__name__)
             return None
+
+    def factory_of_owner(self, phone: str) -> str | None:
+        """The owner's factory by their number (DHADKAN_PHONE_<f>), or a demo number in a dry run."""
+        f = self._factory_of(phone, "PHONE")
+        if f:
+            return f
+        from .wa_loops import demo_numbers_allowed, demo_phone, digits
+
+        if demo_numbers_allowed(self):
+            return next(
+                (x for x in self.live.c.factories if digits(demo_phone("owner", x)) == digits(phone)), None
+            )
+        return None
+
+    def on_image(
+        self, phone: str, data: bytes, mime: str = "image/jpeg", caption: str | None = None
+    ) -> dict[str, Any] | None:
+        """A photo: the mechanic's old part (MechanicDesk), or the owner's answer to a photo request,
+        stored and attached to the case. No image model looks at it."""
+        brain = getattr(self.live, "brain", None)
+        desk = getattr(brain, "desk", None)
+        if desk is not None and desk.is_mechanic(phone):
+            return desk.handle(phone, caption, image=(data, mime))
+        owner = self.factory_of_owner(phone)
+        if not owner or brain is None:
+            return None
+        from .wa_loops import store_photo
+
+        inv = brain.open_investigation(owner)
+        case = (inv or {}).get("case") or next((c for c in brain.store.cases(open_only=True)
+                                                if self.live.c.machines[c["machine"]]["factory"] == owner), None)  # fmt: skip
+        if case is None:
+            return None
+        path, sha = store_photo(data, mime, f"owner_{case['machine']}")
+        self.live.event("owner_photo", machine=case["machine"], sha256=sha[:12])
+        got = self._to_planner("owner_photo", phone, case["machine"], owner,
+                               {"text": caption or "", "path": path, "sha256": sha, "channel": "whatsapp", "alert": sha[:12]})  # fmt: skip
+        return {"photo": sha[:12], "case": case["id"], "planner": got and got.get("decision")}
 
     def _factory_of(self, phone: str, role: str) -> str | None:
         digits = "".join(c for c in phone if c.isdigit())
@@ -413,9 +496,10 @@ class OwnerAlerts:
                 "answer": answer,
                 "planner": got and got.get("decision"),
             }
-        owner = self._factory_of(phone, "PHONE")
+        owner = self.factory_of_owner(phone)
         brain = getattr(self.live, "brain", None)
-        if owner and brain is not None and brain.store.questions(factory=owner, open_only=True):
+        if owner and brain is not None and (brain.store.questions(factory=owner, open_only=True)
+                                            or brain.open_investigation(owner)):  # fmt: skip
             got = self._to_planner("owner_reply", phone, None, owner, {"text": text, "channel": "whatsapp"})
             return {"planner": got and got.get("decision"), "factory": owner}
         return None

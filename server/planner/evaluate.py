@@ -255,6 +255,12 @@ def policy(
     if case is None or ctx["case"]["state"] != "open":
         return "text", "No open case; nothing to do."
     meas = applied.get("measurement") or {}
+    if t == "investigation_result":  # the owner's answer, applied by code: its numbers are in the payload
+        meas = {
+            "fault_confidence": (
+                "lower" if p.get("confidence_after", 0) < p.get("confidence_before", 0) else "higher"
+            )
+        }
     if meas.get("fault_confidence") == "lower":
         if "tell_owner" not in names:
             return "tools", [("tell_owner", {"case_id": case["id"], "text": say("normal", lang)})]
@@ -390,6 +396,7 @@ class World:
             return None
         with self._orders():
             out = self.bus.handle(ev)
+            self.bus.drain()  # what it set off (an investigation_result) is handled too
         self.out.append(out)
         return out
 

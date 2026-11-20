@@ -17,6 +17,7 @@ rules agent once B-F1 matches (or after 20 readings).
 """
 
 import asyncio
+import base64
 import io
 import json
 import threading
@@ -1430,18 +1431,41 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
             raise HTTPException(404, "no open alert for that number")
         return got
 
-    async def _incoming(msgs: list[dict[str, Any]], provider: Any) -> list[dict[str, Any]]:
-        """Text replies go to the reply path; voice notes are downloaded and transcribed locally."""
+    def _media(m: dict[str, Any], provider: Any) -> bytes:
+        """The message's bytes: inline for the demo phones (?view=phones), else fetched from the provider."""
+        if "data" in m:
+            return base64.b64decode(m["data"])
+        return provider.download(m)
+
+    async def _incoming(
+        msgs: list[dict[str, Any]], provider: Any, simulated: bool = False
+    ) -> list[dict[str, Any]]:
+        """Text replies go to the reply path; voice notes are downloaded and transcribed locally; photos are
+        stored for the case. The demo phones come through here too (simulated=True), so both take one path."""
+        from .wa_loops import log_incoming
+
         out = []
         for m in msgs:
-            if m.get("audio") and hasattr(provider, "download"):
+            kind = "audio" if m.get("audio") else "image" if m.get("image") else "text"
+            with live.lock:
+                log_incoming(live.c.db, m["from"], m.get("text"), kind, (m.get("audio") or m.get("image") or {}).get("mime"),
+                             simulated)  # fmt: skip
+            if m.get("audio") and (hasattr(provider, "download") or "data" in m["audio"]):
                 try:
-                    audio = await asyncio.to_thread(provider.download, m["audio"])
+                    audio = await asyncio.to_thread(_media, m["audio"], provider)
                     got = await asyncio.to_thread(
                         live.alerts.on_audio, m["from"], audio, m["audio"].get("mime", "")
                     )
                 except Exception as e:  # a failed download or transcription must not drop the webhook
                     live.event("owner_voice_failed", error=type(e).__name__)
+                    got = None
+            elif m.get("image") and (hasattr(provider, "download") or "data" in m["image"]):
+                try:
+                    img = await asyncio.to_thread(_media, m["image"], provider)
+                    got = await asyncio.to_thread(live.alerts.on_image, m["from"], img, m["image"].get("mime", ""),
+                                                  m.get("text"))  # fmt: skip
+                except Exception as e:
+                    live.event("photo_failed", error=type(e).__name__)
                     got = None
             elif m.get("text") is not None:
                 got = live.alerts.on_message(m["from"], m["text"])
@@ -1483,6 +1507,66 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
             raise HTTPException(403, "bad signature")
         await _incoming(whatsapp.parse_twilio(form), live.alerts.notifier.wa)
         return Response("<Response/>", media_type="application/xml")
+
+    class WaSimIn(BaseModel):
+        model_config = ConfigDict(extra="forbid")
+        role: str = Field(pattern="^(owner|mechanic)$")
+        factory: str = Field(default="A", min_length=1, max_length=8)
+        text: str | None = Field(default=None, max_length=600)
+        image_b64: str | None = Field(default=None, max_length=8_000_000)
+        audio_b64: str | None = Field(default=None, max_length=8_000_000)
+        mime: str | None = Field(default=None, max_length=40)
+
+    def _phones(factory: str) -> dict[str, Any]:
+        from .wa_loops import mechanic_phone, owner_phone
+
+        alerts = live.alerts
+        jobs = [j for j in brain.desk.jobs() if j["factory"] == factory]
+        if jobs:
+            tech = brain.agent.t.technicians.get(jobs[-1]["technician"])
+            mech = jobs[-1]["phone"]
+        else:
+            tech = next(
+                (t for t in brain.agent.t.technicians.people if t.get("role") == "own_mechanic"), None
+            )
+            mech = mechanic_phone(alerts, tech, factory) if tech else None
+        return {"owner": owner_phone(alerts, factory), "mechanic": mech, "technician": tech and tech["name"],
+                "provider": alerts.provider}  # fmt: skip
+
+    @app.get("/api/wa/phones")
+    def wa_phones(factory: str = "A") -> dict[str, Any]:
+        """Both sides of the conversation for the demo phones: the owner's and the mechanic's threads."""
+        from .wa_loops import thread
+
+        if factory not in live.c.factories:
+            raise HTTPException(404, "unknown factory")
+        ph = _phones(factory)
+        with live.lock:
+            return {**ph, "owner_thread": thread(live.c.db, ph["owner"] or "") if ph["owner"] else [],
+                    "mechanic_thread": thread(live.c.db, ph["mechanic"] or "") if ph["mechanic"] else []}  # fmt: skip
+
+    @app.post("/api/wa/simulate")
+    async def wa_simulate(body: WaSimIn) -> dict[str, Any]:
+        """A message from the owner's or the mechanic's phone, through the same code path as the webhook.
+        Only with the dry-run provider: a demo must never pose as a real person on a real account."""
+        if live.alerts.provider != "dry_run":
+            raise HTTPException(
+                409, "simulated phones only work with the dry-run provider (DHADKAN_DRY_RUN=1)"
+            )
+        ph = _phones(body.factory)
+        who = ph[body.role]
+        if not who:
+            raise HTTPException(409, f"no {body.role} phone for factory {body.factory}")
+        msg: dict[str, Any] = {"from": who, "text": body.text, "id": f"sim-{time.time_ns()}"}
+        if body.image_b64:
+            msg["image"] = {"data": body.image_b64, "mime": body.mime or "image/jpeg"}
+        elif body.audio_b64:
+            msg["audio"] = {"data": body.audio_b64, "mime": body.mime or "audio/wav"}
+            msg["text"] = None
+        elif not body.text:
+            raise HTTPException(422, "text, image_b64 or audio_b64 is needed")
+        handled = await _incoming([msg], live.alerts.notifier.wa, simulated=True)
+        return {"handled": handled, "from": who, "role": body.role}
 
     @app.get("/api/voice_note.wav")
     def voice_note() -> Response:

@@ -251,6 +251,9 @@ def parse_meta(payload: dict[str, Any]) -> list[dict[str, str]]:
                 elif kind in ("audio", "voice") and m.get(kind, {}).get("id"):  # a voice note
                     out.append({"from": m.get("from", ""), "text": None, "id": m.get("id", ""),
                                 "audio": {"id": m[kind]["id"], "mime": m[kind].get("mime_type", "audio/ogg")}})  # fmt: skip
+                elif kind == "image" and m.get("image", {}).get("id"):  # a photo (caption as its text)
+                    out.append({"from": m.get("from", ""), "text": m["image"].get("caption"), "id": m.get("id", ""),
+                                "image": {"id": m["image"]["id"], "mime": m["image"].get("mime_type", "image/jpeg")}})  # fmt: skip
     return out
 
 
@@ -262,4 +265,9 @@ def parse_twilio(form: dict[str, str]) -> list[dict[str, Any]]:
     if form.get("NumMedia", "0") != "0" and form.get("MediaContentType0", "").startswith("audio/"):
         row["audio"] = {"url": form.get("MediaUrl0", ""), "mime": form["MediaContentType0"]}
         row["text"] = None
+    elif form.get("NumMedia", "0") != "0" and form.get("MediaContentType0", "").startswith("image/"):
+        row["image"] = {
+            "url": form.get("MediaUrl0", ""),
+            "mime": form["MediaContentType0"],
+        }  # Body is the caption
     return [row]
