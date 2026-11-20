@@ -4,6 +4,7 @@ import { MillScreen } from "./screens/Mill";
 import { CommandCentre } from "./cc/CommandCentre";
 import { OwnerScreen } from "./screens/Owner";
 import { RecorderScreen } from "./screens/Recorder";
+import { PhonesScreen } from "./screens/Phones";
 import { TwinScreen } from "./iso/TwinScreen";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { get, post, store, useConnected, useLive, useMeta, type Machine, type PastReading } from "./api";
@@ -40,6 +41,7 @@ export default function App() {
   if (view === "mechanic") return <MechanicScreen factory={q.get("f")} />;
   if (view === "mill") return <MillScreen />;
   if (view === "record") return <RecorderScreen />; // live recorder (PWA): a phone or the laptop mic
+  if (view === "phones") return <PhonesScreen />; // the owner's and the mechanic's WhatsApp, simulated
   // the Digital Twin is the main screen; the command centre is at ?view=cc, the earlier cluster screen at ?view=cluster
   const phoneWidth = window.matchMedia("(max-width: 767px)").matches;
   if (view === "cc" && !phoneWidth) return <CommandCentre />;

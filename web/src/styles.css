@@ -1376,3 +1376,121 @@ body:has(.lite) {
     animation: none;
   }
 }
+
+/* simulated WhatsApp phones (?view=phones, phone list): owner and mechanic side by side */
+.wa-screen {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.wa-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.wa-bar {
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.wa-phone {
+  display: flex;
+  flex-direction: column;
+  height: 560px;
+  border: 1px solid #3d4046;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #0b141a;
+  color: #e9edef;
+}
+.wa-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #202c33;
+}
+.wa-thread {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.wa-thread li {
+  max-width: 85%;
+  padding: 6px 9px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  font-size: 14px;
+  display: grid;
+  gap: 2px;
+}
+.wa-thread li small {
+  opacity: 0.6;
+  font-size: 11px;
+  justify-self: end;
+}
+.wa-recv {
+  align-self: flex-start;
+  background: #202c33;
+}
+.wa-sent {
+  align-self: flex-end;
+  background: #005c4b;
+}
+.wa-empty {
+  align-self: center;
+  opacity: 0.6;
+}
+.wa-media {
+  font-size: 12px;
+  opacity: 0.85;
+}
+.wa-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #111b21;
+}
+.wa-quick button,
+.wa-input button {
+  background: #2a3942;
+  color: #e9edef;
+  border: none;
+  border-radius: 14px;
+  padding: 4px 10px;
+  font-size: 13px;
+}
+.wa-input {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #202c33;
+  align-items: center;
+}
+.wa-input input {
+  flex: 1;
+  min-width: 0;
+  background: #2a3942;
+  color: #e9edef;
+  border: none;
+  border-radius: 16px;
+  padding: 8px 12px;
+}
+.wa-file {
+  cursor: pointer;
+  font-size: 18px;
+}
+.wa-err {
+  color: #e5484d;
+  margin: 4px 10px;
+  font-size: 13px;
+}
+.wa-foot {
+  margin-top: 18px;
+}
