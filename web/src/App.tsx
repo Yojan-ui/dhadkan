@@ -37,8 +37,8 @@ export default function App() {
   }
   if (view === "mechanic") return <MechanicScreen factory={q.get("f")} />;
   if (view === "mill") return <MillScreen />;
-  // the command centre is the default; the earlier cluster screen stays at ?view=cluster
-  if (view !== "cluster" && !window.matchMedia("(max-width: 767px)").matches) return <CommandCentre />;
+  // the factory screen (3D floor, Needs attention, Demo mode) is the default; the command centre is at ?view=cc
+  if (view === "cc" && !window.matchMedia("(max-width: 767px)").matches) return <CommandCentre />;
   return (
     <LazyMotion features={domAnimation} strict>
       <Main />
