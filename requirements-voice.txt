@@ -1,0 +1,4 @@
+# Voice notes and the TTS evaluation (server/voice.py, scripts/tts_eval.py). Optional: without these the
+# alerts go out as text only. torch is the CPU build: .\dev.ps1 voice-models installs it from PyTorch's CPU index.
+sherpa-onnx==1.13.8      # Piper voices (Hindi) on onnxruntime
+transformers==4.57.1     # Meta MMS-TTS (Marathi, Gujarati, Tamil, English); CC-BY-NC-4.0 models

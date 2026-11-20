@@ -1,0 +1,374 @@
+{
+ "run_id": "20261120T053436Z",
+ "machine": {
+  "cpu": "Intel64 Family 6 Model 189 Stepping 1, GenuineIntel",
+  "threads": 8,
+  "os": "Windows-11-10.0.26300-SP0"
+ },
+ "asr_for_quality": "faster-whisper small int8 CPU",
+ "texts": {
+  "hi": [
+   "जल्दी रिपेयर . लूम 1 , मोटर का बेयरिंग घिस रहा है। 3 दिन से आवाज़ बढ़ रही है। अभी ठीक हो सकता है: बेयरिंग 6205 , पुराने जैसा नंबर., लगभग 315 से 680 रुपये , 1 से 2 घंटा। 6 दिन से ज़्यादा चलाया तो मोटर जल सकती है , लगभग 2000 रुपये .। जवाब दें: 1 मिस्त्री बुलाओ, 2 बाद में, 3 पूरी जानकारी। , अनुमानित दाम और वारंटी, डीलर से पक्का करें।.",
+   "आज की मशीन रिपोर्ट , ध्यान दें.:"
+  ],
+  "mr": [
+   "लवकर दुरुस्त करा . लूम 1 , मोटरचे बेअरिंग झिजत आहे. 3 दिवसांपासून आवाज वाढतोय. आत्ता दुरुस्त होऊ शकते: बेअरिंग 6205 , जुन्यासारखा नंबर., सुमारे 315 ते 680 रुपये , 1 ते 2 तास. 6 दिवसांपेक्षा जास्त चालवले तर मोटर जळू शकते , सुमारे 2000 रुपये .. उत्तर द्या: 1 मिस्त्री बोलवा, 2 नंतर, 3 सविस्तर माहिती. , अंदाजे किंमत आणि वॉरंटी, डीलरकडून खात्री करा..",
+   "आजचा मशीन अहवाल , लक्ष ठेवा.:"
+  ],
+  "gu": [
+   "જલ્દી રિપેર કરાવો . લૂમ 1 , મોટરનું બેરિંગ ઘસાઈ રહ્યું છે. 3 દિવસથી અવાજ વધી રહ્યો છે. હમણાં ઠીક થઈ શકે: બેરિંગ 6205 , જૂના જેવો નંબર., લગભગ 315 થી 680 રૂપિયા , 1 થી 2 કલાક. 6 દિવસથી વધુ ચલાવ્યું તો મોટર બળી શકે છે , લગભગ 2000 રૂપિયા .. જવાબ આપો: 1 મિસ્ત્રી બોલાવો, 2 પછી, 3 પૂરી માહિતી. , અંદાજિત ભાવ અને વોરંટી, ડીલર પાસે પાકું કરો..",
+   "આજનો મશીન રિપોર્ટ , ધ્યાન રાખો.:"
+  ],
+  "en": [
+   "Repair soon . Loom 1 , The ball bearing in the motor is wearing out. Sound rising for 3 days. Fixable now: ball bearing 6205 , same number as the old one., about 315 to 680 rupees , 1 to 2 h. Run it more than 6 days and the motor can burn , about 2000 rupees .. Reply 1 send mechanic, 2 later, 3 details. , Typical prices and warranty, confirm with dealer..",
+   "Today's machine report , watch.:"
+  ]
+ },
+ "engines": {
+  "piper-hi-pratham": {
+   "languages": [
+    "hi"
+   ],
+   "license": "see the voice's MODEL_CARD (Piper voices vary)",
+   "runtime": "onnx (sherpa-onnx)",
+   "size_mb": 81.1,
+   "status": "evaluated"
+  },
+  "piper-hi-priyamvada": {
+   "languages": [
+    "hi"
+   ],
+   "license": "see the voice's MODEL_CARD (Piper voices vary)",
+   "runtime": "onnx (sherpa-onnx)",
+   "size_mb": 81.1,
+   "status": "evaluated"
+  },
+  "piper-hi-rohan": {
+   "languages": [
+    "hi"
+   ],
+   "license": "see the voice's MODEL_CARD (Piper voices vary)",
+   "runtime": "onnx (sherpa-onnx)",
+   "size_mb": 80.9,
+   "status": "evaluated"
+  },
+  "mms-hi": {
+   "languages": [
+    "hi"
+   ],
+   "license": "CC-BY-NC-4.0 (non-commercial)",
+   "runtime": "torch CPU (transformers VITS)",
+   "size_mb": 145.2,
+   "status": "evaluated"
+  },
+  "mms-mr": {
+   "languages": [
+    "mr"
+   ],
+   "license": "CC-BY-NC-4.0 (non-commercial)",
+   "runtime": "torch CPU (transformers VITS)",
+   "size_mb": 145.2,
+   "status": "evaluated"
+  },
+  "mms-gu": {
+   "languages": [
+    "gu"
+   ],
+   "license": "CC-BY-NC-4.0 (non-commercial)",
+   "runtime": "torch CPU (transformers VITS)",
+   "size_mb": 145.2,
+   "status": "evaluated"
+  },
+  "mms-en": {
+   "languages": [
+    "en"
+   ],
+   "license": "CC-BY-NC-4.0 (non-commercial)",
+   "runtime": "torch CPU (transformers VITS)",
+   "size_mb": 145.1,
+   "status": "evaluated"
+  },
+  "ai4bharat-indicf5": {
+   "status": "not evaluated: gated on Hugging Face (accept the terms, set HF_TOKEN, run again)",
+   "repo": "ai4bharat/IndicF5"
+  },
+  "ai4bharat-indic-parler": {
+   "status": "not evaluated: gated on Hugging Face (accept the terms, set HF_TOKEN, run again)",
+   "repo": "ai4bharat/indic-parler-tts"
+  },
+  "windows-sapi": {
+   "status": "evaluated: no voice for hi/mr/gu/ta installed",
+   "voices": [
+    "en-US|Microsoft David Desktop",
+    "en-US|Microsoft Zira Desktop"
+   ]
+  },
+  "prerecorded-cache": {
+   "status": "evaluated",
+   "lookup_ms": 0.076,
+   "note": "every voice note is cached per (template, values, language)"
+  }
+ },
+ "summary": {
+  "piper-hi-pratham": {
+   "langs": [
+    "hi"
+   ],
+   "cer_median": 0.458,
+   "rtf_median": 0.09
+  },
+  "mms-hi": {
+   "langs": [
+    "hi"
+   ],
+   "cer_median": 0.194,
+   "rtf_median": 0.437
+  },
+  "piper-hi-rohan": {
+   "langs": [
+    "hi"
+   ],
+   "cer_median": 0.269,
+   "rtf_median": 0.101
+  },
+  "piper-hi-priyamvada": {
+   "langs": [
+    "hi"
+   ],
+   "cer_median": 0.187,
+   "rtf_median": 0.081
+  },
+  "mms-en": {
+   "langs": [
+    "en"
+   ],
+   "cer_median": 0.162,
+   "rtf_median": 0.423
+  },
+  "mms-gu": {
+   "langs": [
+    "gu"
+   ],
+   "cer_median": 0.605,
+   "rtf_median": 0.423
+  },
+  "mms-mr": {
+   "langs": [
+    "mr"
+   ],
+   "cer_median": 0.328,
+   "rtf_median": 0.414
+  }
+ },
+ "rows": [
+  {
+   "engine": "piper-hi-pratham",
+   "lang": "hi",
+   "text": 0,
+   "chars": 333,
+   "audio_s": 24.45,
+   "synth_s": 2.12,
+   "rtf": 0.087,
+   "cer": 0.716,
+   "heard": "जबाद देन एक मिस्ती बलाव, दो बाद में तीन पूरी जानकारी, अनुमानित दाम और वारंटी दीलर से पक्का करें।",
+   "sample": "data\\tts\\samples\\piper-hi-pratham_hi_0.wav"
+  },
+  {
+   "engine": "piper-hi-pratham",
+   "lang": "hi",
+   "text": 1,
+   "chars": 32,
+   "audio_s": 2.07,
+   "synth_s": 0.19,
+   "rtf": 0.093,
+   "cer": 0.2,
+   "heard": "आजकी मशीन दिपोर्ट दियांदे",
+   "sample": "data\\tts\\samples\\piper-hi-pratham_hi_1.wav"
+  },
+  {
+   "engine": "piper-hi-priyamvada",
+   "lang": "hi",
+   "text": 0,
+   "chars": 333,
+   "audio_s": 30.22,
+   "synth_s": 2.37,
+   "rtf": 0.078,
+   "cer": 0.174,
+   "heard": "जल्दी रिपे, लों एक वोटर का बेरिंग हिस रहा है, तीन दिन से आवाज बड़ रही है, अभी टीक हो सकता है.  बेरिंग, 6205 पोराने जैसा नंबर, नक्बख, 315 से, 680 रपे, 1 से, 2 गंता.  शैहे दिन से ज्यादा चलाया, तो वोटर जल सकती है, लग्बभग 2 रब रपे.  जवाब देग एक मिस्त्री बलाओ, तो बाग में 3 पूरी जानकारी, अनुमानित डाम, और ",
+   "sample": "data\\tts\\samples\\piper-hi-priyamvada_hi_0.wav"
+  },
+  {
+   "engine": "piper-hi-priyamvada",
+   "lang": "hi",
+   "text": 1,
+   "chars": 32,
+   "audio_s": 2.18,
+   "synth_s": 0.18,
+   "rtf": 0.084,
+   "cer": 0.2,
+   "heard": "आजकी मशीन रपोट दियान दे",
+   "sample": "data\\tts\\samples\\piper-hi-priyamvada_hi_1.wav"
+  },
+  {
+   "engine": "piper-hi-rohan",
+   "lang": "hi",
+   "text": 0,
+   "chars": 333,
+   "audio_s": 25.8,
+   "synth_s": 2.48,
+   "rtf": 0.096,
+   "cer": 0.337,
+   "heard": "जल्दी रिपेर, लूम एक, मुर्टर का बेरिंग खिस रहा है, तीन दिन से आवाज बद रही है, आभी थीख हो सकता है.  बेरिंग 6205, पुराने जैसा नमबर, लक्वबग तीन सो पन्रसे चाहसो असी रुपाई,  जबाब दे एक मिस्त्री बुलाओ, दो बाद में तीन पुरी जानकारी, अनुमाने दाम और वारन्टी दीलर से पक्का करें।",
+   "sample": "data\\tts\\samples\\piper-hi-rohan_hi_0.wav"
+  },
+  {
+   "engine": "piper-hi-rohan",
+   "lang": "hi",
+   "text": 1,
+   "chars": 32,
+   "audio_s": 2.01,
+   "synth_s": 0.21,
+   "rtf": 0.105,
+   "cer": 0.2,
+   "heard": "आजकी मशीन्रिबोट द्यान दें",
+   "sample": "data\\tts\\samples\\piper-hi-rohan_hi_1.wav"
+  },
+  {
+   "engine": "mms-hi",
+   "lang": "hi",
+   "text": 0,
+   "chars": 333,
+   "audio_s": 26.24,
+   "synth_s": 10.5,
+   "rtf": 0.4,
+   "cer": 0.227,
+   "heard": "जल्दी रिपेर लूम ए वोटर का बेरिन गिस रहा है  च्दिन से आवाज बड़ रही है  अभी थीख हो सकता है  बेरिन दोवि कुराने जैसा नमवर लगबभख तीसे का द्रूपर  ए से खकन्ता तीन से जाडा चलाया  तो वोटर जल सकती है  लगबभख दोशाजा रूप्रे ज्वाबे ए विस्त्री बुलाओ दबाद मेंगे  पुरी जानकारी अन्मानित भाम और वारटी दीलर से पक्का करे",
+   "sample": "data\\tts\\samples\\mms-hi_hi_0.wav"
+  },
+  {
+   "engine": "mms-hi",
+   "lang": "hi",
+   "text": 1,
+   "chars": 32,
+   "audio_s": 2.64,
+   "synth_s": 1.25,
+   "rtf": 0.474,
+   "cer": 0.16,
+   "heard": "आजकी मशीम रिपोर्त द्यान दे",
+   "sample": "data\\tts\\samples\\mms-hi_hi_1.wav"
+  },
+  {
+   "engine": "mms-mr",
+   "lang": "mr",
+   "text": 0,
+   "chars": 347,
+   "audio_s": 27.28,
+   "synth_s": 10.77,
+   "rtf": 0.395,
+   "cer": 0.308,
+   "heard": "लोग कर दूरुस्त का लूम्दाग मोटर चे भेरीन जूजता है  दिव्सां पासुन अवाज वार्तोए आता  दूरुस्त हो शक्ते देरीन तल जून्यासर का  नंवर सुमारे तर ते चारूपटे  ते दा तास्त दिव्सान पेक्षा जास्त चालो ले  तर मोटर जूज्सक्ते सुमारे गषर वूपटे  उतर देव्स्त्री बोल वागा  नंतक सुस्त माहितिक अन्दाजे  कि मक अनेवान्टिक दिले",
+   "sample": "data\\tts\\samples\\mms-mr_mr_0.wav"
+  },
+  {
+   "engine": "mms-mr",
+   "lang": "mr",
+   "text": 1,
+   "chars": 29,
+   "audio_s": 3.01,
+   "synth_s": 1.31,
+   "rtf": 0.434,
+   "cer": 0.348,
+   "heard": "आचा मुशिन आह्वाल लक्षेट्तिला",
+   "sample": "data\\tts\\samples\\mms-mr_mr_1.wav"
+  },
+  {
+   "engine": "mms-gu",
+   "lang": "gu",
+   "text": 0,
+   "chars": 335,
+   "audio_s": 23.41,
+   "synth_s": 9.02,
+   "rtf": 0.385,
+   "cer": 0.634,
+   "heard": "जल्दी रीपेर करावोडलूम वोटर नु भेरिन गसाए रहीूचे  दीवस्ती कवाज वदी रहीूचे  हमना थीक ठेषके वेरिन जूना जीवो नम्बल लबग्स्ती दूप्या थी  कलाक दीवस्ती वदूचलाव्य।  तो वोटर बडीषकेषे  लग्बर दूप्या जवाब आपो मिस्त्री बुलाओ  पची पूरी महेती अंदाजित भाओ  अने वोरन्टी दीलर पासे पाकू करो",
+   "sample": "data\\tts\\samples\\mms-gu_gu_0.wav"
+  },
+  {
+   "engine": "mms-gu",
+   "lang": "gu",
+   "text": 1,
+   "chars": 32,
+   "audio_s": 2.13,
+   "synth_s": 0.98,
+   "rtf": 0.461,
+   "cer": 0.577,
+   "heard": "आजनो मशीन लिए पोट द्यान्दाखो",
+   "sample": "data\\tts\\samples\\mms-gu_gu_1.wav"
+  },
+  {
+   "engine": "mms-en",
+   "lang": "en",
+   "text": 0,
+   "chars": 357,
+   "audio_s": 24.21,
+   "synth_s": 9.36,
+   "rtf": 0.387,
+   "cer": 0.145,
+   "heard": "Repair soon loom of the bell-bearing in the mortar is wearing out sound rising for days.  Fixable now bell-bearing fan, same number as the old one about God, to the Rupees.  Toto with run it more than days, and the mortar can burn about a hundred rupees,  Ripley ascend mechanic, later details, typei",
+   "sample": "data\\tts\\samples\\mms-en_en_0.wav"
+  },
+  {
+   "engine": "mms-en",
+   "lang": "en",
+   "text": 1,
+   "chars": 32,
+   "audio_s": 2.54,
+   "synth_s": 1.17,
+   "rtf": 0.46,
+   "cer": 0.179,
+   "heard": "Today's Mach-Chain Report Watch.",
+   "sample": "data\\tts\\samples\\mms-en_en_1.wav"
+  }
+ ],
+ "picked": {
+  "en": {
+   "engine": "mms-en",
+   "cer_median": 0.162,
+   "rtf_median": 0.423,
+   "others": [],
+   "notes": [
+    "CC-BY-NC-4.0: non-commercial; replace before selling"
+   ]
+  },
+  "gu": {
+   "engine": "mms-gu",
+   "cer_median": 0.605,
+   "rtf_median": 0.423,
+   "others": [],
+   "notes": [
+    "high CER: part of it is faster-whisper's own error on this language; have a native speaker listen before relying on it",
+    "CC-BY-NC-4.0: non-commercial; replace before selling"
+   ]
+  },
+  "hi": {
+   "engine": "piper-hi-priyamvada",
+   "cer_median": 0.187,
+   "rtf_median": 0.081,
+   "others": [
+    "mms-hi",
+    "piper-hi-rohan",
+    "piper-hi-pratham"
+   ],
+   "notes": []
+  },
+  "mr": {
+   "engine": "mms-mr",
+   "cer_median": 0.328,
+   "rtf_median": 0.414,
+   "others": [],
+   "notes": [
+    "CC-BY-NC-4.0: non-commercial; replace before selling"
+   ]
+  }
+ }
+}
