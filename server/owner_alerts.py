@@ -499,7 +499,7 @@ class OwnerAlerts:
         owner = self.factory_of_owner(phone)
         brain = getattr(self.live, "brain", None)
         if owner and brain is not None and (brain.store.questions(factory=owner, open_only=True)
-                                            or brain.open_investigation(owner)):  # fmt: skip
+                                            or brain.open_investigation(owner) or brain.open_approval(owner)):  # fmt: skip
             got = self._to_planner("owner_reply", phone, None, owner, {"text": text, "channel": "whatsapp"})
             return {"planner": got and got.get("decision"), "factory": owner}
         return None

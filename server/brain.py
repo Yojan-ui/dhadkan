@@ -369,6 +369,15 @@ class Brain:
         )
         return {"id": rid, **sig}
 
+    def open_approval(self, factory: str) -> dict[str, Any] | None:
+        """A booking or purchase approval waiting for this factory's owner (answered with 1 / 2)."""
+        for a in self.store.approvals(status="requested"):
+            if a["kind"] in ("booking", "purchase") and a["case_id"]:
+                c = self.store.case(a["case_id"])
+                if self.c.machines.get(c["machine"], {}).get("factory") == factory:
+                    return a
+        return None
+
     def open_investigation(self, factory: str) -> dict[str, Any] | None:
         """The newest measurement the planner asked this factory's owner for and has not had back."""
         best = None

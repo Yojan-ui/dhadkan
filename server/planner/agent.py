@@ -287,6 +287,17 @@ class Planner:
                     out["measurement"] = self._hand_check(case, meas, n)
                 elif q:
                     out["answer"] = self._answer(ev, q, text)
+                elif (
+                    a := self._open_approval(ev)
+                ) is not None:  # the fixed plan's "Reply 1 to book, 2 for later"
+                    word = parse_choice(text)
+                    yes = n == 1 or (n is None and word == "book")
+                    no = n == 2 or (n is None and word == "later")
+                    if yes or no:
+                        dec = "approved" if yes else "rejected"
+                        out["decision"] = {"approval": a["id"], "decision": dec,
+                                           "result": self.agent.decide(a["id"], dec, by="owner",
+                                                                       channel=str(p.get("channel") or "whatsapp"), ref=ev.idem)}  # fmt: skip
             prefs = preferences(text)
             if prefs and ev.factory:
                 for n in prefs:
@@ -388,6 +399,14 @@ class Planner:
         return {"question": q["id"], "chose": pick["n"], "means": pick["means"], "label": pick["label"],
                 "technician": pick.get("technician"), "day": pick.get("day"), "approval": pick.get("approval"),
                 "applied": decided}  # fmt: skip
+
+    def _open_approval(self, ev: Event) -> dict[str, Any] | None:
+        """The newest booking or purchase approval waiting for this factory's owner."""
+        if not ev.factory:
+            return None
+        rows = [a for a in self.s.approvals(status="requested") if a["kind"] in ("booking", "purchase")
+                and a["case_id"] and self.s.machine(self.s.case(a["case_id"])["machine"])["factory"] == ev.factory]  # fmt: skip
+        return max(rows, key=lambda a: a["requested"]) if rows else None
 
     def _open_measurement(
         self, case: dict[str, Any] | None, kind: str | None = None

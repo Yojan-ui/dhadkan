@@ -135,7 +135,7 @@ def test_a_photo_is_stored_and_attached_to_the_case(world):
 
 
 # ---------------------------------------------------------------- the mechanic's job
-def approve_and_book(app):
+def approve_and_book(app, c):
     brain = app.state.brain
     case = brain.store.open_case(MID)
     with brain.lock:
@@ -143,7 +143,10 @@ def approve_and_book(app):
     aid = f"{case['id']}:booking"
     assert brain.store.approval(aid)["status"] == "requested"
     assert brain.desk.jobs(case["id"]) == []  # nothing goes to a mechanic before the owner's yes
-    brain.decide(aid, "approved", by="owner", channel="whatsapp")
+    assert "Reply 1 to book" in thread(c, "owner")[-1]
+    say(c, "owner", "1")  # the owner's yes, on WhatsApp
+    a = brain.store.approval(aid)
+    assert a["status"] == "approved" and a["decided_by"] == "owner" and a["channel"] == "whatsapp"
     with brain.lock:
         brain.agent.tick()
     return case
@@ -154,7 +157,7 @@ def test_the_whole_loop_from_approval_to_a_signed_record(world):
     brain = app.state.brain
     rng = np.random.default_rng(4)
     open_case(app, c, rng)
-    case = approve_and_book(app)
+    case = approve_and_book(app, c)
     job = brain.desk.jobs(case["id"])[-1]
     text = thread(c, "mechanic")[-1]
     assert (
@@ -197,7 +200,7 @@ def test_a_mechanic_declining_re_plans_without_asking_the_owner_again(world):
     app, c = world
     brain = app.state.brain
     open_case(app, c, np.random.default_rng(5))
-    case = approve_and_book(app)
+    case = approve_and_book(app, c)
     first = brain.desk.jobs(case["id"])[-1]["technician"]
     say(c, "mechanic", "2")
     with brain.lock:
@@ -214,7 +217,7 @@ def test_a_dearer_replacement_needs_the_owner_again(world, monkeypatch):
     app, c = world
     brain = app.state.brain
     open_case(app, c, np.random.default_rng(6))
-    case = approve_and_book(app)
+    case = approve_and_book(app, c)
     first = brain.desk.jobs(case["id"])[-1]["technician"]
     for p in brain.agent.t.technicians.people:  # every other mechanic charges more than the approved visit
         if p["id"] != first:
@@ -231,7 +234,7 @@ def test_no_answer_in_time_is_a_no_show_and_re_plans(world, monkeypatch):
     app, c = world
     brain = app.state.brain
     open_case(app, c, np.random.default_rng(7))
-    case = approve_and_book(app)
+    case = approve_and_book(app, c)
     first = brain.desk.jobs(case["id"])[-1]["technician"]
     later = time.time() + 5 * 3600
     monkeypatch.setattr(brain.desk, "now", lambda: later)
@@ -248,7 +251,7 @@ def test_another_time_keeps_the_mechanic_on_a_different_day(world):
     app, c = world
     brain = app.state.brain
     open_case(app, c, np.random.default_rng(8))
-    case = approve_and_book(app)
+    case = approve_and_book(app, c)
     first = brain.desk.jobs(case["id"])[-1]
     say(c, "mechanic", "3")
     with brain.lock:
@@ -263,7 +266,7 @@ def test_owner_commands_answer_from_stored_facts_and_band_karo_calls_no_tool(wor
     app, c = world
     brain = app.state.brain
     open_case(app, c, np.random.default_rng(9))
-    case = approve_and_book(app)
+    case = approve_and_book(app, c)
     st = say(c, "owner", "status")["handled"][0]
     assert st["command"] == "status" and "Blower 1" in st["reply"]
     cost = say(c, "owner", "kitna kharcha?")["handled"][0]
