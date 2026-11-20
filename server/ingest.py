@@ -5,6 +5,17 @@ an uploaded recording, or the simulated device (tools/sim_device.py).
     POST /api/ingest/reading    {device, seq, machine, kind, sr, samples_b64, source, ts?}
     GET  /api/ingest/{machine}  latest readings with their source label
 
+The live recorder (web ?view=record, server/live_feed.py) uses the same reading endpoint. For a machine of
+the cluster that the recorder feeds, the reading goes into the brain's pipeline (baseline -> detectors ->
+health -> planner events) instead of the separate ingest store:
+
+    GET  /api/ingest/live                   factories, machines (with live status), the quick-learn setting
+    POST /api/ingest/live/machine           {factory, name, mtype, hp}: register a new machine
+    POST /api/ingest/live/start             {machine, device, quick}: learn its normal again from live clips
+    POST /api/ingest/live/stop              {machine}: hand it back to the simulator
+    POST /api/ingest/live/mark              {machine, label}: e.g. fault_on, for the measured trial
+    GET  /api/ingest/live/{machine}         learning progress, risk, health
+
 Every reading carries its source ("live" = a device in a shed, "upload" = a recording someone sent,
 "simulated" = the demo device) and is stored with it; the dashboard shows the label. A reading is
 identified by device:seq, so a device that resends after a lost reply is never counted twice.
@@ -40,6 +51,32 @@ class RegisterIn(BaseModel):
     ts: float | None = None
 
 
+class LiveMachineIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    factory: str = Field(min_length=1, max_length=8)
+    name: str = Field(min_length=1, max_length=40)
+    mtype: str = Field(pattern="^(pump|fan|gearbox|valve|slider)$")
+    hp: float = Field(default=1.0, gt=0, le=200)
+
+
+class LiveStartIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    machine: str = Field(min_length=1, max_length=64)
+    device: str = Field(min_length=1, max_length=64)
+    quick: bool = True
+
+
+class LiveStopIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    machine: str = Field(min_length=1, max_length=64)
+
+
+class LiveMarkIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    machine: str = Field(min_length=1, max_length=64)
+    label: str = Field(pattern="^(fault_on|fault_off|note)$")
+
+
 class ReadingIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     device: str = Field(min_length=1, max_length=64)
@@ -65,9 +102,58 @@ def decode(b64: str, sr: int) -> np.ndarray:
     return x if sr == SR else librosa.resample(x, orig_sr=sr, target_sr=SR)
 
 
-def router(db_path: Path | None = None) -> APIRouter:
+def router(db_path: Path | None = None, brain: Any = None) -> APIRouter:
     r = APIRouter(prefix="/api/ingest")
     store = BaselineStore(db_path or ROOT / "data" / "ingest.db")
+    feed = getattr(brain, "feed", None)
+
+    def need_feed() -> Any:
+        if feed is None:
+            raise HTTPException(503, "the live recorder needs the server's brain")
+        return feed
+
+    @r.get("/live")
+    def live_index() -> dict[str, Any]:
+        f = need_feed()
+        c = brain.c
+        from .live_feed import CLIP_S, QUICK_CLIPS, QUICK_LABEL, QUICK_LEARN_S
+
+        return {"factories": [{k: x.get(k) for k in ("id", "name", "name_local", "language")} for x in c.cfg["factories"]],
+                "machines": [{**{k: m.get(k) for k in ("id", "factory", "name", "name_local", "type")},
+                              "live": f.status(mid) if f.is_live(mid) else None} for mid, m in c.machines.items()],
+                "quick": {"clips": QUICK_CLIPS, "seconds": QUICK_LEARN_S, "clip_s": CLIP_S, "label": QUICK_LABEL}}  # fmt: skip
+
+    @r.post("/live/machine")
+    def live_machine(body: LiveMachineIn) -> dict[str, Any]:
+        try:
+            return need_feed().add_machine(body.factory, body.name, body.mtype, body.hp)
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
+
+    @r.post("/live/start")
+    def live_start(body: LiveStartIn) -> dict[str, Any]:
+        try:
+            return need_feed().start(body.machine, body.device, body.quick)
+        except KeyError as e:
+            raise HTTPException(404, "unknown machine") from e
+
+    @r.post("/live/stop")
+    def live_stop(body: LiveStopIn) -> dict[str, Any]:
+        return need_feed().stop(body.machine)
+
+    @r.post("/live/mark")
+    def live_mark(body: LiveMarkIn) -> dict[str, Any]:
+        try:
+            return need_feed().mark(body.machine, body.label)
+        except KeyError as e:
+            raise HTTPException(409, "this machine is not fed by the live recorder") from e
+
+    @r.get("/live/{machine}")
+    def live_status(machine: str) -> dict[str, Any]:
+        f = need_feed()
+        if machine not in brain.c.machines:
+            raise HTTPException(404, "unknown machine")
+        return f.status(machine)
 
     @r.post("/register")
     def register(body: RegisterIn) -> dict[str, Any]:
@@ -78,6 +164,18 @@ def router(db_path: Path | None = None) -> APIRouter:
     def reading(body: ReadingIn) -> dict[str, Any]:
         if body.source not in SOURCES:
             raise HTTPException(422, f"source must be one of {SOURCES}")
+        if (
+            feed is not None and body.machine in brain.c.machines
+        ):  # the cluster's machine: the brain's pipeline
+            if not feed.is_live(body.machine):
+                raise HTTPException(
+                    409, "start the live recorder for this machine first (/api/ingest/live/start)"
+                )
+            if body.source != "live" or body.kind != "audio":
+                raise HTTPException(422, "the live recorder sends audio with source 'live'")
+            audio = decode(body.samples_b64, body.sr)
+            return {**feed.reading(body.machine, audio, body.device, body.seq, ts=body.ts), "kind": body.kind,
+                    "source": body.source}  # fmt: skip
         try:
             store.machine(body.machine)
         except KeyError as e:

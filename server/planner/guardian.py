@@ -133,6 +133,14 @@ def review_paid(store: Any, agent: Any, tool: str, args: dict[str, Any]) -> dict
         ok_ids = {p["approval"] for p in case["context"].get("proposed", [])
                   if p["technician"] == args.get("technician") and p["day"] == args.get("day")}  # fmt: skip
         approved = [a for a in approved if a["id"] in ok_ids or a.get("decided_by") == "policy"]
+    if (
+        not approved
+        and tool == "book_job"
+        and cid
+        and (cover := agent.approval_covers(cid, args.get("technician")))
+    ):
+        return {"ok": True, "reasons": [],
+                "basis": f"approval {cover['id']} still covers a replacement mechanic at no extra cost"}  # fmt: skip
     if not approved and tool == "book_job" and cid:
         pol = agent.autonomy(cid)
         if pol and pol.get("mechanic") == args.get("technician"):

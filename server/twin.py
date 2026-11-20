@@ -8,6 +8,8 @@
 - rupees at risk in the next 2 days: sum over machines (forecast x the factory's cost profile)
 - overall health: share of machines not at watch / alarm (learning counts as fine)
 - agent checklist: steps of the last agent run (observe, diagnose, plan, ask owner, act, verify)
+
+A machine the live recorder feeds (server/live_feed.py) is ranked on its live readings, flagged `live`.
 """
 
 from collections import defaultdict
@@ -38,10 +40,24 @@ def summary(live: Any, focus: str | None = None, n_shifts: int = 9) -> dict[str,
     keys = sorted(by_shift)[-n_shifts:]
     shifts = [{"shift": k, "mean": round(sum(by_shift[k]) / len(by_shift[k]), 3), "max": round(max(by_shift[k]), 3),
                "readings": len(by_shift[k])} for k in keys]  # fmt: skip
+    feed = getattr(getattr(live, "brain", None), "feed", None)
+    live_ids = set(feed.live_ids()) if feed is not None else set()
+    rank = [r for r in rank if r["machine_id"] not in live_ids]  # the simulator does not speak for them
     ranking = [{"id": r["machine_id"], "name": r["machine"], "factory": r["factory"], "risk": r["risk"],
-                "status": r["status"]} for r in sorted(rank, key=lambda r: -r["risk"])]  # fmt: skip
+                "status": r["status"], "live": False} for r in rank]  # fmt: skip
+    for mid in sorted(live_ids):
+        e = feed.twin_entry(mid)
+        m = live.c.machines[mid]
+        counts[e["status"]] += 1
+        ranking.append({"id": mid, "name": m["name"], "factory": m["factory"], "live": True,
+                        "risk": round(float((e["latest"] or {}).get("risk") or 0.0), 3), "status": e["status"]})  # fmt: skip
+        rank.append({"status": e["status"], "rupees_at_risk": 0})
+    ranking.sort(key=lambda r: -r["risk"])
     focus = focus if focus in live.c.machines else (ranking[0]["id"] if ranking else None)
-    trend = [round(h["risk"], 3) for h in live.c.history(focus, 42)] if focus else []
+    if focus in live_ids:
+        trend = [h["risk"] for h in feed.twin_entry(focus)["history"]][-42:]
+    else:
+        trend = [round(h["risk"], 3) for h in live.c.history(focus, 42)] if focus else []
     flagged = sum(counts[s] for s in ("alarm", "early_match", "watch"))
     agent = getattr(live, "last_agent", None) or {}
     return {

@@ -7,7 +7,7 @@ export interface Twin {
   clock: string | null;
   chips: { ok: number; learning: number; watch: number; alert: number; total: number };
   shifts: { shift: string; mean: number; max: number; readings: number }[];
-  ranking: { id: string; name: string; factory: string; risk: number; status: string }[];
+  ranking: { id: string; name: string; factory: string; risk: number; status: string; live?: boolean }[];
   focus: string | null;
   focus_name: string | null;
   trend: number[];
@@ -150,6 +150,7 @@ export function RiskList({ t, onPick }: { t: Twin | null; onPick: (id: string) =
           <li key={r.id} onClick={() => onPick(r.id)}>
             <span className="nm">
               {r.name} <small>{r.factory}</small>
+              {r.live && <b className="live-badge">LIVE</b>}
             </span>
             <span className="bar">
               <i

@@ -44,6 +44,32 @@ from server.owner_agent import DAYS, inr, ist
 from . import grounding, guardian
 
 ORDERS = ROOT / "data" / "demo" / "orders.json"
+CONFIDENCE_FROM = {
+    "high": 0.8,
+    "medium": 0.55,
+    "low": 0.35,
+}  # health confidence -> a starting number (assumption)
+
+
+def fault_confidence(case: dict[str, Any], health: dict[str, Any] | None) -> float:
+    """How sure the case is that the machine has a real fault, 0..1: the case's own number once an
+    investigation has updated it, else a starting point from the health assessment's confidence."""
+    c = case["context"].get("fault_confidence")
+    if isinstance(c, (int, float)):
+        return float(c)
+    return CONFIDENCE_FROM.get(str((health or {}).get("confidence") or case.get("confidence") or ""), 0.55)
+
+
+def update_confidence(before: float, direction: str) -> float:
+    """An answer that supports a fault moves the confidence 60% of the way to 1; one that speaks against it
+    halves it; a photo (no image model) leaves it. Assumptions, stated in the trace."""
+    if direction == "up":
+        return round(before + (1 - before) * 0.6, 2)
+    if direction == "down":
+        return round(before * 0.5, 2)
+    return round(before, 2)
+
+
 WD = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 DEFAULT_SHIFT = [["09:00", "18:00"]]  # assumption when the factory profile has no shift hours
 MEANS = ("approve_booking", "approve_purchase", "stop_noted", "later", "info")
@@ -51,28 +77,28 @@ KINDS = ("audio", "hand_check", "photo")
 
 MEASURE = {
     "audio": {
-        "en": "Please hold the phone near {m}, record 10 seconds and send it here.",
-        "hi_latn": "Phone ko {m} ke paas rakh ke 10 second ki awaaz record karke yahan bhejiye.",
-        "hi": "फ़ोन को {m} के पास रखकर 10 सेकंड रिकॉर्ड करके यहाँ भेजिए।",
-        "mr": "आवाज तपासायचा आहे: फोन {m} जवळ ठेवून 10 सेकंद रेकॉर्ड करून इथे पाठवा.",
-        "gu": "ફોન {m} પાસે રાખીને 10 સેકન્ડ રેકોર્ડ કરીને અહીં મોકલો.",
-        "ta": "தொலைபேசியை {m} அருகில் வைத்து 10 வினாடி பதிவு செய்து இங்கே அனுப்புங்கள்.",
+        "en": "Please hold the phone near {m}'s motor, record 10 seconds and send it here.",
+        "hi_latn": "Phone ko {m} ki motor ke paas rakh ke 10 sec ki awaaz record karo aur yahan bhejo.",
+        "hi": "फ़ोन को {m} की मोटर के पास रखकर 10 सेकंड रिकॉर्ड करो और यहाँ भेजो।",
+        "mr": "फोन {m} च्या मोटरजवळ ठेवून 10 सेकंद रेकॉर्ड करा आणि इथे पाठवा.",
+        "gu": "ફોન {m} ની મોટર પાસે રાખીને 10 સેકન્ડ રેકોર્ડ કરો અને અહીં મોકલો.",
+        "ta": "தொலைபேசியை {m} மோட்டார் அருகில் வைத்து 10 வினாடி பதிவு செய்து இங்கே அனுப்புங்கள்.",
     },
     "hand_check": {
-        "en": "When {m} is switched off, touch its bearing housing. Reply 1 = hot, 2 = loose or shaking, 3 = fine.",
-        "hi_latn": "Jab {m} band ho, uski bearing housing ko haath lagaiye. Jawab: 1 = garam, 2 = dheeli/hil rahi, 3 = theek.",
-        "hi": "जब {m} बंद हो, उसकी बेयरिंग हाउसिंग को हाथ लगाइए। जवाब: 1 = गरम, 2 = ढीली/हिल रही, 3 = ठीक।",
-        "mr": "{m} बंद असताना बेअरिंग हाउसिंगला हात लावा. ती गरम आहे का? उत्तर: 1 = गरम, 2 = सैल/हलते, 3 = ठीक.",
-        "gu": "{m} બંધ હોય ત્યારે બેરિંગ હાઉસિંગને હાથ લગાડો. જવાબ: 1 = ગરમ, 2 = ઢીલું/હલે છે, 3 = બરાબર.",
-        "ta": "{m} அணைந்திருக்கும் போது பேரிங் ஹவுசிங்கைத் தொடுங்கள். பதில்: 1 = சூடு, 2 = தளர்வு, 3 = சரி.",
+        "en": "When {m} is switched off, touch the end of its motor. Is it hot? 1 = yes, 2 = no",
+        "hi_latn": "{m} band hone par motor ka end chhoo ke dekho: garam hai? 1 = haan, 2 = nahi",
+        "hi": "{m} बंद होने पर मोटर का सिरा छूकर देखो: गरम है? 1 = हाँ, 2 = नहीं",
+        "mr": "{m} बंद असताना मोटरच्या टोकाला हात लावा: गरम आहे का? 1 = हो, 2 = नाही",
+        "gu": "{m} બંધ હોય ત્યારે મોટરના છેડાને અડકો: ગરમ છે? 1 = હા, 2 = ના",
+        "ta": "{m} அணைந்திருக்கும் போது மோட்டாரின் முனையைத் தொடுங்கள்: சூடாக உள்ளதா? 1 = ஆம், 2 = இல்லை",
     },
     "photo": {
-        "en": "Please send one clear photo of {m}'s belt and bearing.",
-        "hi_latn": "{m} ki belt aur bearing ki ek saaf photo bhejiye, jo theek se dikhe.",
-        "hi": "{m} की बेल्ट और बेयरिंग की एक साफ़ फ़ोटो भेजिए।",
-        "mr": "{m} च्या बेल्ट आणि बेअरिंगचा एक स्पष्ट फोटो हवा आहे, इथे पाठवा.",
-        "gu": "{m} ના બેલ્ટ અને બેરિંગનો એક સ્પષ્ટ ફોટો મોકલો.",
-        "ta": "{m} இன் பெல்ட் மற்றும் பேரிங்கின் ஒரு தெளிவான புகைப்படம் அனுப்புங்கள்.",
+        "en": "Please send a clear photo of {m}'s belt.",
+        "hi_latn": "{m} ki belt ki ek saaf photo bhejo, jo theek se dikhe.",
+        "hi": "{m} की बेल्ट की फ़ोटो भेजो, साफ़ दिखे।",
+        "mr": "{m} च्या बेल्टचा स्पष्ट फोटो पाठवा.",
+        "gu": "{m} ના બેલ્ટનો સ્પષ્ટ ફોટો મોકલો.",
+        "ta": "{m} இன் பெல்ட்டின் தெளிவான புகைப்படம் அனுப்புங்கள்.",
     },
 }  # fmt: skip
 
@@ -649,9 +675,12 @@ class ToolBox:
         n = len(list(c["context"].get("measurements", []))) + 1
         sent = self._send(c, f"measure:{kind}:{n}", text)
         cur = self.s.case(c["id"])
+        conf = fault_confidence(cur, self.e.health_of(machine_id))
         meas = [*cur["context"].get("measurements", []),
-                {"n": n, "kind": kind, "asked": self.a.clock(), "status": "asked", "text": text}]  # fmt: skip
-        self.s.update_case(c["id"], cur["version"], context=cur["context"] | {"measurements": meas})
+                {"n": n, "kind": kind, "asked": self.a.clock(), "status": "asked", "text": text,
+                 "confidence_before": conf}]  # fmt: skip
+        self.s.update_case(c["id"], cur["version"], context=cur["context"] | {"measurements": meas,
+                                                                             "fault_confidence": conf})  # fmt: skip
         return {
             "asked": kind,
             "text": text,
@@ -726,6 +755,8 @@ class ToolBox:
             p for p in c["context"].get("proposed", []) if p["technician"] == technician and p["day"] == day
         ]
         ok = [p for p in prop if (self.s.approval(p["approval"]) or {}).get("status") == "approved"]
+        if not ok and (cover := self.a.approval_covers(case_id, technician)):  # a re-plan at no extra cost
+            ok = [{"technician": technician, "day": day, "approval": cover["id"]}]
         if not ok and self.a.auto_approve(case_id, "book_job", technician):  # the owner's policy, in code
             ok = [{"technician": technician, "day": day, "approval": "autonomy_policy"}]
         if not ok:

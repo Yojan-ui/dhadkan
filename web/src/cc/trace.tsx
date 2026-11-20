@@ -10,6 +10,8 @@ const EVENT_WORD: Record<string, string> = {
   health_change: "health changed",
   owner_reply: "owner replied",
   owner_voice_note: "voice note",
+  owner_photo: "owner sent a photo",
+  investigation_result: "investigation answered",
   mechanic_reply: "mechanic replied",
   mechanic_no_show: "mechanic did not come",
   part_out_of_stock: "part out of stock",
@@ -72,6 +74,13 @@ export function TraceCase({ c, compact = false }: { c: PlannerCase; compact?: bo
                     {t.summary ? `: ${t.summary}` : ""}
                   </div>
                 ))}
+              </div>
+            )}
+            {s.investigation && (
+              <div className="tiny mono">
+                asked: {s.investigation.asked ?? s.investigation.kind} → answered: {s.investigation.answered}{" "}
+                → confidence {s.investigation.confidence_before?.toFixed(2)} →{" "}
+                {s.investigation.confidence_after?.toFixed(2)}
               </div>
             )}
             {s.observed && s.observed.length > 0 && (

@@ -3,6 +3,7 @@ import type { Meta, State } from "../api";
 import { useFrame } from "../api";
 import { inr, mechanicLine, STATUS_WORD } from "../theme";
 import { HealthRing } from "./bits";
+import { WaPhones } from "./WaPhones";
 
 export function PhoneList({
   state,
@@ -64,6 +65,15 @@ export function PhoneList({
           </ul>
         </section>
       ))}
+      <section className="wa-foot">
+        <h2 className="row between">
+          <span>Owner and mechanic on WhatsApp (demo)</span>
+          <a className="small" href="?view=phones">
+            full screen
+          </a>
+        </h2>
+        <WaPhones factories={meta.factories} />
+      </section>
     </div>
   );
 }

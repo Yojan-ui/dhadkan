@@ -462,7 +462,9 @@ def test_triage_orders_cases_for_one_mechanic(world):
 def test_measurement_request_in_the_owners_language_and_rescore(world):
     box = tb(world)
     out = box.dispatch("request_measurement", {"machine_id": "C-G1", "instruction": "", "kind": "audio"})
-    assert out["text"].startswith("Phone ko Flour mill 1 ke paas rakh ke 10 second")
+    assert out["text"].startswith(
+        "Phone ko Flour mill 1 ki motor ke paas rakh ke 10 sec ki awaaz record karo"
+    )
     assert sent(world, "notify")
     p = world.make(score_audio=lambda m, path: 1.8)
     got = p.handle(world.bus.emit("owner_voice_note", machine="C-G1", factory="C", idem="v:2",

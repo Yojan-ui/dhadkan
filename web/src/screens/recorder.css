@@ -1,0 +1,177 @@
+/* Live recorder (?view=record): one column, big buttons, readable outdoors on a phone. */
+.rec {
+  --bg: #16171a;
+  --card: #202226;
+  --ink: #f3f1ec;
+  --muted: #9a9ea6;
+  --accent: #ff6a13;
+  --ok: #3f9d6a;
+  --bad: #e5484d;
+  min-height: 100vh;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px;
+  background: var(--bg);
+  color: var(--ink);
+  font:
+    16px/1.4 Inter,
+    "Noto Sans Devanagari",
+    system-ui,
+    sans-serif;
+  box-sizing: border-box;
+}
+.rec * {
+  box-sizing: border-box;
+}
+.rec-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.rec-live {
+  background: var(--bad);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.rec-lang {
+  margin-left: auto;
+}
+.rec button,
+.rec select,
+.rec input {
+  font: inherit;
+  color: var(--ink);
+  background: #2b2e33;
+  border: 1px solid #3d4046;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+.rec-card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 14px;
+  margin: 12px 0;
+  display: grid;
+  gap: 10px;
+}
+.rec-card label {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.rec-card label.rec-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rec-form {
+  display: grid;
+  grid-template-columns: 1fr auto 5em;
+  gap: 8px;
+}
+.rec-form button {
+  grid-column: 1 / -1;
+}
+.rec-link {
+  background: none !important;
+  border: none !important;
+  color: var(--accent) !important;
+  text-align: left;
+  padding: 0 !important;
+}
+.rec-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.rec-big {
+  font-size: 22px !important;
+  font-weight: 700;
+  padding: 26px 12px !important;
+  border-radius: 16px !important;
+}
+.rec-big:disabled {
+  opacity: 0.4;
+}
+.rec-big.learn {
+  background: #2f5f8a !important;
+}
+.rec-big.monitor {
+  background: var(--ok) !important;
+}
+.rec-big.stop {
+  grid-column: 1 / -1;
+  background: var(--bad) !important;
+}
+.rec-meter,
+.rec-progress {
+  height: 14px;
+  background: #2b2e33;
+  border-radius: 7px;
+  overflow: hidden;
+}
+.rec-meter div,
+.rec-progress div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.1s linear;
+}
+.rec-progress div {
+  background: #6aa7e0;
+}
+.rec-hint,
+.rec-foot,
+.rec-queued {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+.rec-state {
+  font-weight: 700;
+  margin: 0;
+}
+.rec-demo {
+  color: var(--accent);
+  font-weight: 400;
+  font-size: 14px;
+}
+.rec-count {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+.rec-risk {
+  margin: 0;
+  font-size: 56px;
+  font-weight: 800;
+  display: grid;
+}
+.rec-risk small {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.rec-risk.high {
+  color: var(--bad);
+}
+.rec-urgency {
+  margin: 0;
+  text-transform: capitalize;
+}
+.rec-error {
+  background: #4a1f22;
+  border: 1px solid var(--bad);
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 600;
+}
+.rec-marks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}

@@ -167,7 +167,7 @@ class Planner:
                 case = self.s.case(effects["case_id"])
             case = self._case_for(ev) if case is None else self.s.case(case["id"])
             cid = case["id"] if case else None
-            reason = self._no_llm_reason(case) or self._routine_reason(ev)
+            reason = self._no_llm_reason(case) or self._routine_reason(ev) or self._answer_reason(ev, effects)
             tier = llm.tier_for(ev.type, ev.payload | {"unsure": self._unsure(ev, case)})
             model, effort = llm.model_for(tier)
             did = self.s.start_decision(ev.idem, ev.type, cid, ev.machine or (case or {}).get("machine"),
@@ -182,6 +182,11 @@ class Planner:
                     self.s.log(
                         "planner", "llm_error", cid, error=f"{type(e).__name__}: {e}"[:300], decision=did
                     )
+        if out is None and reason and reason.startswith("answer applied by code"):
+            # not a hand-over to the fixed plan: the investigation_result event is the planner's next turn
+            with self.lock:
+                self.s.set_decision(did, status="done", engine="code", outcome=reason)
+            out = {"engine": "code", "reason": reason, "reply": "", "calls": [], "steps": []}
         if out is None:
             out = self._rules(ev, case, effects, did, reason or "rules")
         with self.lock:
@@ -202,6 +207,41 @@ class Planner:
                 return f"case LLM budget used (₹{spent:.2f} of ₹{cap:g})"
             if case["context"].get("driver") == "rules" and case["context"].get("handoff"):
                 return f"case handed to the fixed plan ({case['context']['handoff']})"
+        return None
+
+    def _reply_choice(self, ev: Event, ctx: dict[str, Any], did: int, case: dict[str, Any] | None, reply: str,
+                      engine: str, g: dict[str, Any]) -> tuple[str, str]:  # fmt: skip
+        """Granite's reply to an owner's chat is kept only if it passed the number grounding and the
+        Guardian (g), and came back in the owner's language and script; DHADKAN_GRANITE_REPLIES=0 always
+        uses the template. Which one was used is logged (event reply_source)."""
+        from server.owner_agent import detect_lang
+
+        want = str(ev.payload.get("lang") or ctx.get("owner_language") or "")
+        got = detect_lang(reply) if reply else None
+        why = None
+        if not g.get("ok", True):
+            why = "grounding or Guardian rejected the Granite reply"
+        elif env.get("DHADKAN_GRANITE_REPLIES") == "0":
+            why = "Granite replies switched off (DHADKAN_GRANITE_REPLIES=0)"
+        elif reply and want and got != want:
+            why = f"wrong language: asked in {want}, Granite answered in {got}"
+        elif not reply:
+            why = "no Granite reply"
+        if why and g.get("ok", True):  # still to replace (a failed check above already used the rules reply)
+            legacy = self.rules_reply(ev) if self.rules_reply else None
+            reply, engine = (legacy or {}).get("reply", ""), provider.NAME + "+template"
+        source = "template" if why else "granite"
+        with self.lock:
+            self.s.log("planner", "reply_source", (case or {}).get("id"), decision=did, source=source, why=why,
+                       lang_wanted=want, lang_got=got)  # fmt: skip
+        return reply, engine
+
+    def _answer_reason(self, ev: Event, effects: dict[str, Any]) -> str | None:
+        """An owner's answer to an investigation is applied by code; the planner's turn is on the
+        investigation_result event that follows (one turn, not two)."""
+        m = effects.get("measurement") or {}
+        if ev.type in ("owner_reply", "owner_voice_note", "owner_photo") and "confidence_after" in m:
+            return "answer applied by code; the planner continues on investigation_result"
         return None
 
     def _routine_reason(self, ev: Event) -> str | None:
@@ -227,7 +267,7 @@ class Planner:
             except KeyError:
                 return None
         if not ev.machine:
-            return self._reply_case(ev) if ev.type == "owner_reply" else None
+            return self._reply_case(ev) if ev.type in ("owner_reply", "owner_photo") else None
         c = self.s.open_case(ev.machine)
         if c is None and ev.type == "alarm" and self.llm_on:
             try:
@@ -274,6 +314,17 @@ class Planner:
                     out["measurement"] = self._hand_check(case, meas, n)
                 elif q:
                     out["answer"] = self._answer(ev, q, text)
+                elif (
+                    a := self._open_approval(ev)
+                ) is not None:  # the fixed plan's "Reply 1 to book, 2 for later"
+                    word = parse_choice(text)
+                    yes = n == 1 or (n is None and word == "book")
+                    no = n == 2 or (n is None and word == "later")
+                    if yes or no:
+                        dec = "approved" if yes else "rejected"
+                        out["decision"] = {"approval": a["id"], "decision": dec,
+                                           "result": self.agent.decide(a["id"], dec, by="owner",
+                                                                       channel=str(p.get("channel") or "whatsapp"), ref=ev.idem)}  # fmt: skip
             prefs = preferences(text)
             if prefs and ev.factory:
                 for n in prefs:
@@ -281,6 +332,8 @@ class Planner:
                 out["noted"] = prefs
         elif ev.type == "owner_voice_note" and case is not None:
             out["measurement"] = self._audio_reply(case, p)
+        elif ev.type == "owner_photo" and case is not None:
+            out["measurement"] = self._photo_reply(case, p)
         elif ev.type in ("mechanic_no_show", "mechanic_reply"):
             out.update(self._mechanic(ev, case))
         elif ev.type == "part_out_of_stock" and case is not None:
@@ -311,6 +364,14 @@ class Planner:
             ev.type == "mechanic_reply" and ev.source == "agent"
         ):  # a refused booking: book_job already re-planned
             return {"mechanic": "declined", "technician": tech, "replanned_by": "maint/agent book_job"}
+        if ev.type == "mechanic_reply" and p.get("answer") == "another_time":
+            self.agent.replan_visit_day(
+                case["id"], tech, str(p.get("day") or case["context"].get("visit_day") or "")
+            )
+            return {
+                "rescheduled": {"case": case["id"], "technician": tech, "not_on": p.get("day")},
+                "case_id": case["id"],
+            }
         if ev.type == "mechanic_reply" and p.get("answer") not in ("declined",):
             self.s.log("technician", "mechanic_message", case["id"], technician=tech, answer=p.get("answer"))
             return {"mechanic": p.get("answer"), "technician": tech}
@@ -366,6 +427,14 @@ class Planner:
                 "technician": pick.get("technician"), "day": pick.get("day"), "approval": pick.get("approval"),
                 "applied": decided}  # fmt: skip
 
+    def _open_approval(self, ev: Event) -> dict[str, Any] | None:
+        """The newest booking or purchase approval waiting for this factory's owner."""
+        if not ev.factory:
+            return None
+        rows = [a for a in self.s.approvals(status="requested") if a["kind"] in ("booking", "purchase")
+                and a["case_id"] and self.s.machine(self.s.case(a["case_id"])["machine"])["factory"] == ev.factory]  # fmt: skip
+        return max(rows, key=lambda a: a["requested"]) if rows else None
+
     def _open_measurement(
         self, case: dict[str, Any] | None, kind: str | None = None
     ) -> dict[str, Any] | None:
@@ -382,11 +451,53 @@ class Planner:
         return next(m for m in ms if m["n"] == n)
 
     def _hand_check(self, case: dict[str, Any], meas: dict[str, Any], n: int) -> dict[str, Any]:
-        word = {1: "hot", 2: "loose or shaking", 3: "fine"}[n]
-        conf = "higher" if n in (1, 2) else "lower"
+        # "garam hai? 1 = haan, 2 = nahi"; an older three-way question also had 3 = fine
+        word = {1: "hot", 2: "not hot", 3: "fine"}[n]
+        conf = "higher" if n == 1 else "lower"
         m = self._set_measurement(case, meas["n"], status="received", result=word, confidence_change=conf)
         self.s.log("owner", "measurement", case["id"], kind="hand_check", result=word)
-        return {"kind": "hand_check", "result": word, "fault_confidence": conf, "n": m["n"]}
+        inv = self._investigated(case, meas, word, "up" if n == 1 else "down")
+        return {"kind": "hand_check", "result": word, "fault_confidence": conf, "n": m["n"], **inv}
+
+    def _investigated(
+        self, case: dict[str, Any], meas: dict[str, Any] | None, answer: str, direction: str
+    ) -> dict[str, Any]:
+        """Asked -> answered -> confidence before -> after, on the case, in the audit, and as an
+        investigation_result event for the planner (its next turn decides what to do with it)."""
+        from .tools import fault_confidence, update_confidence
+
+        cur = self.s.case(case["id"])
+        before = float(
+            (meas or {}).get("confidence_before") or fault_confidence(cur, self.health_of(cur["machine"]))
+        )
+        after = update_confidence(before, direction)
+        self.s.update_case(cur["id"], cur["version"], context=cur["context"] | {"fault_confidence": after})
+        if meas:
+            self._set_measurement(
+                cur, meas["n"], confidence_before=before, confidence_after=after, answer=answer
+            )
+        detail = {"n": (meas or {}).get("n"), "kind": (meas or {}).get("kind"), "asked": (meas or {}).get("text"),
+                  "answered": answer, "confidence_before": before, "confidence_after": after,
+                  "rule": "supports a fault: 60% of the way to 1; speaks against it: halved; photo: unchanged"}  # fmt: skip
+        self.s.log("planner", "investigation", cur["id"], **detail)
+        if self.bus is not None:
+            self.bus.emit("investigation_result", case_id=cur["id"], machine=cur["machine"],
+                          factory=self.s.machine(cur["machine"])["factory"], source="code",
+                          idem=f"inv:{cur['id']}:{(meas or {}).get('n')}:{answer[:20]}", payload=detail)  # fmt: skip
+        return {"confidence_before": before, "confidence_after": after}
+
+    def _photo_reply(self, case: dict[str, Any], p: dict[str, Any]) -> dict[str, Any]:
+        """A photo from the owner: stored and attached to the case (no image model; it is for the mechanic)."""
+        meas = self._open_measurement(case, "photo")
+        cur = self.s.case(case["id"])
+        photos = [*cur["context"].get("photos", []), {"by": "owner", "path": p.get("path"), "sha256": p.get("sha256"),
+                                                      "caption": p.get("text") or "", "at": self.agent.clock()}]  # fmt: skip
+        self.s.update_case(cur["id"], cur["version"], context=cur["context"] | {"photos": photos})
+        if meas:
+            self._set_measurement(cur, meas["n"], status="received", photo=p.get("sha256"))
+        self.s.log("owner", "measurement", case["id"], kind="photo", sha256=p.get("sha256"))
+        inv = self._investigated(case, meas, "photo received (for the mechanic)", "none")
+        return {"kind": "photo", "attached": True, "sha256": p.get("sha256"), **inv}
 
     def _audio_reply(self, case: dict[str, Any], p: dict[str, Any]) -> dict[str, Any]:
         meas = self._open_measurement(case, "audio")
@@ -406,6 +517,9 @@ class Planner:
             self._set_measurement(case, meas["n"], status="received", risk=risk,
                                   confidence_change=res.get("fault_confidence"))  # fmt: skip
         self.s.log("owner", "measurement", case["id"], kind="audio", risk=risk)
+        if risk is not None:
+            answer = f"recording scored {risk:.2f} x its alarm level"
+            res |= self._investigated(case, meas, answer, "up" if risk >= 1.0 else "down")
         return res
 
     # ------------------------------------------------------------------ rules
@@ -603,6 +717,11 @@ class Planner:
             )
             reply = (legacy or {}).get("reply", "")
             engine = provider.NAME + "+rules"
+        chat = ev.type == "owner_reply" and ev.payload.get("channel") == "chat"
+        if (
+            chat
+        ):  # a Granite-written reply to the owner only when grounded, Guardian-clean and in their language
+            reply, engine = self._reply_choice(ev, ctx, did, case, reply, engine, g)
         changed = [c["tool"] for c in res.calls if (c["ok"] and STEP_OF.get(c["tool"]) in ("ask owner", "act"))
                    or c["tool"] in ("remember", "request_measurement")]  # fmt: skip
         outcome = (res.reply.split("\n")[0][:240] if res.reply and g["ok"] else
