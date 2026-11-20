@@ -14,7 +14,35 @@ NASA IMS test rig, not a simulation. Regenerate the GIF with `python -m tools.de
 
 Built for Tech4Bharat problem statement 4.3 (machine failure prediction for small factories).
 
-## Digital Twin (main screen) and the owner's agent
+![Factory screen: Loom 1 in alert, needs attention list, rupees at risk](docs/screenshots/submission/factory-screen.jpg)
+
+## Contents
+
+[Quick start](#quick-start) · [Architecture](#architecture) · [Features](#features-factory-screen-digital-twin-and-the-owners-agent) · [How it works](#how-it-works) · [Run it](#run-it) · [Results](#results) · [Limits](#what-doesnt-work-yet) · [Submission](SUBMISSION.md)
+
+## Quick start
+
+```bash
+npm run setup          # first time: Python venv + web app
+cp .env.example .env   # add TWILIO_SID, TWILIO_TOKEN, TWILIO_WA_FROM, OWNER_PHONE (optional ANTHROPIC_API_KEY)
+npm run demo           # opens the factory screen; press "Start Demo mode" and the alert reaches WhatsApp
+```
+
+## Architecture
+
+```mermaid
+flowchart LR
+  A[Phone mic / NASA IMS replay] --> B[Edge features<br/>spectrum, envelope, RMS]
+  B --> C[Anomaly score<br/>per machine baseline]
+  C --> D[Diagnosis<br/>faults.yaml: fault, part, cost in rupees]
+  D --> E[Owner's agent<br/>observe, diagnose, plan, ask, act, verify]
+  E --> F[WhatsApp via Twilio<br/>owner's language]
+  F -->|owner replies 1 / 2 / 3| E
+  E --> G[Mechanic booked, repair verified<br/>by comparing sound to baseline]
+  C --> H[Web app: 3D factory, command centre, owner and mechanic screens]
+```
+
+## Features: factory screen, digital twin and the owner's agent
 
 ```bash
 npm run demo      # backend + web app; the NASA IMS bearing run-to-failure plays as Loom 1 and the agent acts

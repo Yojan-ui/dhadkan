@@ -6,6 +6,8 @@ Problem statement 4.3: machine failure prediction for small factories.
 
 - **Repository:** https://github.com/Yojan-ui/dhadkan (branch `main`)
 - **Pitch deck:** the `sih-deck` deck
+- **Screenshot:** `docs/screenshots/submission/factory-screen.jpg`
+- **Architecture diagram:** README → Architecture
 - **Demo video / GIF:** `docs/media/demo.gif` (60 seconds of demo mode)
 
 ## One-line pitch
