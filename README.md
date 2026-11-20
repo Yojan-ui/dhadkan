@@ -18,15 +18,102 @@ Built for Tech4Bharat problem statement 4.3 (machine failure prediction for smal
 
 ## Contents
 
-[Quick start](#quick-start) · [Architecture](#architecture) · [Features](#features-factory-screen-digital-twin-and-the-owners-agent) · [How it works](#how-it-works) · [Run it](#run-it) · [Results](#results) · [Limits](#what-doesnt-work-yet) · [Submission](SUBMISSION.md)
+[Run it from GitHub](#run-it-from-github-step-by-step) · [Architecture](#architecture) · [Features](#features-factory-screen-digital-twin-and-the-owners-agent) · [How it works](#how-it-works) · [Run it](#run-it) · [Results](#results) · [Limits](#what-doesnt-work-yet) · [Submission](SUBMISSION.md)
 
-## Quick start
+## Run it from GitHub, step by step
+
+Tested on macOS and Linux (on Windows, use WSL). You need **git**, **Python 3.12**, **Node.js 20 or newer**
+with npm, and **make**. About 2 GB of disk space and an internet connection for the first setup.
+
+**1. Get the code**
 
 ```bash
-npm run setup          # first time: Python venv + web app
-cp .env.example .env   # add TWILIO_SID, TWILIO_TOKEN, TWILIO_WA_FROM, OWNER_PHONE (optional ANTHROPIC_API_KEY)
-npm run demo           # opens the factory screen; press "Start Demo mode" and the alert reaches WhatsApp
+git clone https://github.com/Yojan-ui/dhadkan.git
+cd dhadkan
 ```
+
+**2. Install everything (once, several minutes)**
+
+```bash
+make setup             # creates .venv with Python 3.12, installs Python packages, then the web app (npm ci)
+```
+
+If your default `python3` is not 3.12, point at it: `make setup PYTHON=/path/to/python3.12`. With conda:
+`conda create -y -n py312 python=3.12 && conda activate py312 && make setup PYTHON="$(which python)"`.
+
+**3. Download the demo sound clips (once, about 200 MB)**
+
+```bash
+make demo-data         # the real machine recordings the factory screen replays (DCASE 2020 / MIMII, from zenodo.org)
+```
+
+The trained models and the NASA IMS bearing replay are already in the repo, but the factory screen also
+replays these clips for the other machines, so `npm run demo` needs them.
+
+**4. (Optional) WhatsApp keys**
+
+Without keys everything still runs: each message is built, logged and shown as **dry run**. To get real
+WhatsApp alerts on your phone through the Twilio sandbox:
+
+```bash
+cp .env.example .env
+```
+
+Then fill in `.env`:
+
+| key | where to get it |
+|---|---|
+| `TWILIO_SID`, `TWILIO_TOKEN` | Twilio Console home page |
+| `TWILIO_WA_FROM` | the sandbox "From" number on Twilio's *Try WhatsApp* page, e.g. `whatsapp:+14155238886` |
+| `OWNER_PHONE` | your phone as `whatsapp:+91XXXXXXXXXX`; first send the sandbox `join ...` code from it |
+| `NGROK_AUTHTOKEN` | optional, from ngrok.com: opens a public URL so your WhatsApp replies (1 / 2 / 3) reach the demo |
+| `ANTHROPIC_API_KEY` | optional: lets Claude read photos and PDFs of papers and answer free-text questions; rules are used without it |
+
+With `NGROK_AUTHTOKEN` set, the demo prints a URL. Paste `<that URL>/whatsapp/twilio` (method POST) into
+Twilio's sandbox setting *When a message comes in*.
+
+**5. Start the demo**
+
+```bash
+npm run demo           # builds the web app, starts the server on port 8600 and opens the browser
+```
+
+Open **http://127.0.0.1:8600** if the browser does not open by itself. You will see the factory screen.
+Press **Start Demo mode**: Loom 1 replays a real bearing that failed on the NASA IMS test rig, its health
+score climbs, the diagnosis card opens, and the WhatsApp alerts go out (or show as dry run). Reply **1** to
+book the mechanic. Click Loom 1 to see its **Warranty & insurance** papers and whether this repair is
+claimable; the owner screen (`?view=owner&f=A&lang=hi`) has a **Claim help** button with the steps and a
+claim letter.
+
+Other screens on the same server:
+
+| URL | what it shows |
+|---|---|
+| `http://127.0.0.1:8600/` | factory screen (3D floor, needs attention, Demo mode) |
+| `http://127.0.0.1:8600/?view=cc` | command centre: all machines, agents, jobs, parts |
+| `http://127.0.0.1:8600/?view=owner&f=A&lang=hi` | the owner's phone screen in Hindi |
+| `http://127.0.0.1:8600/?view=mechanic&f=A` | the mechanic's phone screen |
+| `http://127.0.0.1:8600/?view=mill` | the flour-mill story, step by step |
+
+Click any machine for its side panel: health, live spectrogram, 14-day trend, diagnosis, and the
+**Warranty & insurance** papers (sample papers are loaded for Loom 1 and Pump 1; you can upload your own).
+
+**6. Run the tests**
+
+```bash
+make test              # Python tests (pytest) and the web app tests
+```
+
+**If something goes wrong**
+
+| message | fix |
+|---|---|
+| `.venv/bin/python: No such file or directory` | run `make setup` first |
+| `Python 3.12+ needed` | install Python 3.12 and pass it: `make setup PYTHON=/path/to/python3.12` |
+| `KeyError: 'pump/id_00'` | the demo clips are missing: run `make demo-data` |
+| `port 8600 is already taken` | stop the other copy, or run `make demo-ims PORT=8700` |
+| WhatsApp shows "dry run" | no keys in `.env`; see step 4 |
+| no WhatsApp message arrives | send "hi" to the sandbox number first (it only delivers within 24 h of your last message) and check `OWNER_PHONE` |
 
 ## Architecture
 
@@ -211,8 +298,8 @@ make train     # anomaly models, CWRU fault classifier, IMS calibration, docs/RE
 make demo      # web app + API on :8600, opens the browser
 ```
 
-Trained models and evaluation records are committed, so `make setup && make demo` runs without
-`make data` and `make train`, except the audio and vibration replay, which reads the raw files.
+Trained models and evaluation records are committed, so you only need `make data` and `make train` to
+reproduce the results. The live demo needs `make demo-data` (the replayed clips), as in the steps above.
 
 **The flour-mill story (PS 4.3, start here):** `make serve`, then open
 `http://127.0.0.1:8600/?view=mill`. One chakki learns its own normal for 3 days, runs normally, then
@@ -223,7 +310,7 @@ MIMII DUE gearbox recordings; the mill, people, stock, clock, network cut and re
 or simulated. Headless: `make mill`. Device readings (phone, ESP32 vibration node, uploads):
 `/api/ingest`, try `python -m tools.sim_device --vibration --fault-after 30`.
 
-**Command centre (the default page, `make demo`):** the 3D digital twin of the three demo factories, a
+**Command centre (`?view=cc`):** the 3D digital twin of the three demo factories, a
 telemetry table, the agents' recommendations and workflows, and 12 sections (machines, live telemetry,
 predictive maintenance, AI agents, maintenance jobs, technicians, spare parts, analytics, event history,
 settings). The eight named agents work every reading: Settings → *Demo scenario* switches a blower to its
