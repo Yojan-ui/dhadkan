@@ -1104,7 +1104,7 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
 
     app = FastAPI(title="Dhadkan live", lifespan=lifespan)
     app.state.live = live
-    from . import cc_api, ingest, mill_api
+    from . import cc_api, docs_api, ingest, mill_api
     from .brain import Brain
 
     brain = Brain(live, Path(node_db or NODE_DB).parent)
@@ -1112,6 +1112,7 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
     app.include_router(mill_api.router())
     app.include_router(ingest.router())
     app.include_router(cc_api.router(brain))
+    app.include_router(docs_api.router(live))
 
     def busy() -> None:
         if live.replay["on"]:
@@ -1349,7 +1350,7 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
     class DecideIn(BaseModel):
         model_config = ConfigDict(extra="forbid")
         machine: str = Field(max_length=16)
-        choice: str = Field(pattern="^(book|later|details)$")
+        choice: str = Field(pattern="^(book|later|details|claim)$")
         lang: str | None = Field(default=None, pattern="^(" + "|".join(diagnosis.LANGS) + ")$")
 
     @app.post("/api/owner/decide")
@@ -1436,6 +1437,13 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
                     )
                 except Exception as e:  # a failed download or transcription must not drop the webhook
                     live.event("owner_voice_failed", error=type(e).__name__)
+                    got = None
+            elif m.get("paper") and hasattr(provider, "download"):
+                try:  # a photo / PDF of a warranty card or policy: read it, file it, answer with the verdict
+                    data_ = await asyncio.to_thread(provider.download, m["paper"])
+                    got = await asyncio.to_thread(live.alerts.on_paper, m["from"], data_, m["paper"])
+                except Exception as e:
+                    live.event("owner_paper_failed", error=type(e).__name__)
                     got = None
             elif m.get("text") is not None:
                 got = live.alerts.on_message(m["from"], m["text"])

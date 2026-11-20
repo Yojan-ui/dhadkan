@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from . import diagnosis, forecast, understand
+from . import coverage, diagnosis, forecast, understand
 from .config import DATA, NODE_DB
 from .notify import env, media, policy, whatsapp
 from .notify.service import Notifier
@@ -41,6 +41,18 @@ DETAIL_LABELS = {
 }  # fmt: skip
 
 
+PAPER_ACK = {
+    "en": "Saved the {kind} paper for {m}.", "hi": "{m} का {kind} कागज़ सेव कर लिया।",
+    "mr": "{m} चे {kind} कागदपत्र सेव्ह केले.", "hi_latn": "{m} ka {kind} kaagaz save kar liya.",
+    "gu": "{m} નો {kind} કાગળ સેવ કર્યો.",
+}  # fmt: skip
+PAPER_UNREAD = {
+    "en": "I could not read it yet: the office will check it.", "hi": "अभी पढ़ नहीं पाया: दफ़्तर से जाँच होगी।",
+    "mr": "अजून वाचता आले नाही: ऑफिसमधून तपासले जाईल.", "hi_latn": "Abhi padh nahi paya: office se jaanch hogi.",
+    "gu": "હજી વાંચી શક્યો નથી: ઓફિસમાંથી તપાસ થશે.",
+}  # fmt: skip
+
+
 class OwnerAlerts:
     def __init__(
         self, live: "Live", node_db: Path | None = None, providers: tuple[Any, Any] | None = None
@@ -54,6 +66,8 @@ class OwnerAlerts:
         self.contact_override: dict[str, str] = {}
         self.lang_override: dict[str, str] = {}
         self.expert: dict[str, dict[str, Any]] = {}  # machine -> Claude's second look (or the rules fallback)
+        # the machine's own papers (warranty card, insurance policy, invoice...): server/coverage.py
+        self.docs = coverage.DocStore(Path(node_db or NODE_DB).with_name("machine_docs"))
         from .onboard import Onboarding
 
         self.onboard = Onboarding(live.c.db, learning_days=int(live.c.cfg.get("learning_days", 7)))
@@ -113,7 +127,43 @@ class OwnerAlerts:
             )  # fmt: skip
             if expert is not None:  # evidence, confidence, hand check; or "expert check pending" (rules)
                 out["expert"] = {k: v for k, v in expert.items() if k != "cost"}
+            out["coverage"] = self.coverage(mid, out)
         return out
+
+    def coverage(self, mid: str, card: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Warranty / insurance verdict for the fault on this card, from the machine's own papers."""
+        fault = card.get("fault") if card else None
+        fix = (
+            (card.get("fix") or {}).get("total_inr") if card and fault else None
+        )  # part + labour, not downtime
+        try:
+            return coverage.check(self.docs, mid, self.live.c.machines[mid], fault, fix)
+        except Exception as e:  # a broken index must never stop an alert
+            return {"machine": mid, "fault": fault, "verdict": "error", "why": type(e).__name__}
+
+    def evidence(self, mid: str, card: dict[str, Any]) -> str:
+        """One line of evidence for a claim letter, from the readings (no model text)."""
+        bits = []
+        if card.get("days_rising", 0) > 1:
+            bits.append(f"machine sound rising for {card['days_rising']} days on Dhadkan sound monitoring")
+        if card.get("named_by") == "classifier":
+            bits.append(
+                "fault type named from the vibration signal by a classifier trained on CWRU bearing data"
+            )
+        bits.append("sound clips and spectrograms before and after are available")
+        return "; ".join(bits) + "."
+
+    def claim_text(self, mid: str, lang: str) -> str:
+        """Reply '4': claim steps, contact, what to keep ready, and a claim letter to forward."""
+        c = self.card(mid, lang) or {}
+        cov = c.get("coverage") or self.coverage(mid, None)
+        m = self.live.c.machines[mid]
+        f = self.live.c.factories[m["factory"]]
+        lg = lang if lang in coverage.CLAIM_HEAD else "en"
+        name = (c.get("name") or {}).get("en") if c.get("fault") else None
+        return coverage.claim_help(
+            cov, m, lg, name, self.evidence(mid, c) if c else "", f.get("owner"), f["name"]
+        )
 
     def second_look(self, mid: str, lang: str, trend: list[float]) -> dict[str, Any]:
         """Claude Fable 5.2 on the spectrograms + trend + profile, once per alert episode (server/understand.py)."""
@@ -146,7 +196,10 @@ class OwnerAlerts:
             return None
         m = self.live.c.machines[mid]
         name = m["name_local"] if lang in ("hi", "mr") else m["name"]
-        return diagnosis.message(c, name, c.get("days_rising", 0), lang)
+        body = diagnosis.message(c, name, c.get("days_rising", 0), lang)
+        cov = c.get("coverage") or {}
+        extra = coverage.alert_text(cov, lang)
+        return f"{body}\n{extra}" if extra else body
 
     def details(self, mid: str, lang: str) -> str:
         """Reply '3': the whole card in the owner's language (labels too; misuse causes are English-only)."""
@@ -167,6 +220,9 @@ class OwnerAlerts:
                               p=round(money["p_fault_within_wait"] * 100), cost=f"{money['breakdown_inr']:,}"),
             c["disclaimer"][lg],
         ]  # fmt: skip
+        cov = c.get("coverage") or {}
+        if extra := coverage.alert_text(cov, lg):
+            lines.append(extra)
         return "\n".join(lines)
 
     # -- media ----------------------------------------------------------------
@@ -270,6 +326,9 @@ class OwnerAlerts:
         elif choice == "details":
             self.notifier.send(machine=mid, factory=a["factory"], severity=a["severity"], to=a["to_phone"],
                                lang=a["lang"], body=self.details(mid, a["lang"]), kind="details", parent=a["id"])  # fmt: skip
+        elif choice == "claim":  # warranty / insurance: steps, contact and a claim letter from the papers
+            self.notifier.send(machine=mid, factory=a["factory"], severity=a["severity"], to=a["to_phone"],
+                               lang=a["lang"], body=self.claim_text(mid, a["lang"]), kind="claim", parent=a["id"])  # fmt: skip
         self.live.event("owner_reply", machine=mid, choice=choice, text=text)
         return {"alert": a["id"], "choice": choice}
 
@@ -293,6 +352,8 @@ class OwnerAlerts:
         lang = lang or self.owner_lang(mid)
         if choice == "details":
             return {"choice": "details", "text": self.details(mid, lang)}
+        if choice == "claim":
+            return {"choice": "claim", "text": self.claim_text(mid, lang)}
         if choice not in ("book", "later"):
             raise ValueError(choice)
         msg = self.live.c.db.execute(
@@ -319,6 +380,39 @@ class OwnerAlerts:
             job = fix.send_job(self, {**row, "message_id": int(msg[0])})
         self.live.event("owner_decision", machine=mid, choice=choice, via="owner screen")
         return {"choice": choice, "booked": choice == "book", "job_status": job and job["status"]}
+
+    def on_paper(self, phone: str, data: bytes, paper: dict[str, Any]) -> dict[str, Any] | None:
+        """A photo or PDF on WhatsApp: filed against the machine of this owner's latest alert (or the machine
+        named in the caption), read (Claude with a key), and answered with the coverage verdict."""
+        a = self.notifier.latest_for(phone)
+        cap = (paper.get("caption") or "").lower()
+        mid = next((k for k, m in self.live.c.machines.items()
+                    if cap and (k.lower() in cap or m["name"].lower() in cap)
+                    and (a is None or m["factory"] == a["factory"])), None) or (a and a["machine"])  # fmt: skip
+        if not mid or mid not in self.live.c.machines:
+            return None
+        mime = paper.get("mime") or "image/jpeg"
+        ext = next((e for e, t in coverage.MIME.items() if t == mime.split(";")[0]), ".jpg")
+        name = paper.get("filename") or f"whatsapp_{int(time.time())}{ext}"
+        if not name.lower().endswith(tuple(coverage.MIME)):
+            name += ext
+        m = self.live.c.machines[mid]
+        self.docs.seed(mid, m)
+        doc = self.docs.add(mid, m, data, name)
+        lang = (a and a["lang"]) or self.owner_lang(mid)
+        lg = lang if lang in coverage.LINES["claimable"] else "en"
+        got = PAPER_ACK.get(lg, PAPER_ACK["en"]).format(kind=coverage.KIND_WORD.get(doc["kind"], {}).get(lg, doc["kind"]),
+                                                         m=m["name_local"] if lg in ("hi", "mr") else m["name"])  # fmt: skip
+        verdict = coverage.alert_text(self.coverage(mid, self.card(mid, lang)), lg)
+        body = got + (" " + verdict if verdict else "")
+        if doc["read_by"] == "none":
+            body = got + " " + PAPER_UNREAD.get(lg, PAPER_UNREAD["en"])
+        self.notifier.send(machine=mid, factory=m["factory"], severity="info", to=phone, lang=lang, body=body,
+                           kind="paper", parent=a and a["id"])  # fmt: skip
+        self.live.event(
+            "document_added", machine=mid, paper=doc["kind"], read_by=doc["read_by"], via="whatsapp"
+        )
+        return {"machine": mid, "document": doc["id"], "kind": doc["kind"], "read_by": doc["read_by"]}
 
     def on_audio(self, phone: str, audio: bytes, mime: str = "audio/ogg") -> dict[str, Any] | None:
         """A recording: an onboarding baseline clip if this phone is setting up, else a voice note on an alert."""

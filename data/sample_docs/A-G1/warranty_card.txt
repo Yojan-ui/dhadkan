@@ -1,0 +1,40 @@
+SAMPLE DOCUMENT FOR THE DHADKAN DEMO. Company names, numbers and phone numbers are made up.
+
+SHREE GANESH LOOMS PVT. LTD. (sample)
+WARRANTY CARD
+
+Warranty card no: SGL/WC/25/0817
+Manufacturer: Shree Ganesh Looms Pvt. Ltd.
+Machine: Plain powerloom SGL-56, with 2 HP motor and gearbox
+Machine serial no: SGL56-2025-04471
+Motor serial no: M2HP-889102
+Date of purchase: 12-08-2025
+Warranty period: 24 months from the date of purchase
+
+Warranty covers:
+- Manufacturing defects in the loom frame, gearbox and fitted motor
+- Motor bearings and gearbox bearings
+- Motor winding failure due to a manufacturing defect
+- Free replacement parts and free labour at the factory
+
+Not covered:
+- V-belts, pickers, shuttles, healds and reeds (consumable parts)
+- Damage from voltage fluctuation, single-phasing or wrong supply
+- Damage from running without oil or grease
+- Fire, flood and accidents
+
+Conditions:
+- Warranty void if the motor or gearbox is opened by an unauthorised person
+- Keep the service log (oiling and greasing) and show it at inspection
+- Report a problem within 7 days of noticing it
+
+How to claim:
+1. Call the service helpline with the warranty card no. and machine serial no.
+2. Do not run the machine if the problem is getting worse.
+3. Our service engineer visits within 72 hours and inspects the machine.
+4. Approved parts are replaced free of cost at your factory.
+
+Helpline: 1800-000-4471 (sample)
+WhatsApp: +91 90000 44710 (sample)
+Email: service@sgl-looms.example
+Contact person: Mr. R. Patil, Service Engineer, Pune

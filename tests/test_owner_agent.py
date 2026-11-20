@@ -30,7 +30,8 @@ def test_language_detection(text, lang):
 def test_tools_are_strict_and_none_can_book_or_stop():
     names = {t["name"] for t in oa.TOOLS}
     assert names == {"get_machine_health", "get_spectrogram", "diagnose_fault", "find_local_mechanic", "check_part_stock",
-                     "estimate_cost_inr", "schedule_repair", "send_whatsapp", "verify_repair", "log_warranty_claim"}  # fmt: skip
+                     "estimate_cost_inr", "schedule_repair", "send_whatsapp", "verify_repair", "log_warranty_claim",
+                     "check_warranty_insurance", "read_machine_documents"}  # fmt: skip
     assert all(t["strict"] and t["input_schema"]["additionalProperties"] is False for t in oa.TOOLS)
     assert not any(w in n for n in names for w in ("stop", "shutdown", "book", "approve", "control"))
     assert not hasattr(oa.AgentTools, "send_job")  # booking happens only on the owner's reply (server/fix.py)

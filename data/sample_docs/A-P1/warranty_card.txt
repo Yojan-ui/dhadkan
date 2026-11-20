@@ -1,0 +1,24 @@
+SAMPLE DOCUMENT FOR THE DHADKAN DEMO. Company names, numbers and phone numbers are made up.
+
+JALDHARA PUMPS (sample)
+WARRANTY CERTIFICATE
+
+Warranty no: JDP-5HP-22-3310
+Manufacturer: Jaldhara Pumps, Kolhapur
+Machine: 5 HP monoblock centrifugal pump
+Serial no: JD5-22-3310
+Date of purchase: 05-06-2023
+Warranty period: 24 months
+
+Warranty covers:
+- Manufacturing defects in the motor, impeller and pump casing
+- Motor winding failure due to a manufacturing defect
+
+Not covered:
+- Mechanical seal, gland packing and foot valve
+- Damage from running dry, voltage fluctuation or single-phasing
+
+How to claim:
+1. Take the pump with this certificate to the authorised dealer.
+
+Helpline: 1800-000-3310 (sample)
