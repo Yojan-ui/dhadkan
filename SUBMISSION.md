@@ -26,7 +26,7 @@ Set `DHADKAN_DRY_RUN=1` in `.env` to rehearse without sending real WhatsApp mess
 ## Features
 
 - Real run-to-failure data: the NASA IMS bearing failure replays as a loom motor, the fault grows live.
-- Digital twin and command centre dashboards (`?view=cc`, `?view=owner`, `?view=mechanic`).
+- Digital twin and command centre dashboards (main factory screen, plus `?view=cc`, `?view=owner`, `?view=mechanic`).
 - Diagnosis from sound: fault name, severity, days to failure, part number and cost in rupees.
 - Owner's agent (observe, diagnose, plan, ask owner, act, verify) with Claude tool use, rules offline.
 - Real WhatsApp alerts through Twilio, in Hindi and other Indian languages; owner replies 1 / 2 / 3.
