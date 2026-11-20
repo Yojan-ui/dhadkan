@@ -20,6 +20,7 @@ import asyncio
 import base64
 import io
 import json
+import re
 import threading
 import time
 from collections.abc import AsyncIterator
@@ -1567,6 +1568,34 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
             raise HTTPException(422, "text, image_b64 or audio_b64 is needed")
         handled = await _incoming([msg], live.alerts.notifier.wa, simulated=True)
         return {"handled": handled, "from": who, "role": body.role}
+
+    @app.get("/api/voice/note/{name}")
+    def voice_note_file(name: str) -> Response:
+        """A cached voice note (Twilio fetches media by URL). Only cache file names, nothing else."""
+        from . import voice
+
+        if not re.fullmatch(r"[0-9a-f]{24}\.ogg", name) or not (voice.CACHE / name).exists():
+            raise HTTPException(404, "no such voice note")
+        return Response((voice.CACHE / name).read_bytes(), media_type="audio/ogg")
+
+    @app.get("/api/voice/machine/{mid}.ogg")
+    async def voice_for_machine(mid: str, lang: str | None = None) -> Response:
+        """The owner screen's "suno": this machine's alert text, read aloud from the same template."""
+        if mid not in live.c.machines:
+            raise HTTPException(404, "unknown machine")
+        alerts = live.alerts
+        lg = lang if lang in ("hi", "hi_latn", "mr", "gu", "en", "ta") else alerts.owner_lang(mid)
+        text = await asyncio.to_thread(alerts.text, mid, lg)
+        if not text:
+            raise HTTPException(404, "no alert for this machine right now")
+        vm = await asyncio.to_thread(alerts.voice_media, "alert", mid, lg, text)
+        if not vm:
+            raise HTTPException(
+                503,
+                "no voice for this language right now (DHADKAN_VOICE, or the models: .\\dev.ps1 voice-models)",
+            )
+        return Response(Path(vm[0]["path"]).read_bytes(), media_type="audio/ogg",
+                        headers={"X-Voice-Engine": str(vm[0].get("engine")), "X-Voice-Seconds": str(vm[0].get("seconds"))})  # fmt: skip
 
     @app.get("/api/voice_note.wav")
     def voice_note() -> Response:

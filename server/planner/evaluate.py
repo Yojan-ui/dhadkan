@@ -210,6 +210,8 @@ def policy(
             return "text", say("refuse", lang)
         if mid and "get_machine_health" not in names:
             return "tools", [("get_machine_health", {"machine_id": mid})]
+        if mode == "wrong_lang":  # a model that ignores the owner's language and invents a price
+            return "text", "Repair will cost Rs 9,999; the bearing is gone."
         name = (case or {}).get("name") or mid or "Machine"
         return "text", say(
             "status", lang, m=name, s=res.get("get_machine_health", {}).get("status", "normal")
@@ -369,7 +371,13 @@ class World:
     def _planner(self) -> Planner:
         return Planner(self.store, self.agent, self.bus, client=self.client, factories={"C": self.profile},
                        health_of=self.health.get, route_cfg={"start_xy": [3, 2], "hours": 7, "kmph": 22},
-                       score_audio=lambda _m, _p: None, a2a_http=self.a2a_http)  # fmt: skip
+                       score_audio=lambda _m, _p: None, a2a_http=self.a2a_http,
+                       rules_reply=self._template_reply)  # fmt: skip
+
+    def _template_reply(self, ev: Any) -> dict[str, Any]:
+        """The template answer to an owner's chat (the evaluation's stand-in for owner_agent.run_rules)."""
+        lang = str(ev.payload.get("lang") or self.lang)
+        return {"reply": say("status", lang, m="Flour mill 1", s="normal")}
 
     def restart(self) -> None:
         """A crash and restart: a new bus and planner on the same store (events and decisions survive)."""
@@ -752,6 +760,27 @@ def s_autonomy_other(w: World) -> Check:
     return not w.sent("book_job") and bool(w.asks()), "policy names another mechanic: asked the owner"
 
 
+def s_reply(lang: str, text: str, expect: str) -> Callable[[World], Check]:
+    """An owner's chat in their language: the reply must come back in that language with no ungrounded
+    number; `expect` is which reply is used (granite: it passed; template: it failed a check)."""
+
+    def run(w: World) -> Check:
+        out = w.chat(text)
+        reply = (out or {}).get("reply", "")
+        src = [r["detail"] for r in w.store.audit() if r["event"] == "reply_source"]
+        used = src[-1]["source"] if src else None
+        from .grounding import numbers
+
+        invented = [n for n in numbers(reply) if n == "9999"]
+        good = bool(reply) and detect_lang(reply) == lang and used == expect and not invented
+        return good, f"{used} reply in {detect_lang(reply) if reply else '-'}: {reply[:50]}" + (
+            f" ({src[-1]['why']})" if src and src[-1].get("why") else ""
+        )
+
+    run.__name__ = f"reply_{lang}_{expect}"
+    return run
+
+
 def s_chat(lang: str, text: str) -> Callable[[World], Check]:
     def run(w: World) -> Check:
         out = w.chat(text)
@@ -814,6 +843,11 @@ SCENARIOS: list[dict[str, Any]] = [
         ("hi_latn", "Flour mill 1 ki awaaz kyun badal gayi?"), ("hi", "फ्लोर मिल 1 की आवाज़ क्यों बदल गई?"),
         ("mr", "Flour mill 1 चा आवाज का बदलला आहे?"), ("gu", "Flour mill 1 નો અવાજ કેમ બદલાયો?"),
         ("ta", "Flour mill 1 ஒலி ஏன் மாறியது?"))),
+    # ten reply-language checks: a Granite reply is kept only in the owner's language and grounded
+    *({"name": f"reply_{lg}_{exp}", "run": s_reply(lg, q, exp), "lang": lg, "mode": mode}
+      for lg, q in (("hi", "फ्लोर मिल 1 कैसी है?"), ("mr", "Flour mill 1 कशी आहे?"), ("gu", "Flour mill 1 કેવી છે?"),
+                    ("ta", "Flour mill 1 எப்படி இருக்கிறது?"), ("hi_latn", "Flour mill 1 kaisi hai?"))
+      for exp, mode in (("granite", "good"), ("template", "wrong_lang"))),
 ]  # fmt: skip
 
 

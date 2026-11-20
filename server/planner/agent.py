@@ -209,6 +209,33 @@ class Planner:
                 return f"case handed to the fixed plan ({case['context']['handoff']})"
         return None
 
+    def _reply_choice(self, ev: Event, ctx: dict[str, Any], did: int, case: dict[str, Any] | None, reply: str,
+                      engine: str, g: dict[str, Any]) -> tuple[str, str]:  # fmt: skip
+        """Granite's reply to an owner's chat is kept only if it passed the number grounding and the
+        Guardian (g), and came back in the owner's language and script; DHADKAN_GRANITE_REPLIES=0 always
+        uses the template. Which one was used is logged (event reply_source)."""
+        from server.owner_agent import detect_lang
+
+        want = str(ev.payload.get("lang") or ctx.get("owner_language") or "")
+        got = detect_lang(reply) if reply else None
+        why = None
+        if not g.get("ok", True):
+            why = "grounding or Guardian rejected the Granite reply"
+        elif env.get("DHADKAN_GRANITE_REPLIES") == "0":
+            why = "Granite replies switched off (DHADKAN_GRANITE_REPLIES=0)"
+        elif reply and want and got != want:
+            why = f"wrong language: asked in {want}, Granite answered in {got}"
+        elif not reply:
+            why = "no Granite reply"
+        if why and g.get("ok", True):  # still to replace (a failed check above already used the rules reply)
+            legacy = self.rules_reply(ev) if self.rules_reply else None
+            reply, engine = (legacy or {}).get("reply", ""), provider.NAME + "+template"
+        source = "template" if why else "granite"
+        with self.lock:
+            self.s.log("planner", "reply_source", (case or {}).get("id"), decision=did, source=source, why=why,
+                       lang_wanted=want, lang_got=got)  # fmt: skip
+        return reply, engine
+
     def _answer_reason(self, ev: Event, effects: dict[str, Any]) -> str | None:
         """An owner's answer to an investigation is applied by code; the planner's turn is on the
         investigation_result event that follows (one turn, not two)."""
@@ -690,6 +717,11 @@ class Planner:
             )
             reply = (legacy or {}).get("reply", "")
             engine = provider.NAME + "+rules"
+        chat = ev.type == "owner_reply" and ev.payload.get("channel") == "chat"
+        if (
+            chat
+        ):  # a Granite-written reply to the owner only when grounded, Guardian-clean and in their language
+            reply, engine = self._reply_choice(ev, ctx, did, case, reply, engine, g)
         changed = [c["tool"] for c in res.calls if (c["ok"] and STEP_OF.get(c["tool"]) in ("ask owner", "act"))
                    or c["tool"] in ("remember", "request_measurement")]  # fmt: skip
         outcome = (res.reply.split("\n")[0][:240] if res.reply and g["ok"] else

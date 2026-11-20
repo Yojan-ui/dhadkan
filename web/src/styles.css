@@ -1494,3 +1494,16 @@ body:has(.lite) {
 .wa-foot {
   margin-top: 18px;
 }
+
+/* owner screen: "suno", the alert read aloud */
+.lite-suno {
+  margin-left: auto;
+  border: 1px solid #c9c4bc;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 15px;
+}
+.lite-suno:disabled {
+  opacity: 0.6;
+}
