@@ -85,10 +85,50 @@ def _template(to: str, text: str) -> dict[str, Any]:
     return {"sid": msg.sid, "status": "template_sent"}
 
 
+def _wabot_on() -> bool:
+    return (env.get("WHATSAPP_PROVIDER") or "").lower() == "wabot" and bool(
+        env.get("WABOT_CLIENT_ID") and env.get("WABOT_CLIENT_SECRET"))  # fmt: skip
+
+
+def _wabot_call(method: str, path: str, headers: dict[str, str], body: dict[str, Any] | None = None) -> Any:
+    import urllib.request
+
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request("https://api.wabot.shop" + path, data=data, method=method,
+                                 headers={"Content-Type": "application/json", **headers})  # fmt: skip
+    with urllib.request.urlopen(req, timeout=15) as r:
+        return json.loads(r.read() or b"{}")
+
+
+def _wabot_send(to: str, text: str) -> dict[str, Any]:
+    """wabot.shop (Meta WhatsApp Cloud API reseller): authenticate, then send a session text message."""
+    auth = _wabot_call("POST", "/v1/authenticate", {"clientid": env.get("WABOT_CLIENT_ID") or "",
+                                                     "clientsecret": env.get("WABOT_CLIENT_SECRET") or ""})  # fmt: skip
+    token = auth["token"]
+    phone_id = env.get("WABOT_PHONE_ID")
+    if not phone_id:
+        acct = _wabot_call("GET", "/account/get", {"Authorization": token})
+        acct = acct.get("data", acct) if isinstance(acct, dict) else acct
+        phone_id = acct["phone_numbers"][0]["whatsappPhoneId"]
+    phone = "+" + "".join(c for c in to if c.isdigit())
+    res = _wabot_call("POST", f"/v1/send-message/{phone_id}", {"Authorization": token},
+                      {"typOfmsg": "normal_message", "receipentPhone": phone, "message": text[:LIMIT]})  # fmt: skip
+    if not res.get("success"):
+        raise RuntimeError(f"wabot refused: {res.get('message')}")
+    return {"sid": None, "status": "sent_wabot"}
+
+
 def send(to: str, text: str, media_urls: list[str] | None = None) -> dict[str, Any]:
-    if not configured() or env.get("DHADKAN_DRY_RUN") == "1":
+    if not (configured() or _wabot_on()) or env.get("DHADKAN_DRY_RUN") == "1":
         return {"sid": None, "status": "dry_run"}
     to = wa(to)
+    if _wabot_on() and _capture.get() is None:
+        try:
+            return _wabot_send(to, text)
+        except Exception as e:  # any wabot problem: fall back to Twilio so the demo still sends
+            print(f"wabot send failed ({type(e).__name__}: {e}); falling back to Twilio")
+            if not configured():
+                raise
     cap = _capture.get()
     if cap is not None and cap[0] == to:  # answering this person's own message: goes back in the TwiML reply
         cap[1].append(text[:LIMIT])
