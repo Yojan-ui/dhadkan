@@ -197,6 +197,14 @@ export interface PlannerStep {
   grounding_ok: boolean;
   knowledge?: string[];
   observed?: string[];
+  /** an investigation_result step: what was asked, the owner's answer, the confidence before and after */
+  investigation?: {
+    kind: string | null;
+    asked: string | null;
+    answered: string | null;
+    confidence_before: number | null;
+    confidence_after: number | null;
+  } | null;
   guardian?: { target: string; ok: boolean; reasons: string[] }[];
   a2a?: { partner: string; question: string; said: string }[];
   input_tokens: number;

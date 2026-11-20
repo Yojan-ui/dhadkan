@@ -106,7 +106,11 @@ class Brain:
         from .live_feed import LiveFeed
 
         self.feed = LiveFeed(self)  # machines a live recorder feeds (server/live_feed.py)
-        self.transport.send = self.feed.send
+        from .wa_loops import MechanicDesk
+
+        self.desk = MechanicDesk(self)  # the mechanic's job on WhatsApp (server/wa_loops.py)
+        self.transport.send = self._send_out
+        self.agent.on_verified = self._signed_record
         live.brain = self
         if backfill:
             self.backfill()
@@ -133,7 +137,13 @@ class Brain:
             return None
         if self.planner.llm_on:
             return {"queued": ev.idem}
-        return self.bus.handle(ev)
+        out = self.bus.handle(ev)
+        with self.lock:  # what it set off (an investigation_result, a re-plan's events) runs now too
+            self.bus.drain()
+            self.agent.tick()
+            self.version += 1
+            self.live.version += 1
+        return out
 
     def _rules_reply(self, ev: Event) -> dict[str, Any] | None:
         """The rules reply to the owner (owner_agent.run_rules: tools in a fixed order, templates)."""
@@ -278,6 +288,7 @@ class Brain:
                                      reasoning=(f"rising trend on {', '.join(rising)}" if rising
                                                 else "no rising trend with enough data"), tools=["rul.estimate"])  # fmt: skip
             self.agent.tick()
+            self.desk.tick()  # jobs nobody answered in time -> mechanic_no_show
             self.sync.run()
             if not self.planner.llm_on:
                 self.bus.drain()  # rules: cheap, deterministic, in the tick
@@ -296,6 +307,87 @@ class Brain:
         self.bus.emit("health_change", idem=f"health:{mid}:{tick}", payload=p, **base)
         if ag.RANK.get(h["urgency"], 0) >= ag.RANK["inspect"] > ag.RANK.get(prev or "none", 0):
             self.bus.emit("alarm", idem=f"alarm:{mid}:{tick}", payload=p, **base)
+
+    # ------------------------------------------------------------------ the outside world
+    def _send_out(self, kind: str, payload: dict[str, Any]) -> dict[str, Any]:
+        """The agent's and the planner's transport (after the approval gate): owner messages and the
+        mechanic's job go over WhatsApp (or the labelled dry run). DHADKAN_AGENT_WHATSAPP=0 keeps them
+        internal (the earlier behaviour), except for machines the live recorder feeds."""
+        from .notify import env
+        from .wa_loops import owner_phone
+
+        mid = payload.get("machine")
+        if self.feed.is_live(str(mid)) and kind == "notify":
+            return self.feed.send(kind, payload)
+        if env.get("DHADKAN_AGENT_WHATSAPP") == "0" or not mid or mid not in self.c.machines:
+            return {"id": f"{kind}:{str(payload.get('idem', ''))[:10]}", "dry_run": True}
+        if kind == "book_job":
+            return self.desk.send_job(payload)
+        if kind == "notify":
+            alerts = self.live.alerts
+            f = self.c.machines[mid]["factory"]
+            a = alerts.notifier.send(machine=mid, factory=f, severity="planner", to=owner_phone(alerts, f, mid),
+                                     lang=alerts.owner_lang(mid), body=str(payload.get("text", "")), kind="planner")  # fmt: skip
+            return {"id": f"alert:{a['id']}", "status": a.get("status"), "provider": alerts.provider}
+        return {"id": f"{kind}:{str(payload.get('idem', ''))[:10]}", "dry_run": True}
+
+    def _signed_record(
+        self, c: dict[str, Any], res: dict[str, Any], repair_id: int, after_risk: list[float]
+    ) -> dict[str, Any]:
+        """After verification against baseline v1: the signed repair record (server/prove), with the
+        mechanic's photo of the old part (its sha256) and note."""
+        import json as _json
+
+        from . import prove
+
+        m = self.c.machines[c["machine"]]
+        rep = c["context"].get("repair", {})
+        jobs = [j for j in self.desk.jobs(c["id"]) if j["status"] == "done"]
+        job = jobs[-1] if jobs else {}
+        sim = any(r["event"] == "simulated_recovery" for r in self.store.audit(c["id"]))
+        doc = {
+            "kind": "dhadkan.repair_record.v1",
+            "machine": {"id": c["machine"], "name": m["name"], "type": m["type"], "factory": self.c.factories[m["factory"]]["name"]},
+            "case": c["id"], "fault": c["context"].get("fault"),
+            "technician": rep.get("technician"), "work": rep.get("work"),
+            "old_part_photo_sha256": job.get("photo_sha256"),
+            "repaired_at": datetime.fromtimestamp(rep.get("at") or self.clock()).isoformat(timespec="minutes"),
+            "verification": res, "against_baseline_version": 1, "after_risk": [round(x, 3) for x in after_risk],
+            "demo_note": ("SIMULATED: after-repair readings are the unit's recorded normal clips" if sim else None),
+        }  # fmt: skip
+        sig = prove.sign(doc)
+        self.live.c.db.executescript(prove.SCHEMA)
+        cur = self.live.c.db.execute(
+            "INSERT INTO repair_records (machine, factory, created, record, sha256, signature, mechanic) VALUES (?,?,?,?,?,?,?)",
+            (c["machine"], m["factory"], time.time(), _json.dumps(doc, ensure_ascii=False), sig["sha256"],
+             sig["signature"], rep.get("technician")),
+        )  # fmt: skip
+        self.live.c.db.commit()
+        rid = int(cur.lastrowid or 0)
+        self.store.log(
+            "agent", "repair_record_signed", c["id"], record=rid, sha256=sig["sha256"], repair=repair_id
+        )
+        return {"id": rid, **sig}
+
+    def open_approval(self, factory: str) -> dict[str, Any] | None:
+        """A booking or purchase approval waiting for this factory's owner (answered with 1 / 2)."""
+        for a in self.store.approvals(status="requested"):
+            if a["kind"] in ("booking", "purchase") and a["case_id"]:
+                c = self.store.case(a["case_id"])
+                if self.c.machines.get(c["machine"], {}).get("factory") == factory:
+                    return a
+        return None
+
+    def open_investigation(self, factory: str) -> dict[str, Any] | None:
+        """The newest measurement the planner asked this factory's owner for and has not had back."""
+        best = None
+        for c in self.store.cases(open_only=True):
+            if self.c.machines.get(c["machine"], {}).get("factory") != factory:
+                continue
+            for meas in c["context"].get("measurements", []):
+                if meas["status"] == "asked" and (best is None or meas["asked"] > best[1]["asked"]):
+                    best = (c, meas)
+        return {"case": best[0], "measurement": best[1]} if best else None
 
     # ------------------------------------------------------------------ people
     def decide(self, approval_id: str, decision: str, by: str, channel: str) -> dict[str, Any]:
@@ -320,6 +412,17 @@ class Brain:
         with self.lock:
             c = self.store.case(case_id)
             self.agent.repair_done(case_id, technician, work)
+            if self.feed.is_live(c["machine"]):  # live readings carry wall-clock times: so must the repair
+                cur = self.store.case(case_id)
+                hist = [
+                    h
+                    for h in self.base.history(c["machine"])
+                    if h["source"] == "live" and h["risk"] is not None
+                ]
+                over = [h["ts"] for h in hist if h["risk"] >= 1.0]
+                ctx = cur["context"] | {"repair": {**cur["context"]["repair"], "at": time.time()},
+                                        "verify_since": over[0] if over else (hist[0]["ts"] if hist else time.time())}  # fmt: skip
+                self.store.update_case(case_id, cur["version"], context=ctx)
             if simulate_recovery:  # SIMULATED: the machine's recordings go back to its normal clips
                 self.c.set_mode(c["machine"], "normal", 0.0)
                 self.store.log("system", "simulated_recovery", case_id, machine=c["machine"],
@@ -499,6 +602,9 @@ def planner_trace(store: Store, planner: Planner, case_id: str | None = None, ma
                                     for c in d["tool_calls"] or []],
                           "reply": d["reply"], "outcome": d["outcome"],
                           "grounding_ok": (d["grounding"] or {}).get("ok", True),
+                          "investigation": ({k: (ev.get("payload") or {}).get(k) for k in ("kind", "asked", "answered",
+                                             "confidence_before", "confidence_after")}
+                                            if d["event_type"] == "investigation_result" else None),
                           "knowledge": list((d["grounding"] or {}).get("knowledge") or []),
                           "observed": list((d["grounding"] or {}).get("observed") or []),
                           "guardian": [{"target": v.get("target"), "ok": bool(v.get("ok")),

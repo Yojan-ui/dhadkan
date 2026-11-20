@@ -22,6 +22,8 @@ from edge.config import MODELS, RAW
 os.environ["DHADKAN_LLM"] = "0"
 # no partner-agent (A2A) calls on alarms unless a test turns them on (tests/test_a2a.py)
 os.environ["DHADKAN_A2A_PREFETCH"] = "0"
+# no voice notes unless a test turns them on with a fake engine (tests/test_voice.py): no models load in CI
+os.environ["DHADKAN_VOICE"] = "0"
 
 OWNER_A, SUPERVISOR_A = "+91 90000 11111", "+91 90000 22222"
 # a coarser replay than the UI's (~110 readings); the alarm still comes from the real curve

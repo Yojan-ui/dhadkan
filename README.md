@@ -307,7 +307,7 @@ web/      React + Vite + react-three-fiber: 3D cluster screen, owner and mechani
 scripts/  eval_understand.py (Granite vs rules), score_recording.py (field recordings), tunnel.py (HTTPS + QR for
           the phone), live_trial.py (measured live trial)
 tools/    demo_gif.py
-docs/     JUDGES.md, ARCHITECTURE.md, RESULTS.md (generated), PITCH.md, DEMO_SCRIPT.md, DEMO_LIVE.md (a real fan),
+docs/     JUDGES.md, ARCHITECTURE.md, RESULTS.md (generated), PITCH.md, DEMO_SCRIPT.md, DEMO_LIVE.md (a real fan), DEMO_WHATSAPP.md (both sides on WhatsApp),
           DEMO_GRANITE.md, GRANITE.md, WHATSAPP_TEMPLATES.md,
           FIELD_NOTES.md, runs/ (every evaluation record cited anywhere)
 tests/    pytest

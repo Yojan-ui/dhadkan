@@ -150,6 +150,8 @@ class MaintenanceAgent:
         self.activity = activity  # server/agents.Activity: which named agent ran which step (optional)
         self.emit_hook = emit  # server/planner EventBus.emit (optional): what happened, for the planner
         self.driver = "rules"  # "planner": new cases get PLAN_PLANNER and the LLM planner decides
+        # called after a repair is verified: (case, result, repair_id, after_risk) -> the signed record
+        self.on_verified: Any = None
 
     def emit(self, type_: str, **kw: Any) -> None:
         """Tell the planner what happened. Never fails the step that emits."""
@@ -436,6 +438,43 @@ class MaintenanceAgent:
                    channel=channel, ref=ref, result=out)  # fmt: skip
         return out
 
+    def approval_covers(self, cid: str, technician: str) -> dict[str, Any] | None:
+        """After a re-plan (the approved mechanic declined or did not come), the owner's approved booking for
+        this case still covers a replacement whose visit costs no more than what was approved. A dearer one
+        needs the owner again. Returns the covering approval, or None."""
+        ctx = self.s.case(cid)["context"]
+        if not ctx.get("declined"):
+            return None
+        new_high = inspection_cost(self.t.technicians.get(technician))["high_inr"]
+        ok = [a for a in self.s.approvals(cid, status="approved") if a["kind"] == "booking"
+              and a["amount_high"] is not None and new_high <= a["amount_high"]]  # fmt: skip
+        return ok[-1] if ok else None
+
+    def replan_visit_day(self, cid: str, technician: str, day: str) -> dict[str, Any]:
+        """The mechanic can come, but not on that day: keep them, find another day (no new approval: same
+        mechanic, same cost)."""
+        c = self.s.case(cid)
+        ctx = c["context"]
+        avoid = sorted({*ctx.get("avoid_days", []), f"{technician}:{day}"})
+        ctx = ctx | {"avoid_days": avoid, "booked": False, "visit_day": None}
+        self.s.update_case(cid, c["version"], context=ctx)
+        if not self._planner_driven(c):
+            for st in self.s.steps(cid):
+                if st["name"] in ("find_technician", "book_job", "await_repair") and st["status"] in (
+                    "done", "waiting", "failed", "retry"):  # fmt: skip
+                    self.s.set_step(
+                        cid, st["idx"], status="pending", error=f"another day: {technician} not on {day}"
+                    )
+        self.s.log(
+            "agent",
+            "replanned_visit_day",
+            cid,
+            technician=technician,
+            was=day,
+            why="mechanic asked for another time",
+        )
+        return self.s.case(cid)
+
     def repair_done(self, cid: str, technician: str, work: str) -> None:
         c = self.s.case(cid)
         ctx = c["context"] | {"repair": {"technician": technician, "work": work, "at": self.clock()}}
@@ -645,6 +684,8 @@ class MaintenanceAgent:
         for d in range(self.a["search_days"] + 1):
             day = today + timedelta(days=d)
             found = self.t.technicians.find(skill, day, exclude)
+            avoid = set(ctx.get("avoid_days", []))
+            found = [p for p in found if f"{p['id']}:{day.isoformat()}" not in avoid]
             if found:
                 good = {r["technician"] for r in reps if r["outcome"] == "fixed"}
                 found.sort(key=lambda p: (p["id"] not in good, p["km"]))
@@ -745,6 +786,10 @@ class MaintenanceAgent:
             raise Waiting(f"planned day {ctx['visit_day']} has passed; finding a new day")
         payload = {"technician": ctx["technician"], "machine": c["machine"], "day": ctx["visit_day"],
                    "work": "inspection" if not ctx.get("fault") else ctx["fault"]}  # fmt: skip
+        if ctx.get("declined") and self._dearer_than_approved(c, ctx["technician"]):
+            raise Waiting(
+                "the replacement mechanic costs more than the owner approved: asking the owner again"
+            )
         try:
             job = self.act(c["id"], "book_job", f"{ctx['technician']}:{ctx['visit_day']}", payload)
         except Unavailable as e:
@@ -766,6 +811,29 @@ class MaintenanceAgent:
             raise Waiting("waiting for the technician to report the work done")
         return c["context"]["repair"]
 
+    def _dearer_than_approved(self, c: dict[str, Any], technician: str) -> bool:
+        """Fixed plan, after a re-plan: if the new mechanic's visit costs more than the approved booking, the
+        approval is reopened (same id, new amount) and the owner is asked again; await_approval waits for it.
+        """
+        aid = f"{c['id']}:booking"
+        a = self.s.approval(aid)
+        if a is None or a["status"] != "approved" or a["amount_high"] is None:
+            return False
+        tech = self.t.technicians.get(technician)
+        cost = inspection_cost(tech)
+        if cost["high_inr"] <= a["amount_high"]:
+            return False
+        summary = (f"{tech['name']} instead, for {self._name(c)}: about Rs {cost['low_inr']}-{cost['high_inr']} for the "
+                   f"visit (approved before: up to Rs {a['amount_high']}).")  # fmt: skip
+        self.s.reopen_approval(aid, summary, (cost["low_inr"], cost["high_inr"]))
+        for st in self.s.steps(c["id"]):
+            if st["name"] == "await_approval":
+                self.s.set_step(c["id"], st["idx"], status="pending", error="cost changed: owner asked again")
+        self._owner(c, f"reapprove:{technician}", summary + " Reply 1 to book, 2 for later.")
+        self.s.log("agent", "reapproval_cost_changed", c["id"], technician=technician, was_high=a["amount_high"],
+                   now_high=cost["high_inr"])  # fmt: skip
+        return True
+
     def _step_request_post_repair_readings(self, c: dict[str, Any], st: dict[str, Any]) -> dict[str, Any]:
         self._owner(c, "after_repair", f"{self._name(c)} was repaired. Please record it for 60 s with the phone "
                                        "in the same place as always.")  # fmt: skip
@@ -782,7 +850,10 @@ class MaintenanceAgent:
         before = [
             h for h in self.b.history(m) if h["ts"] < rep["at"] and h["running"] and h["risk"] is not None
         ]
-        before = [h for h in before if h["ts"] >= c["opened"]] or before[-6:]
+        since = c["context"].get(
+            "verify_since", c["opened"]
+        )  # a live machine's readings are on wall-clock time
+        before = [h for h in before if h["ts"] >= since] or before[-6:]
         v1 = self.b.model(m, 1)
         assert v1 is not None
         r_after = v1.risk(self.b.vectors([h["id"] for h in after[: self.a["verify_readings"] * 2]]))
@@ -791,6 +862,11 @@ class MaintenanceAgent:
         repair_id = self.s.add_repair(machine=m, case_id=c["id"], technician=rep["technician"], work=rep["work"],
                                       done=rep["at"], outcome=res["outcome"], before_median=res["before_median_risk"],
                                       after_median=res["after_median_risk"], against_version=1)  # fmt: skip
+        if self.on_verified is not None:  # the signed repair record (server/prove), made by whoever owns it
+            try:
+                self.on_verified(c, res, repair_id, [float(x) for x in np.asarray(r_after).tolist()])
+            except Exception as e:  # a record that cannot be signed must not undo the verification
+                self.s.log("system", "record_failed", c["id"], error=f"{type(e).__name__}: {e}"[:200])
         words = {"fixed": "back to its original normal", "partly": "better, but not back to normal",
                  "failed": "not better: the repair did not work (possibly a wrong or poor part)"}[res["outcome"]]  # fmt: skip
         self._owner(c, "verified", f"{self._name(c)} after the repair: {words}.")

@@ -301,6 +301,8 @@ class LiveFeed:
             return {"id": f"{kind}:{str(payload.get('idem', ''))[:10]}", "dry_run": True}
         alerts = self.b.live.alerts
         f = self.b.c.machines[mid]["factory"]
-        a = alerts.notifier.send(machine=mid, factory=f, severity="planner", to=alerts.contact(f, machine=mid),
+        from .wa_loops import owner_phone
+
+        a = alerts.notifier.send(machine=mid, factory=f, severity="planner", to=owner_phone(alerts, f, mid),
                                  lang=alerts.owner_lang(mid), body=str(payload.get("text", "")), kind="planner")  # fmt: skip
         return {"id": f"alert:{a['id']}", "status": a.get("status"), "provider": alerts.provider}

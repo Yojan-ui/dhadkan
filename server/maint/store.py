@@ -278,6 +278,17 @@ class Store:
                         (case_id,))  # fmt: skip
         self.db.commit()
 
+    def reopen_approval(self, approval_id: str, summary: str, amount: tuple[int, int]) -> None:
+        """Ask the owner again about the same approval (e.g. the visit now costs more); the old decision is
+        kept in the note and the audit."""
+        self.db.execute("UPDATE approvals SET status='requested', summary=?, amount_low=?, amount_high=?, decided=NULL,"
+                        " decided_by=NULL, channel=NULL, ref=NULL, note='reopened: cost changed' WHERE id=?",
+                        (summary, int(amount[0]), int(amount[1]), approval_id))  # fmt: skip
+        self.db.commit()
+        self.log(
+            "agent", "approval_reopened", approval_id.split(":")[0], approval=approval_id, summary=summary
+        )
+
     def reset_conflict(self, approval_id: str) -> None:
         self.db.execute("UPDATE approvals SET status='requested', decided=NULL, decided_by=NULL, channel=NULL,"
                         " ref=NULL WHERE id=? AND status='conflict'", (approval_id,))  # fmt: skip
