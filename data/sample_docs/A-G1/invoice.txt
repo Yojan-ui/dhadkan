@@ -1,0 +1,12 @@
+SAMPLE DOCUMENT FOR THE DHADKAN DEMO. Company names, numbers and phone numbers are made up.
+
+TAX INVOICE
+
+Invoice no: PTS/2025-26/1182
+Invoice date: 12-08-2025
+Seller: Pune Textile Machinery Stores (authorised dealer of Shree Ganesh Looms)
+Buyer: Shinde Engineering Works, Bhosari MIDC, Pune
+Item: Plain powerloom SGL-56 with 2 HP motor and gearbox
+Machine serial no: SGL56-2025-04471
+Amount: Rs. 1,62,000 + GST 12% = Rs. 1,81,440
+Phone: +91 90000 11820 (sample)

@@ -30,8 +30,9 @@ screens: `?view=owner&f=A&lang=hi` and `?view=mechanic&f=A`. If the internet fai
 |---|---|---|
 | Isometric factory floor, status beacons, HUD panels from live data (`/api/twin`) | [web/src/iso/](../web/src/iso/), [server/twin.py](../server/twin.py) | [healthy](screenshots/digital-twin/1-healthy.png), [at the alarm](screenshots/digital-twin/2-alarm-agent.png) |
 | Machine side panel: health ring, live spectrogram, before/now, 14-day trend, diagnosis, Haan/Nahi | [web/src/iso/TwinScreen.tsx](../web/src/iso/TwinScreen.tsx) | [machine](screenshots/digital-twin/3-machine.png) |
-| Agent: observe → diagnose → plan → ask owner → act → verify; 10 tools; Claude Fable 5.2 or offline rules; acts on an alarm by itself; money waits for "1 = Haan" | [server/owner_agent.py](../server/owner_agent.py), [tests/test_owner_agent.py](../tests/test_owner_agent.py) | [agent chat](screenshots/digital-twin/4-agent.png) |
+| Agent: observe → diagnose → plan → ask owner → act → verify; 12 tools; Claude Fable 5.2 or offline rules; acts on an alarm by itself; money waits for "1 = Haan" | [server/owner_agent.py](../server/owner_agent.py), [tests/test_owner_agent.py](../tests/test_owner_agent.py) | [agent chat](screenshots/digital-twin/4-agent.png) |
 | Chat by text or voice in hi, mr, gu, ta, kn, te, en, Hinglish; replies in kind; ₹ lakh/crore, IST | `/api/agent/chat`, `/api/agent/voice` | |
+| Warranty / insurance: owner uploads each machine's papers (or sends a photo on WhatsApp); Claude reads them (offline rules for text); code decides if the fault is claimable; the alert says so in the owner's language with whom to call, the deadline and "don't open it"; reply 4 = claim steps + claim letter | [server/coverage.py](../server/coverage.py), [server/docs_api.py](../server/docs_api.py), [tests/test_coverage.py](../tests/test_coverage.py), [data/sample_docs/](../data/sample_docs/) | [papers panel](screenshots/digital-twin/5-papers.png) |
 
 The agent has **not** been run against the Claude API (no key here). Every screenshot comes from the
 offline rules path, and the screen says which engine answered.

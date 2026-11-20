@@ -2,7 +2,8 @@
 
     send()       WhatsApp first; if it is unreachable, SMS; if that is unreachable too, the alert
                  waits in an outbox (SQLite) and goes out when the network is back.
-    reply()      "1" books the technician (via the agent's reply path), "2" = later, "3" = details.
+    reply()      "1" books the technician (via the agent's reply path), "2" = later, "3" = details,
+                 "4" = warranty / insurance claim help.
                  Nothing here can stop, slow or switch off a machine.
     escalate()   a Stop-now alert with no reply after 2 hours goes to the factory's second contact.
 
@@ -79,11 +80,13 @@ CHOICES = {  # digits (Latin, Devanagari, Gujarati), the button titles, and the 
         "ના",
     },
     "details": {"3", "३", "૩", "details", "जानकारी", "माहिती", "info", "mahiti", "vigat", "માહિતી"},
+    # warranty / insurance claim help from the machine's own papers (server/coverage.py)
+    "claim": {"4", "४", "૪", "claim", "क्लेम", "दावा", "dava", "ક્લેમ", "warranty", "वारंटी", "bima", "बीमा"},
 }
 
 
 def parse_choice(text: str) -> str | None:
-    """'1' / '2' / '3' (or the words for them) -> book / later / details; anything else -> None."""
+    """'1' / '2' / '3' / '4' (or the words for them) -> book / later / details / claim; anything else -> None."""
     words = re.findall(r"[\wऀ-ॿ઀-૿]+", text.lower())
     hits = {c for c, vocab in CHOICES.items() for w in words if w in vocab}
     return hits.pop() if len(hits) == 1 else None

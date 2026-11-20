@@ -19,3 +19,4 @@ cryptography==50.0.2   # Ed25519 signatures on repair records and passports
 twilio==9.13.0   # WhatsApp via the Twilio sandbox (server/whatsapp.py)
 python-dotenv==1.2.4
 pyngrok==9.1.4   # public URL for the Twilio webhook during the demo
+pypdf==6.17.0          # reads text PDFs of warranty cards / insurance policies offline (server/coverage.py); optional
