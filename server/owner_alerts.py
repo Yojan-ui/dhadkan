@@ -6,6 +6,7 @@ alert is logged as `no_contact`; without provider keys it is logged as `dry_run`
 """
 
 import hashlib
+import re
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -40,6 +41,19 @@ DETAIL_LABELS = {
            "caused_by": "સામાન્ય કારણ", "warranty": "વોરંટી", "ask_dealer": "ડીલરને પૂછો",
            "money": "હમણાં રિપેર ~₹{lo}-{hi} (નક્કી બંધી સાથે). {d} દિવસ રાહ જુઓ તો: {p}% શક્યતા બ્રેકડાઉનની, ખર્ચ ~₹{cost}."},
 }  # fmt: skip
+
+
+VOICE_LANGS = ("hi", "mr", "gu", "ta", "en")
+QUESTION = re.compile(
+    r"\?|\b(kya|kaisa|kaisi|kaise|kab|kitna|kitne|kyun|kyon|kaun|kahan|batao|bataiye|status|what|when|how|"
+    r"why)\b|क्या|कैसा|कैसी|कब|कितना|क्यों|बताओ|काय|कसा|किती|केव्हा|શું|કેમ|ક્યારે|કેટલું|என்ன|எப்போது",
+    re.I,
+)
+
+
+def is_question(text: str) -> bool:
+    """A voice note that asks something (it goes to the owner agent), not one describing a sound."""
+    return bool(QUESTION.search(text or ""))
 
 
 class OwnerAlerts:
@@ -198,6 +212,27 @@ class OwnerAlerts:
              "public_url": f"{base}/api/alert-media/{png.name}" if base else None},
         ]  # fmt: skip
 
+    # -- voice notes ----------------------------------------------------------
+    def voice_text(self, mid: str, lang: str, text: str) -> str:
+        """What the voice note reads: the same template text; a hi_latn owner hears its Hindi rendering."""
+        return (self.text(mid, "hi") or text) if lang == "hi_latn" else text
+
+    def voice_media(self, template: str, mid: str, lang: str, text: str) -> list[dict[str, Any]]:
+        """The alert's voice note (server/voice), from the SAME template text, as WhatsApp media. [] when
+        voice is off or fails: the text alert goes out regardless."""
+        from . import voice
+
+        spoken = self.voice_text(mid, lang, text) if mid in self.live.c.machines else text
+        v = voice.note(template, {"machine": mid, "text": spoken}, lang, spoken)
+        if not v or not v.get("path"):
+            if v and v.get("error"):
+                self.live.event("voice_failed", machine=mid, error=v["error"])
+            return []
+        base = env.get("PUBLIC_BASE_URL")
+        name = Path(v["path"]).name
+        return [{"path": v["path"], "mime": "audio/ogg", "caption": "", "voice": True, "seconds": v.get("seconds"),
+                 "engine": v.get("engine"), "public_url": f"{base}/api/voice/note/{name}" if base else None}]  # fmt: skip
+
     # -- sending --------------------------------------------------------------
     def send_for(
         self, mid: str, message_id: int | None = None, to: str | None = None, lang: str | None = None
@@ -210,9 +245,11 @@ class OwnerAlerts:
         sev = c["severity"]["level"]
         now = self.live.c.now()
         when, at = policy.decide(sev, now, self.live.c.factories[m["factory"]])
+        body = self.text(mid, lang) or ""
+        voice_media = self.voice_media(policy.TEMPLATES.get(sev) or "alert", mid, lang, body)
         return self.notifier.send(
             machine=mid, factory=m["factory"], severity=sev, to=to or self.contact(m["factory"], machine=mid),
-            lang=lang, body=self.text(mid, lang) or "", media=self.media(mid), message_id=message_id,
+            lang=lang, body=body, media=self.media(mid) + voice_media, message_id=message_id,
             template=policy.TEMPLATES.get(sev), buttons=policy.BUTTONS.get(lang),
             hold_until=at.timestamp() if when == "hold" and at else None, digest=when == "digest",
         )  # fmt: skip
@@ -241,8 +278,15 @@ class OwnerAlerts:
             body = "\n".join(
                 [policy.DIGEST_HEAD.get(lang, policy.DIGEST_HEAD["en"]), *(f"- {r['body']}" for r in rows)]
             )
+            if lang == "hi_latn":  # the voice reads the Hindi rendering of the same template lines
+                spoken = "\n".join(
+                    [policy.DIGEST_HEAD["hi"], *((self.text(r["machine"], "hi") or "") for r in rows)]
+                )
+            else:
+                spoken = body
+            vm = self.voice_media(policy.DIGEST_TEMPLATE, "-", "hi" if lang == "hi_latn" else lang, spoken)
             d = self.notifier.send(machine=rows[0]["machine"], factory=rows[0]["factory"], severity="watch", to=phone,
-                                   lang=lang, body=body, kind="digest", template=policy.DIGEST_TEMPLATE)  # fmt: skip
+                                   lang=lang, body=body, kind="digest", template=policy.DIGEST_TEMPLATE, media=vm)  # fmt: skip
             self.notifier.mark_digested([int(r["id"]) for r in rows], int(d["id"]))
             out.append(int(d["id"]))
         return out
@@ -364,19 +408,29 @@ class OwnerAlerts:
     def on_voice(self, phone: str, audio: bytes, mime: str = "audio/ogg") -> dict[str, Any] | None:
         """A WhatsApp voice note: local Whisper -> lexicon (Granite for unknown words) -> weak label on the
         machine of this owner's latest alert. The owner's words are a weak label, not an inspection."""
+        got = self._voice_for_investigation(
+            phone, audio, mime
+        )  # a recording the planner asked for comes first
+        if got is not None:
+            return got
         a = self.notifier.latest_for(phone)
-        if a is None:
-            return self._voice_for_investigation(phone, audio, mime)
         from . import folk, registry
 
         ALERT_DIR.mkdir(parents=True, exist_ok=True)
-        ext = ".ogg" if "ogg" in mime else ".m4a" if "mp4" in mime or "aac" in mime else ".audio"
-        path = ALERT_DIR / f"voice_{a['machine']}_{int(time.time())}{ext}"
+        ext = (
+            ".ogg"
+            if "ogg" in mime
+            else ".wav" if "wav" in mime else ".m4a" if "mp4" in mime or "aac" in mime else ".audio"
+        )
+        path = ALERT_DIR / f"voice_{(a or {}).get('machine', 'owner')}_{int(time.time())}{ext}"
         path.write_bytes(audio)
-        lang = (
-            a["lang"] if a["lang"] in ("hi", "mr", "en") else "hi"
-        )  # Whisper has no hi_latn; speech is Hindi
+        # Whisper has no hi_latn (the speech is Hindi); with no alert to go by, it detects the language
+        lang = None if a is None else (a["lang"] if a["lang"] in ("hi", "mr", "gu", "en") else "hi")
         text, heard = folk.transcribe(str(path), language=lang)
+        from .wa_loops import command_of
+
+        if a is None or is_question(text) or command_of(text):
+            return self.voice_question(phone, text, heard)
         llm = folk.llm_label if provider.available() else None
         lab = folk.label_text(text, folk.load_lexicon(), llm)
         with self.live.lock:
@@ -390,6 +444,43 @@ class OwnerAlerts:
                          {"text": text, "audio_path": str(path), "sound": lab.get("sound"), "fault": lab.get("fault"),
                           "channel": "whatsapp", "alert": a["id"]})  # fmt: skip
         return {"alert": a["id"], "machine": a["machine"], "text": text, "label": lab}
+
+    def voice_question(self, phone: str, text: str, heard: str) -> dict[str, Any] | None:
+        """An owner asking by voice: the transcript goes to the commands or the owner agent (planner); the
+        reply goes back as text and as a voice note. The voice is always the TEMPLATE reply (commands, or
+        owner_agent.run_rules): a Granite-written text reply is sent as text only."""
+        from . import owner_agent
+        from .wa_loops import owner_command
+
+        brain = getattr(self.live, "brain", None)
+        f = self.factory_of_owner(phone)
+        if f is None or not text.strip():
+            return None
+        configured = env.get(f"DHADKAN_LANG_{f}") or self.live.c.factories[f]["language"]
+        # the language they spoke; a Hindi speaker who reads Roman script keeps hi_latn for the text
+        lang = (
+            configured
+            if heard == "hi" and configured == "hi_latn"
+            else (heard if heard in VOICE_LANGS else configured)
+        )
+        cmd = owner_command(brain, f, text, lang) if brain is not None else None
+        if cmd is not None:
+            reply, template, source = cmd["reply"], f"command_{cmd['command']}", "template"
+            spoken = owner_command(brain, f, text, "hi", log=False)["reply"] if lang == "hi_latn" else reply  # type: ignore[index]
+        else:
+            out = owner_agent.chat(self.live, text, f, lang)
+            rules = owner_agent.run_rules(self.live, text, f, "hi" if lang == "hi_latn" else lang)
+            reply, template = out.get("reply") or rules.get("reply", ""), "chat_reply"
+            source = "granite" if str(out.get("engine", "")).startswith(provider.NAME) and "+" not in str(out.get("engine")) \
+                else "template"  # fmt: skip
+            spoken = rules.get("reply", "")
+        vm = self.voice_media(template, "-", "hi" if lang == "hi_latn" else lang, spoken)
+        sent = self.notifier.send(machine="-", factory=f, severity="info", to=phone, lang=lang, body=reply, kind="chat",
+                                  media=vm)  # fmt: skip
+        self.live.event("owner_voice_question", factory=f, heard=heard, lang=lang, reply_source=source,
+                        voice=bool(vm))  # fmt: skip
+        return {"question": text, "heard": heard, "lang": lang, "reply": reply, "reply_source": source,
+                "voice": bool(vm), "alert": sent["id"]}  # fmt: skip
 
     def _voice_for_investigation(self, phone: str, audio: bytes, mime: str) -> dict[str, Any] | None:
         """A recording sent in answer to the planner's request (request_measurement, kind audio): scored

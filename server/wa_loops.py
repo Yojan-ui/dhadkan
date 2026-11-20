@@ -402,7 +402,9 @@ def command_of(text: str) -> str | None:
     return None
 
 
-def owner_command(brain: Any, factory: str, text: str, lang: str = "hi_latn") -> dict[str, Any] | None:
+def owner_command(
+    brain: Any, factory: str, text: str, lang: str = "hi_latn", log: bool = True
+) -> dict[str, Any] | None:
     """Answer the owner's command from stored facts only (numbers from the case, approvals and faults.yaml).
     None when the text is not a command."""
     kind = command_of(text)
@@ -412,6 +414,8 @@ def owner_command(brain: Any, factory: str, text: str, lang: str = "hi_latn") ->
     lang = lang if lang in ("hi_latn", "hi", "en") else "hi_latn"
     mids = [m for m, x in brain.c.machines.items() if x["factory"] == factory]
     cases = [c for c in s.cases(open_only=True) if c["machine"] in mids]
+    if kind == "stop" and not log:  # the same answer in another script (a voice note): logged once already
+        return {"command": "stop", "reply": say(R, "stop", lang), "tool_called": None}
     if kind == "stop":
         # no tool, no action: an explanation and a log line. Nothing here can stop a machine.
         s.log("owner", "stop_requested_by_owner", cases[0]["id"] if cases else None, factory=factory, text=text[:200],

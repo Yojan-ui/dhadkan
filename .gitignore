@@ -15,6 +15,7 @@ web/dist/
 .env
 data/alerts/
 data/kb/
+data/tts/
 
 # --- secrets: keys live only in a local .env (see .env.example) ---
 .env.*

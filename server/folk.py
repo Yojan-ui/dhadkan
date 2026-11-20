@@ -136,7 +136,13 @@ def transcribe(path: str | Path, language: str | None = None, model_size: str = 
     from faster_whisper import WhisperModel
 
     if model_size not in _whisper:
-        _whisper[model_size] = WhisperModel(model_size, device="cpu", compute_type="int8")
+        from .config import ROOT
+
+        local = (
+            ROOT / "data" / "tts" / "models" / f"faster-whisper-{model_size}"
+        )  # scripts/fetch_voice_models
+        _whisper[model_size] = WhisperModel(str(local) if local.exists() else model_size, device="cpu",
+                                            compute_type="int8")  # fmt: skip
     audio, _ = librosa.load(str(path), sr=16_000, mono=True)  # wav/ogg/mp3 -> 16 kHz array
     segments, info = _whisper[model_size].transcribe(audio, beam_size=5, language=language)
     return " ".join(s.text.strip() for s in segments), info.language
