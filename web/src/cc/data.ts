@@ -160,6 +160,17 @@ export interface CCState {
   performance: Perf;
   messages: { kind: string; to?: string; text?: string; technician?: string; day?: string; idem: string }[];
   queued: { kind: string; attempts: number; error: string | null }[];
+  whatsapp?: {
+    mode: "off" | "not_configured" | "dry_run" | "live";
+    messages: {
+      id: number;
+      dir: "out" | "in";
+      role: string;
+      phone: string | null;
+      text: string;
+      status: string;
+    }[];
+  };
   audit_ok: boolean;
   cloud_events: number;
   last_tick_ms: number | null;

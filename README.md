@@ -37,6 +37,9 @@ npm run demo      # backend + web app; the NASA IMS bearing run-to-failure plays
   - It uses Claude Fable 5.2 (tool use) when `ANTHROPIC_API_KEY` is set, and rules otherwise or offline.
   - It acts on an alarm by itself.
   - Anything that costs money waits for the owner's "1 = Haan" on WhatsApp. No tool can stop a machine.
+  - The command centre's maintenance agent talks on WhatsApp too (`server/cc_whatsapp.py`, `DHADKAN_CC_WHATSAPP=1`):
+    it sends the owner its booking question with a ref, the owner's "1" / "2" (to `/whatsapp/twilio`) decides it,
+    and only then does the factory's own mechanic get the job. Only numbers in `.env` are messaged; 12/hour cap.
 - **Agent chat** (bottom dock): ask by typing or by voice note, in Hindi, Marathi, Gujarati, Tamil,
   Kannada, Telugu, English or Hinglish ("Loom 4 ki awaaz kyun badal gayi?"). It replies in the same
   language and shows its tool steps. Amounts are in ₹ lakh/crore and times in IST.

@@ -1400,6 +1400,13 @@ def create_app(node_db: Path | None = None, registry_db: Path | None = None, str
         if form.get("NumMedia", "0") != "0" and form.get("MediaContentType0", "").startswith("audio/"):
             audio = await asyncio.to_thread(wa_send.download, form.get("MediaUrl0", ""))
         with wa_send.reply_to(phone) as out:
+            # the command centre's booking question, when this "1"/"2" answers it (the newest question wins)
+            if audio is None:
+                open_t = live.flow.latest_open(phone)
+                got = await asyncio.to_thread(app.state.brain.wa.inbound, phone, form.get("Body"),
+                                              form.get("MessageSid"), open_t["ts"] if open_t else None)  # fmt: skip
+                if got is not None:
+                    return Response(wa_send.twiml(out), media_type="application/xml")
             # queued messages are stale by now: the flow answers with the current alert (or handles 1/2/3, done,
             # voice notes), and everything it sends this person goes back in this TwiML reply
             wa_send.take_pending(phone)

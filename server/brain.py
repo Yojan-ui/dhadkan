@@ -69,7 +69,10 @@ class Brain:
             self.store.add_machine(mid, m["name"], m["factory"], PRESET.get(m["type"], "flour_mill"), m["type"],
                                    float(m.get("motor_hp", 5)), KIND.get(m["type"], "mill"))  # fmt: skip
         self.net = Network(probe=lambda: bool(self.live.link_up))
-        self.transport = Transport(network=self.net)
+        from .cc_whatsapp import CCWhatsApp
+
+        self.wa = CCWhatsApp(self)  # owner/supervisor/mechanic messages on WhatsApp (opt-in, see module)
+        self.transport = Transport(network=self.net, send=lambda kind, payload: self.wa.send(kind, payload))
         tools = ag.Tools(transport=self.transport, factories=self.factories,
                          service_hours=cfg.get("service_hours", {}))  # fmt: skip
         self.agent = ag.MaintenanceAgent(
@@ -198,12 +201,14 @@ class Brain:
             self.last_tick_ms = round((time.perf_counter() - t0) * 1000, 1)
 
     # ------------------------------------------------------------------ people
-    def decide(self, approval_id: str, decision: str, by: str, channel: str) -> dict[str, Any]:
+    def decide(
+        self, approval_id: str, decision: str, by: str, channel: str, ref: str | None = None
+    ) -> dict[str, Any]:
         with self.lock:
             if self.store.approval(approval_id) is None:
                 raise KeyError(approval_id)
             out = self.agent.decide(
-                approval_id, decision, by=by, channel=channel, ref=f"{channel}:{int(time.time())}"
+                approval_id, decision, by=by, channel=channel, ref=ref or f"{channel}:{int(time.time())}"
             )
             self.agent.tick()
             self.version += 1
@@ -342,6 +347,7 @@ class Brain:
                     "agents": self.activity.board(), "timeline": self.activity.runs(60),
                     "workflows": self.workflows(), "approvals": self.store.approvals(),
                     "performance": self.performance(), "messages": self.transport.sent[-20:],
+                    "whatsapp": {"mode": self.wa.mode(), "messages": self.wa.messages(20)},
                     "queued": [{"kind": a["kind"], "attempts": a["attempts"], "error": a["error"]}
                                for a in self.store.queued_actions()],
                     "audit_ok": self.store.verify_audit()["ok"], "cloud_events": self.cloud.count("cluster-node"),

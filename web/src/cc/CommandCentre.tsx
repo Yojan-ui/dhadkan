@@ -302,15 +302,17 @@ function TopBar({
                   {a.kind.replace("_", " ")}: {a.summary.slice(0, 90)}
                 </button>
               ))}
-              <b className="small">Latest messages (recorded, not sent)</b>
-              {s.messages
-                .slice(-4)
-                .reverse()
-                .map((m) => (
-                  <div key={m.idem} className="small muted">
-                    {m.kind === "book_job" ? `job → ${m.technician} ${m.day}` : m.text?.slice(0, 90)}
-                  </div>
-                ))}
+              <b className="small">WhatsApp · {WA_MODE[s.whatsapp?.mode ?? "off"]}</b>
+              {(s.whatsapp?.messages ?? []).length === 0 && (
+                <div className="small muted">No messages yet.</div>
+              )}
+              {(s.whatsapp?.messages ?? []).slice(0, 5).map((m) => (
+                <div key={m.id} className="small muted">
+                  {m.dir === "in" ? "← " : "→ "}
+                  {m.role} {m.phone ?? ""} · {m.status}:{" "}
+                  {m.text.replace(/^Dhadkan · [^\n]*\n/, "").slice(0, 80)}
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -319,6 +321,13 @@ function TopBar({
     </header>
   );
 }
+
+const WA_MODE: Record<string, string> = {
+  off: "off (set DHADKAN_CC_WHATSAPP=1)",
+  not_configured: "no Twilio keys in .env",
+  dry_run: "dry run (DHADKAN_DRY_RUN=1)",
+  live: "sending",
+};
 
 function Kpi({ label, value, cls = "" }: { label: string; value: string | number; cls?: string }) {
   return (
