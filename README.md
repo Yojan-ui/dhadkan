@@ -111,7 +111,7 @@ make test              # Python tests (pytest) and the web app tests
 | `.venv/bin/python: No such file or directory` | run `make setup` first |
 | `Python 3.12+ needed` | install Python 3.12 and pass it: `make setup PYTHON=/path/to/python3.12` |
 | `KeyError: 'pump/id_00'` | the demo clips are missing: run `make demo-data` |
-| `port 8600 is already taken` | stop the other copy, or run `make demo-ims PORT=8700` |
+| `address already in use` (port 8600) | stop the other copy, or run `make demo-ims PORT=8700` |
 | WhatsApp shows "dry run" | no keys in `.env`; see step 4 |
 | no WhatsApp message arrives | send "hi" to the sandbox number first (it only delivers within 24 h of your last message) and check `OWNER_PHONE` |
 
