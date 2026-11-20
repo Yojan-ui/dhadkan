@@ -69,6 +69,12 @@ def router(brain: Brain) -> APIRouter:
             raise HTTPException(404, "unknown machine")
         return brain.machine_detail(mid)
 
+    @r.get("/planner")
+    def planner(request: Request, case: str | None = None, machine: str | None = None) -> dict[str, Any]:
+        """The planner's trace: per case, event -> reasoning -> tool calls -> approvals -> outcome."""
+        auth.current(request)
+        return brain.planner_trace(case, machine, limit=20)
+
     @r.get("/audit")
     def audit(request: Request, since: int = 0) -> dict[str, Any]:
         auth.current(request)

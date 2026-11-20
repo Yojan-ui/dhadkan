@@ -1,0 +1,16 @@
+{
+  "name": "Dhadkan recorder",
+  "short_name": "Dhadkan",
+  "description": "Listens to a machine and sends 10-second clips to Dhadkan (live, not simulated).",
+  "start_url": "/?view=record",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#16171a",
+  "theme_color": "#16171a",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

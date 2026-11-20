@@ -4,6 +4,7 @@ import { get, post } from "../api";
 import { HEALTH_WORD, healthClass, ts, type AgentRun, type CCState, type Detail } from "./data";
 import { MachineDetail } from "./MachineDetail";
 import { Approve, Pipeline, TelemetryTable } from "./panels";
+import { TraceList } from "./trace";
 import { Bars, Dot, Lines, Panel } from "./ui";
 
 export function MachinesPage({
@@ -196,9 +197,14 @@ export function AgentsPage({ s }: { s: CCState }) {
           </button>
         ))}
       </div>
-      <Panel title={`Execution timeline${sel ? ` · ${sel}` : ""}`}>
-        <Timeline runs={runs} />
-      </Panel>
+      <div>
+        <Panel title="Planner trace · event → reasoning → tools → approval → outcome">
+          <TraceList t={s.planner} />
+        </Panel>
+        <Panel title={`Execution timeline${sel ? ` · ${sel}` : ""}`}>
+          <Timeline runs={runs} />
+        </Panel>
+      </div>
     </div>
   );
 }

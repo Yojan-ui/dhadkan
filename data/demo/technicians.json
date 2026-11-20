@@ -1,9 +1,10 @@
 {
   "_source": "DEMO DATA: invented technicians for the demonstration. Not real people, not real availability.",
-  "_note": "A factory replaces this file with its own mechanic and nearby fitters (onboarding). Skills use faults.yaml keys plus 'inspection'.",
+  "_note": "A factory replaces this file with its own mechanic and nearby fitters (onboarding). Skills use faults.yaml keys plus 'inspection'. xy_km (cluster map, km), area and rating (out of 5) are demo values too.",
   "technicians": [
-    {"id": "T1", "name": "Ramesh (own mechanic)", "skills": ["inspection", "bearing_wear", "belt_slip"], "works": ["mon", "tue", "wed", "thu", "fri", "sat"], "km": 2.0, "role": "own_mechanic"},
-    {"id": "T2", "name": "Salim (motor fitter)", "skills": ["inspection", "bearing_wear", "motor_winding", "imbalance"], "works": ["mon", "wed", "fri", "sat"], "km": 6.5, "role": "fitter"},
-    {"id": "T3", "name": "Pawar Alignment Services", "skills": ["inspection", "misalignment"], "works": ["tue", "thu", "sat"], "km": 14.0, "role": "service"}
+    {"id": "T1", "name": "Ramesh (own mechanic)", "skills": ["inspection", "bearing_wear", "belt_slip"], "works": ["mon", "tue", "wed", "thu", "fri", "sat"], "km": 2.0, "role": "own_mechanic", "area": "Pimpri", "xy_km": [3, 2], "rating": 4.6},
+    {"id": "T2", "name": "Salim (motor fitter)", "skills": ["inspection", "bearing_wear", "motor_winding", "imbalance"], "works": ["mon", "wed", "fri", "sat"], "km": 6.5, "role": "fitter", "area": "Bhosari", "xy_km": [1, 5], "rating": 4.2},
+    {"id": "T3", "name": "Pawar Alignment Services", "skills": ["inspection", "misalignment"], "works": ["tue", "thu", "sat"], "km": 14.0, "role": "service", "area": "Chakan", "xy_km": [16, 12], "rating": 3.9},
+    {"id": "T4", "name": "Iqbal (pump and motor fitter)", "skills": ["inspection", "bearing_wear", "cavitation", "belt_slip", "imbalance"], "works": ["mon", "tue", "thu", "fri", "sun"], "km": 9.0, "role": "fitter", "area": "Talegaon", "xy_km": [22, -5], "rating": 4.4}
   ]
 }

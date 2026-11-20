@@ -10,6 +10,12 @@ Per tick, per machine that produced a reading:
     Orchestrator  opens / escalates a case, runs its steps through the other agents (server/maint/agent)
 Then the outbox and the audit replica sync if the link is up (the link switch in the top bar).
 
+Events (server/planner/events): an urgency change is a health_change event, a rise to inspect or above
+an alarm, a new factory day a daily_tick; owner decisions, replies, voice notes and the agent's own
+events (repair done, verify result, ...) join them. The planner (server/planner/agent) handles each one:
+with Granite on the local Ollama on a worker thread (Granite chooses the tool calls, outside the tick lock), without
+one at the end of the tick (the rules: the fixed plan runs exactly as before).
+
 State lives in data/brain_edge.db (readings, baselines), data/brain_maint.db (cases, steps, actions,
 approvals, repairs, agent runs, audit) and data/brain_cloud.db (the cloud replica). The clock is the
 factory clock of the simulation. Readings are recorded MIMII clips replayed by the simulator, so they
@@ -30,13 +36,16 @@ from edge.baseline import BaselineStore
 from edge.detectors import AE_COL, WIDTH
 from edge.summary import S
 
-from . import health
+from . import health, kb
 from .agents import OPEN, Activity
 from .config import NODE_DB
 from .maint import agent as ag
 from .maint.store import Store
 from .maint.sync import Cloud, SyncClient
 from .maint.tools import Network, Transport
+from .planner import llm as planner_llm
+from .planner.agent import Planner
+from .planner.events import Event, EventBus
 
 RISK_THRESHOLD = health.ASSUMPTIONS["severe"]
 BACKFILL_TICKS = 60
@@ -82,11 +91,85 @@ class Brain:
         self.sync = SyncClient(self.store, self.agent, self._cloud_send, node="cluster-node")
         self.health: dict[str, dict[str, Any]] = {}
         self.version = 0
+        # the planner: one event-driven brain over the agent (Granite when Ollama answers, the fixed plan otherwise)
+        self.bus = EventBus(self.store, lock=self.lock)
+        self.agent.emit_hook = self.bus.emit
+        tech = cfg.get("technician", {})
+        self.planner = Planner(self.store, self.agent, self.bus, client=planner_llm.make_client(),
+                               factories=self.factories, health_of=self.health.get, live=live,
+                               route_cfg={"start_xy": tech.get("xy_km", [0, 0]), "hours": tech.get("hours_per_day", 7),
+                                          "kmph": cfg.get("road_kmph", 22)},
+                               lock=self.lock, rules_reply=self._rules_reply, score_audio=self._score_audio)  # fmt: skip
+        if self.planner.llm_on:
+            self.agent.driver = "planner"
+            self._stop = threading.Event()
+            threading.Thread(target=self._planner_worker, name="planner", daemon=True).start()
+            # the knowledge-base vectors, off the start-up path (keyword search until they are ready)
+            threading.Thread(target=kb.ensure_index, name="kb-index", daemon=True).start()
+        from .live_feed import LiveFeed
+
+        self.feed = LiveFeed(self)  # machines a live recorder feeds (server/live_feed.py)
+        from .wa_loops import MechanicDesk
+
+        self.desk = MechanicDesk(self)  # the mechanic's job on WhatsApp (server/wa_loops.py)
+        self.transport.send = self._send_out
+        self.agent.on_verified = self._signed_record
+        live.brain = self
         if backfill:
             self.backfill()
         for mid in self.c.machines:  # health from what is already stored, before the next reading arrives
             self.health[mid] = self.assess(mid)
         self.c.on_step.append(self.on_tick)
+
+    # ------------------------------------------------------------------ planner plumbing
+    def _planner_worker(self) -> None:
+        """With an LLM: events are handled here, so a slow model call never holds the tick lock."""
+        while not self._stop.is_set():
+            self.bus.wake.wait(5.0)
+            self.bus.wake.clear()
+            with contextlib.suppress(Exception):
+                if self.bus.drain():
+                    self.version += 1
+                    self.live.version += 1
+
+    def ingest(self, type_: str, **kw: Any) -> dict[str, Any] | None:
+        """An event from outside the tick (owner reply, voice note, mechanic). Without an LLM it is handled
+        at once; with one the worker picks it up."""
+        ev = self.bus.emit(type_, **kw)
+        if ev is None:
+            return None
+        if self.planner.llm_on:
+            return {"queued": ev.idem}
+        out = self.bus.handle(ev)
+        with self.lock:  # what it set off (an investigation_result, a re-plan's events) runs now too
+            self.bus.drain()
+            self.agent.tick()
+            self.version += 1
+            self.live.version += 1
+        return out
+
+    def _rules_reply(self, ev: Event) -> dict[str, Any] | None:
+        """The rules reply to the owner (owner_agent.run_rules: tools in a fixed order, templates)."""
+        from . import owner_agent
+
+        mid = ev.machine
+        text = str(ev.payload.get("text") or (self.c.machines[mid]["name"] if mid in self.c.machines else ""))
+        if not text:
+            return None
+        lang = str(ev.payload.get("lang") or owner_agent.detect_lang(text))
+        return owner_agent.run_rules(self.live, text, ev.factory, lang)
+
+    def _score_audio(self, mid: str, path: str) -> float | None:
+        """A recording the owner sent back: scored against this machine's own normal (1.0 = its alarm)."""
+        from edge import features
+
+        model = self.base.model(mid)
+        if model is None:
+            return None
+        audio = features.load(path)
+        row = np.full(WIDTH, np.nan)
+        row[: summary.DIM] = summary.summarise(audio)
+        return float(np.asarray(model.risk(row[None, :]))[0])
 
     def _cloud_send(self, op: str, payload: dict[str, Any]) -> dict[str, Any]:
         if not self.live.link_up:
@@ -98,7 +181,11 @@ class Brain:
         """First start on an existing cluster: learn each machine's normal from its recorded history."""
         n = 0
         for mid in self.c.machines:
-            if self.base.history(mid, last=1):
+            if (
+                self.base.history(mid, last=1)
+                or self.feed.is_live(mid)
+                or self.c.machines[mid].get("source") == "live"
+            ):
                 continue
             rows = [h for h in self.c.history(mid) if h["mode"] != "ims"][-BACKFILL_TICKS:]
             for h in rows:
@@ -151,7 +238,8 @@ class Brain:
             noisy = adapt.noisy_shed(10.0 * (row[S.mel_mean] - np.median(learned[:, S.mel_mean], axis=0)))
         reps = [{"what": r["work"], "date": datetime.fromtimestamp(r["done"]).date().isoformat(),
                  "result": r["outcome"]} for r in self.store.repairs(mid)]  # fmt: skip
-        h = health.assess(mid, hist, now=self.c.now(), preset=PRESET.get(self.c.machines[mid]["type"], "flour_mill"),
+        now = datetime.now() if self.feed.is_live(mid) else self.c.now()
+        h = health.assess(mid, hist, now=now, preset=PRESET.get(self.c.machines[mid]["type"], "flour_mill"),
                           explanation=ex, rul=est, baseline_rows=v[0]["n_rows"] if v else None, noisy_shed=noisy,
                           repairs=reps).as_dict()  # fmt: skip
         return h | {"explanation": ex}
@@ -161,12 +249,14 @@ class Brain:
             t0 = time.perf_counter()
             seen = []
             for mid, (audio, r) in out.items():
-                if mid in self.c.ims:
-                    continue  # Demo mode's IMS bearing is vibration; the classic screen handles it
+                if mid in self.c.ims or self.feed.is_live(mid):
+                    continue  # IMS: the classic screen handles it; live: the recorder feeds it (live_feed)
                 self._observe(mid, tick, audio, r.get("score"))
                 seen.append(mid)
             changed = []
             for mid in self.c.machines:
+                if self.feed.is_live(mid):
+                    continue  # assessed when its own clip arrives (live_feed.reading)
                 prev = self.health.get(mid, {}).get("urgency")
                 self.health[mid] = self.assess(mid)
                 h = self.health[mid]
@@ -177,6 +267,12 @@ class Brain:
                     self.agent.observe(mid, h, reading_ref=f"{mid}@{tick}")
                 if prev != h["urgency"]:
                     changed.append(f"{mid}: {prev or '-'} -> {h['urgency']}")
+                    self._emit_health(tick, mid, prev, h)
+            day = self.c.now().date().isoformat()
+            if self.store.meta("planner_day") != day:
+                self.store.meta("planner_day", day)
+                self.bus.emit("daily_tick", idem=f"day:{day}", payload={"day": day,
+                              "open_cases": len(self.store.cases(open_only=True))}, source="brain")  # fmt: skip
             self.store.db.commit()
             quiet = [m for m in self.c.machines if m not in out]
             self.activity.record("observation", f"tick {tick}: read {len(seen)} machines", "completed",
@@ -195,10 +291,111 @@ class Brain:
                                      reasoning=(f"rising trend on {', '.join(rising)}" if rising
                                                 else "no rising trend with enough data"), tools=["rul.estimate"])  # fmt: skip
             self.agent.tick()
+            self.desk.tick()  # jobs nobody answered in time -> mechanic_no_show
             self.sync.run()
+            if not self.planner.llm_on:
+                self.bus.drain()  # rules: cheap, deterministic, in the tick
             self.version += 1
             self.live.version += 1
             self.last_tick_ms = round((time.perf_counter() - t0) * 1000, 1)
+        if self.planner.llm_on:
+            self.bus.wake.set()
+
+    def _emit_health(self, tick: int, mid: str, prev: str | None, h: dict[str, Any]) -> None:
+        f = self.c.machines[mid]["factory"]
+        case = self.store.open_case(mid)
+        base = {"machine": mid, "factory": f, "case_id": case and case["id"], "source": "brain"}
+        p = {"from": prev, "to": h["urgency"], "status": h["status"], "confidence": h.get("confidence"),
+             "evidence": (h.get("evidence") or [])[:3]}  # fmt: skip
+        self.bus.emit("health_change", idem=f"health:{mid}:{tick}", payload=p, **base)
+        if ag.RANK.get(h["urgency"], 0) >= ag.RANK["inspect"] > ag.RANK.get(prev or "none", 0):
+            self.bus.emit("alarm", idem=f"alarm:{mid}:{tick}", payload=p, **base)
+
+    # ------------------------------------------------------------------ the outside world
+    def _send_out(self, kind: str, payload: dict[str, Any]) -> dict[str, Any]:
+        """The agent's and the planner's transport (after the approval gate): owner messages and the
+        mechanic's job go over WhatsApp (or the labelled dry run). DHADKAN_AGENT_WHATSAPP=0 keeps them
+        internal (the earlier behaviour), except for machines the live recorder feeds."""
+        from .notify import env
+        from .wa_loops import owner_phone
+
+        mid = payload.get("machine")
+        # the command centre's own Twilio path (server/cc_whatsapp.py, DHADKAN_CC_WHATSAPP=1): booking question with
+        # a ref, the owner's "1" / "2" decides it. Off, it only logs (status "off") and the WhatsApp loops below run.
+        cc = self.wa.send(kind, payload)
+        if self.wa.enabled():
+            return cc
+        if self.feed.is_live(str(mid)) and kind == "notify":
+            return self.feed.send(kind, payload)
+        if env.get("DHADKAN_AGENT_WHATSAPP") == "0" or not mid or mid not in self.c.machines:
+            return {"id": f"{kind}:{str(payload.get('idem', ''))[:10]}", "dry_run": True}
+        if kind == "book_job":
+            return self.desk.send_job(payload)
+        if kind == "notify":
+            alerts = self.live.alerts
+            f = self.c.machines[mid]["factory"]
+            a = alerts.notifier.send(machine=mid, factory=f, severity="planner", to=owner_phone(alerts, f, mid),
+                                     lang=alerts.owner_lang(mid), body=str(payload.get("text", "")), kind="planner")  # fmt: skip
+            return {"id": f"alert:{a['id']}", "status": a.get("status"), "provider": alerts.provider}
+        return {"id": f"{kind}:{str(payload.get('idem', ''))[:10]}", "dry_run": True}
+
+    def _signed_record(
+        self, c: dict[str, Any], res: dict[str, Any], repair_id: int, after_risk: list[float]
+    ) -> dict[str, Any]:
+        """After verification against baseline v1: the signed repair record (server/prove), with the
+        mechanic's photo of the old part (its sha256) and note."""
+        import json as _json
+
+        from . import prove
+
+        m = self.c.machines[c["machine"]]
+        rep = c["context"].get("repair", {})
+        jobs = [j for j in self.desk.jobs(c["id"]) if j["status"] == "done"]
+        job = jobs[-1] if jobs else {}
+        sim = any(r["event"] == "simulated_recovery" for r in self.store.audit(c["id"]))
+        doc = {
+            "kind": "dhadkan.repair_record.v1",
+            "machine": {"id": c["machine"], "name": m["name"], "type": m["type"], "factory": self.c.factories[m["factory"]]["name"]},
+            "case": c["id"], "fault": c["context"].get("fault"),
+            "technician": rep.get("technician"), "work": rep.get("work"),
+            "old_part_photo_sha256": job.get("photo_sha256"),
+            "repaired_at": datetime.fromtimestamp(rep.get("at") or self.clock()).isoformat(timespec="minutes"),
+            "verification": res, "against_baseline_version": 1, "after_risk": [round(x, 3) for x in after_risk],
+            "demo_note": ("SIMULATED: after-repair readings are the unit's recorded normal clips" if sim else None),
+        }  # fmt: skip
+        sig = prove.sign(doc)
+        self.live.c.db.executescript(prove.SCHEMA)
+        cur = self.live.c.db.execute(
+            "INSERT INTO repair_records (machine, factory, created, record, sha256, signature, mechanic) VALUES (?,?,?,?,?,?,?)",
+            (c["machine"], m["factory"], time.time(), _json.dumps(doc, ensure_ascii=False), sig["sha256"],
+             sig["signature"], rep.get("technician")),
+        )  # fmt: skip
+        self.live.c.db.commit()
+        rid = int(cur.lastrowid or 0)
+        self.store.log(
+            "agent", "repair_record_signed", c["id"], record=rid, sha256=sig["sha256"], repair=repair_id
+        )
+        return {"id": rid, **sig}
+
+    def open_approval(self, factory: str) -> dict[str, Any] | None:
+        """A booking or purchase approval waiting for this factory's owner (answered with 1 / 2)."""
+        for a in self.store.approvals(status="requested"):
+            if a["kind"] in ("booking", "purchase") and a["case_id"]:
+                c = self.store.case(a["case_id"])
+                if self.c.machines.get(c["machine"], {}).get("factory") == factory:
+                    return a
+        return None
+
+    def open_investigation(self, factory: str) -> dict[str, Any] | None:
+        """The newest measurement the planner asked this factory's owner for and has not had back."""
+        best = None
+        for c in self.store.cases(open_only=True):
+            if self.c.machines.get(c["machine"], {}).get("factory") != factory:
+                continue
+            for meas in c["context"].get("measurements", []):
+                if meas["status"] == "asked" and (best is None or meas["asked"] > best[1]["asked"]):
+                    best = (c, meas)
+        return {"case": best[0], "measurement": best[1]} if best else None
 
     # ------------------------------------------------------------------ people
     def decide(
@@ -210,6 +407,12 @@ class Brain:
             out = self.agent.decide(
                 approval_id, decision, by=by, channel=channel, ref=ref or f"{channel}:{int(time.time())}"
             )
+            a = self.store.approval(approval_id) or {}
+            case = self.store.case(a["case_id"]) if a.get("case_id") else None
+            self.ingest("owner_reply", case_id=a.get("case_id"), machine=case and case["machine"],
+                        factory=case and self.c.machines.get(case["machine"], {}).get("factory"),
+                        idem=f"decide:{approval_id}:{decision}:{channel}", source="owner",
+                        payload={"approval_id": approval_id, "decision": decision, "channel": channel, "by": by})  # fmt: skip
             self.agent.tick()
             self.version += 1
             self.live.version += 1
@@ -219,6 +422,17 @@ class Brain:
         with self.lock:
             c = self.store.case(case_id)
             self.agent.repair_done(case_id, technician, work)
+            if self.feed.is_live(c["machine"]):  # live readings carry wall-clock times: so must the repair
+                cur = self.store.case(case_id)
+                hist = [
+                    h
+                    for h in self.base.history(c["machine"])
+                    if h["source"] == "live" and h["risk"] is not None
+                ]
+                over = [h["ts"] for h in hist if h["risk"] >= 1.0]
+                ctx = cur["context"] | {"repair": {**cur["context"]["repair"], "at": time.time()},
+                                        "verify_since": over[0] if over else (hist[0]["ts"] if hist else time.time())}  # fmt: skip
+                self.store.update_case(case_id, cur["version"], context=ctx)
             if simulate_recovery:  # SIMULATED: the machine's recordings go back to its normal clips
                 self.c.set_mode(c["machine"], "normal", 0.0)
                 self.store.log("system", "simulated_recovery", case_id, machine=c["machine"],
@@ -245,6 +459,7 @@ class Brain:
                 "last_ts": datetime.fromtimestamp(last["ts"]).isoformat(timespec="minutes") if last else None,
                 "run": run, "sensor": sensor, "source": last["source"] if last else None,
                 "case": (self.store.open_case(mid) or {}).get("id"),
+                "live": self.feed.status(mid) if self.feed.is_live(mid) else None,
             })  # fmt: skip
         return out
 
@@ -351,7 +566,16 @@ class Brain:
                     "queued": [{"kind": a["kind"], "attempts": a["attempts"], "error": a["error"]}
                                for a in self.store.queued_actions()],
                     "audit_ok": self.store.verify_audit()["ok"], "cloud_events": self.cloud.count("cluster-node"),
+                    "planner": planner_trace(self.store, self.planner, limit=6),
                     "last_tick_ms": getattr(self, "last_tick_ms", None)}  # fmt: skip
+
+    def planner_trace(
+        self, case_id: str | None = None, machine: str | None = None, limit: int = 8
+    ) -> dict[str, Any]:
+        """Per case: event -> reasoning -> tool calls -> approvals -> outcome, with tokens and rupees
+        (the planner's decisions table; what the command centre and the twin's agent dock show)."""
+        with self.lock:
+            return planner_trace(self.store, self.planner, case_id, machine, limit)
 
     def machine_detail(self, mid: str) -> dict[str, Any]:
         with self.lock:
@@ -362,6 +586,63 @@ class Brain:
                     "cases": [{k: c[k] for k in ("id", "urgency", "state", "outcome", "opened", "closed")} for c in cases],
                     "repairs": self.store.repairs(mid),
                     "agent_runs": [r for r in self.activity.runs(300) if r["machine"] == mid][:30]}  # fmt: skip
+
+
+def planner_trace(store: Store, planner: Planner, case_id: str | None = None, machine: str | None = None,
+                  limit: int = 8) -> dict[str, Any]:  # fmt: skip
+    """The planner's decisions grouped by case, newest cases first."""
+    rows = store.decisions(case_id=case_id, limit=400)
+    if machine:
+        rows = [d for d in rows if d["machine"] == machine]
+    by: dict[str, list[dict[str, Any]]] = {}
+    for d in rows:
+        by.setdefault(d["case_id"] or "-", []).append(d)
+    order = sorted(by, key=lambda k: max(x["id"] for x in by[k]), reverse=True)[:limit]
+    cases = []
+    for cid in order:
+        ds = by[cid]
+        steps = []
+        for d in ds:
+            ev = store.event(d["event"]) or {}
+            steps.append({"decision": d["id"], "at": d["started"], "event": d["event_type"], "source": ev.get("source"),
+                          "said": str((ev.get("payload") or {}).get("text") or "")[:200],
+                          "engine": d["engine"], "model": d["model"], "status": d["status"],
+                          "reasoning": (d["reasoning"] or "")[:600],
+                          "tools": [{"tool": c["tool"], "ok": c["ok"], "input": c["input"],
+                                     "summary": str((c["result"] or {}).get("summary") or (c["result"] or {}).get("error") or "")[:200]}
+                                    for c in d["tool_calls"] or []],
+                          "reply": d["reply"], "outcome": d["outcome"],
+                          "grounding_ok": (d["grounding"] or {}).get("ok", True),
+                          "investigation": ({k: (ev.get("payload") or {}).get(k) for k in ("kind", "asked", "answered",
+                                             "confidence_before", "confidence_after")}
+                                            if d["event_type"] == "investigation_result" else None),
+                          "knowledge": list((d["grounding"] or {}).get("knowledge") or []),
+                          "observed": list((d["grounding"] or {}).get("observed") or []),
+                          "guardian": [{"target": v.get("target"), "ok": bool(v.get("ok")),
+                                        "reasons": [f"{r['rule']}: {r['detail']}" for r in v.get("reasons", [])]}
+                                       for v in (d["grounding"] or {}).get("guardian") or []],
+                          "a2a": [{"partner": c["input"].get("partner"), "question": str(c["input"].get("question", ""))[:160],
+                                   "said": str((c["result"] or {}).get("said") or (c["result"] or {}).get("error")
+                                               or (c["result"] or {}).get("clipped", ""))[:240]}
+                                  for c in d["tool_calls"] or [] if c["tool"] == "ask_partner_agent"]
+                                 + [{"partner": o.get("agent"), "question": str(o.get("question", ""))[:160],
+                                     "said": str(o.get("said") or o.get("error") or "")[:240]}
+                                    for o in (d["grounding"] or {}).get("a2a_prefetch") or []],
+                          "input_tokens": d["input_tokens"], "output_tokens": d["output_tokens"],
+                          "cost_inr": d["cost_inr"], "latency_ms": d["latency_ms"]})  # fmt: skip
+        c = store.case(cid) if cid != "-" else None
+        cases.append({"case": cid, "machine": (c or {}).get("machine") or ds[-1]["machine"],
+                      "state": (c or {}).get("state"), "driver": (c or {}).get("context", {}).get("driver"),
+                      "approvals": [{k: a[k] for k in ("id", "kind", "status", "decided_by", "channel")}
+                                    for a in store.approvals(cid)] if c else [],
+                      "actions": [dict(r) for r in store.db.execute(
+                          "SELECT kind, status, idem FROM actions WHERE case_id=? ORDER BY created", (cid,))] if c else [],
+                      "steps": steps, "tokens": sum(s["input_tokens"] + s["output_tokens"] for s in steps),
+                      "cost_inr": round(sum(s["cost_inr"] for s in steps), 4)})  # fmt: skip
+    return {"llm": planner.llm_on, "models": {t: planner_llm.model_for(t)[0] for t in planner_llm.TIERS},
+            "pending_events": len(store.events(status="pending")), "cases": cases,
+            "note": "Granite (local Ollama) chooses the tool calls" if planner.llm_on
+            else "no local LLM (Ollama not reachable, or DHADKAN_LLM=0): the fixed plan runs (rules); decisions are still logged"}  # fmt: skip
 
 
 ACTION = {
@@ -375,7 +656,7 @@ STAGES = [
     ("Observation", []),
     ("Investigation", ["recall"]),
     ("Risk assessment", ["request_measurement", "notify_watch", "await_change", "notify_owner_urgent"]),
-    ("Maintenance planning", ["plan_inspection"]),
+    ("Maintenance planning", ["plan_inspection", "planner"]),
     ("Technician discovery", ["find_technician", "check_parts", "estimate_cost"]),
     ("Owner approval", ["request_approval", "await_approval"]),
     ("Repair", ["book_job", "await_repair"]),

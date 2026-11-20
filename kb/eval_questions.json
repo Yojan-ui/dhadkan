@@ -1,0 +1,25 @@
+{
+  "_note": "Owner- and mechanic-style questions with the fault whose guide or card should answer them. Used by `python -m server.kb eval` (hit@1, hit@3, MRR). Written by hand; Hinglish as owners type it.",
+  "questions": [
+    {"q": "blower se khat-khat awaaz aa rahi hai, bearing housing garam hai", "machine": "fan", "fault": "bearing_wear"},
+    {"q": "motor ke end pe ghar-ghar ki awaaz, haath nahi rakh sakte itna garam", "machine": "pump", "fault": "bearing_wear"},
+    {"q": "how do I fit a new bearing without damaging it", "machine": null, "fault": "bearing_wear"},
+    {"q": "grease kitni der mein dalna chahiye, zyada grease se kya hota hai", "machine": null, "fault": "bearing_wear"},
+    {"q": "pump sounds like it is pumping gravel and the pressure dropped", "machine": "pump", "fault": "cavitation"},
+    {"q": "pump mein hawa aa rahi hai, foot valve band lagta hai", "machine": "pump", "fault": "cavitation"},
+    {"q": "seal leak ho raha hai, pump dry chala tha", "machine": "pump", "fault": "cavitation"},
+    {"q": "belt squeals at start-up and the machine runs slow", "machine": "fan", "fault": "belt_slip"},
+    {"q": "belt chee-chee kar raha hai, kitna tight hona chahiye", "machine": "fan", "fault": "belt_slip"},
+    {"q": "should I change all belts together or just the broken one", "machine": null, "fault": "belt_slip"},
+    {"q": "fan shakes once per turn after flour built up on the blades", "machine": "fan", "fault": "imbalance"},
+    {"q": "impeller ka blade toot gaya, machine hil rahi hai", "machine": "pump", "fault": "imbalance"},
+    {"q": "coupling rubber dust after the motor was refitted", "machine": "pump", "fault": "misalignment"},
+    {"q": "motor aur pump ka shaft ek line mein nahi lagta, laser alignment chahiye?", "machine": "pump", "fault": "misalignment"},
+    {"q": "machine rattles and the base bolts are loose", "machine": "gearbox", "fault": "looseness"},
+    {"q": "one motor foot is not sitting flat, soft foot", "machine": null, "fault": "looseness"},
+    {"q": "motor smells burnt and trips the starter", "machine": null, "fault": "motor_winding"},
+    {"q": "ek phase gayab tha, motor garam hoke band ho gayi", "machine": null, "fault": "motor_winding"},
+    {"q": "rewinding ke baad warranty kab void hoti hai", "machine": null, "fault": "motor_winding"},
+    {"q": "bearing ka typical daam kya hai", "machine": null, "fault": "bearing_wear"}
+  ]
+}

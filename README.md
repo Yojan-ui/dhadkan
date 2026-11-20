@@ -155,6 +155,28 @@ npm run demo      # backend + web app; the NASA IMS bearing run-to-failure plays
   - The command centre's maintenance agent talks on WhatsApp too (`server/cc_whatsapp.py`, `DHADKAN_CC_WHATSAPP=1`):
     it sends the owner its booking question with a ref, the owner's "1" / "2" (to `/whatsapp/twilio`) decides it,
     and only then does the factory's own mechanic get the job. Only numbers in `.env` are messaged; 12/hour cap.
+- **One event-driven planner** ([server/planner/](server/planner/)) is the agent. Alarms, health changes,
+  owner replies (WhatsApp, owner screen, command centre, chat), voice notes, mechanic replies and no-shows,
+  parts out of stock, repair results, the network coming back and a daily tick are typed events, stored
+  once each. On every event Granite (local, through Ollama) gets the case, the machine's memory, the owner's preferences, the
+  factory's order book and the other open cases, and chooses its own tool calls:
+  - `find_mechanics` (distance, free days, rating, past outcomes), `propose_slots` (₹ of production lost,
+    order-book clashes, power cuts, shift fit), `check_parts` (dealers, equivalent part numbers),
+    `compare_options` (₹ of fixing now vs waiting, from the time-to-threshold range), `triage` (cases
+    competing for one mechanic), `request_measurement` (a 10 s recording, a hand check or a photo, in the
+    owner's language), `recall` / `remember`, `ask_owner` (numbered WhatsApp question), `book_job`.
+  - Models by event (`.env`): Haiku 5.5 for routine acks, Sonnet 5.5 for planning, Fable 5.2 for unsure
+    diagnoses and failed repairs. Bounded per event (turns, tokens) and per case (₹ of LLM cost).
+  - **Code decides what is allowed**: every action goes through the maintenance agent's approval gate
+    (checked when created and when sent) and the hash-chained audit; only the owner's own numbered reply
+    approves anything; a reply with a ₹ amount, number or part number that no tool returned is rejected
+    and the rules reply is sent instead. No tool can stop a machine; a stop is only a question.
+  - Without Ollama running, with `DHADKAN_LLM=0`, or over budget, the fixed plan (rules) runs exactly as before.
+  - Re-planning: a no-show or a decline finds another mechanic; out of stock looks for an equivalent; a
+    failed repair logs a warranty claim and opens a second opinion. An owner can allow auto-approval of
+    one named mechanic under a ₹ limit in the factory profile (off by default, enforced in the gate).
+  - The trace (event → reasoning → tool calls → approval → outcome, tokens, ₹) is on the command
+    centre's *AI Agents* page and under each agent reply in the twin's dock.
 - **Agent chat** (bottom dock): ask by typing or by voice note, in Hindi, Marathi, Gujarati, Tamil,
   Kannada, Telugu, English or Hinglish ("Loom 4 ki awaaz kyun badal gayi?"). It replies in the same
   language and shows its tool steps. Amounts are in ₹ lakh/crore and times in IST.
@@ -269,7 +291,7 @@ API: `GET/POST /api/docs/{machine}`, `DELETE /api/docs/{machine}/{doc}`, `GET /a
 
 ### Beyond the alert
 
-- **Understand:** when neither the vibration classifier nor the owner names the fault, Claude Fable 5.2
+- **Understand:** when neither the vibration classifier nor the owner names the fault, Granite (local Ollama)
   looks at the spectrograms, trend and profile ([server/understand.py](server/understand.py)). It
   returns a fault, confidence, evidence and a hand check ("motor ka end garam hai?"). Prices still come
   from faults.yaml. Unsure → "mechanic check needed". No key or offline → rules, "expert check pending".
@@ -296,10 +318,16 @@ make setup     # .venv (Python 3.12) + pip, npm ci
 make data      # real data: DCASE 2020 Task 2 dev, NASA IMS, CWRU, MIMII DUE gearbox (see "Limitations" for the subset)
 make train     # anomaly models, CWRU fault classifier, IMS calibration, docs/RESULTS.md
 make demo      # web app + API on :8600, opens the browser
+make eval-agent  # the planner's scenarios: the mock policy; `--live` (LIVE=1) runs them on Granite
 ```
 
 Trained models and evaluation records are committed, so you only need `make data` and `make train` to
 reproduce the results. The live demo needs `make demo-data` (the replayed clips), as in the steps above.
+On native Windows (PowerShell, no make): `.\dev.ps1 setup`, `.\dev.ps1 demo`, `.\dev.ps1 test`,
+`.\dev.ps1 eval-agent`; `.\dev.ps1 help` lists every task.
+
+Trained models and evaluation records are committed, so `make setup && make demo` runs without
+`make data` and `make train`, except the audio and vibration replay, which reads the raw files.
 
 **The flour-mill story (PS 4.3, start here):** `make serve`, then open
 `http://127.0.0.1:8600/?view=mill`. One chakki learns its own normal for 3 days, runs normally, then
@@ -403,7 +431,7 @@ The summary below is written by `python -m edge.results` from the records in `do
   not measured.
 - **No real WhatsApp message has been sent.** No keys are configured; templates still need Meta
   approval (docs/WHATSAPP_TEMPLATES.md). Spoken (voice) alerts are not built.
-- **Claude's diagnosis is not evaluated:** `scripts/eval_understand.py` needs an API key.
+- **Granite's diagnosis is not evaluated on CWRU yet:** `scripts/eval_understand.py` runs it (Ollama, slow on CPU).
 - **No field recordings and no owner interviews yet.** Every factory, owner and phone number in the
   demo is invented. `scripts/score_recording.py` and docs/FIELD_NOTES.md are ready for the first visit.
 - **The detector is the machine's own loudness.** Chosen on selection units and reported on held-out
@@ -425,8 +453,14 @@ The summary below is written by `python -m edge.results` from the records in `do
   intermittent for fan id_00 (B-F1, A-F1: a fault reading every few cycles, so the case stays at "measure
   again") and persistent for fan id_02 (C-F1, C-F2), which the scenario uses. Performance counts only
   "reported running per reading cycle"; there is no production counter, so no OEE.
-- **The agents' reasoning is deterministic code, not an LLM.** Each run's one-line reasoning is written by
-  the step that did the work. Claude is optional elsewhere (diagnosis wording) and never makes a decision.
+- **The planner has not been run on Granite for the full record.** Its evaluation (RESULTS.md 8, 36
+  scenarios, 0 gate violations) uses a scripted mock policy, so it measures the planner's code (gate,
+  grounding, re-planning, bounds, languages), not Granite's judgement; `make eval-agent LIVE=1` is the
+  live run. Without a key the planner hands every case to the fixed plan. The named agents on the
+  command centre's board are deterministic modules: their one-line reasoning is written by code.
+- **The planner's world is demo data.** Orders (`data/demo/orders.json`), technicians, ratings and
+  dealer stock with equivalent parts are invented and labelled; production lost per hour and breakdown
+  costs are assumptions (`data/sim/costs.json`). A photo request is stored, not analysed.
 - **ESP32 node untested on hardware.** `hardware/esp32_vibration` is written; the server side is
   tested with a simulated device only.
 - **The agent cannot control a machine.** No tool stops, slows or switches one; paid actions need the
@@ -438,12 +472,16 @@ The summary below is written by `python -m edge.results` from the records in `do
 data/     real.py (DCASE 2020, NASA IMS, CWRU, demo subset), download.py (MIMII DUE gearbox), presets.yaml, sim/ (assumptions)
 edge/     features, autoencoder + TFLite, train.py, adapt.py (learning, drift, noisy shed), listen_eval.py (RMS baseline,
           edge cost), faulttype.py (CWRU), ims.py (run-to-failure + demo pack), results.py
-server/   app.py, faults.yaml + diagnosis.py, understand.py (Claude), owner_alerts.py, notify/ (WhatsApp, SMS, policy,
-          queue, media), fix.py, prove.py, onboard.py, forecast.py, imsdemo.py, agent.py, folk.py, registry.py, route.py
-web/      React + Vite + react-three-fiber: 3D cluster screen, owner and mechanic phone screens, Demo mode
-scripts/  eval_understand.py (Claude vs rules), score_recording.py (field recordings)
+server/   app.py, faults.yaml + diagnosis.py, understand.py (Granite), owner_alerts.py, notify/ (WhatsApp, SMS, policy,
+          queue, media), fix.py, prove.py, onboard.py, forecast.py, imsdemo.py, agent.py, folk.py, registry.py, route.py,
+          maint/ (case store, approval gate, fixed plan, sync), planner/ (events, Granite planner, tools, grounding, Guardian, evaluate), kb.py (RAG), a2a/ (A2A)
+web/      React + Vite + react-three-fiber: 3D cluster screen, owner and mechanic phone screens, Demo mode,
+          the live recorder PWA (?view=record: a phone or the laptop mic feeds a real machine)
+scripts/  eval_understand.py (Granite vs rules), score_recording.py (field recordings), tunnel.py (HTTPS + QR for
+          the phone), live_trial.py (measured live trial)
 tools/    demo_gif.py
-docs/     JUDGES.md, ARCHITECTURE.md, RESULTS.md (generated), PITCH.md, DEMO_SCRIPT.md, WHATSAPP_TEMPLATES.md,
+docs/     JUDGES.md, ARCHITECTURE.md, RESULTS.md (generated), PITCH.md, DEMO_SCRIPT.md, DEMO_LIVE.md (a real fan), DEMO_WHATSAPP.md (both sides on WhatsApp),
+          DEMO_GRANITE.md, GRANITE.md, WHATSAPP_TEMPLATES.md,
           FIELD_NOTES.md, runs/ (every evaluation record cited anywhere)
 tests/    pytest
 ```

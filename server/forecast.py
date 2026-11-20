@@ -32,7 +32,7 @@ HORIZON_DAYS = 30.0
 def fault_levels(eval_path: Path | None = None) -> dict[str, dict[str, float]]:
     """{unit: {"level": median faulty risk, "healthy": median healthy risk, "n": clips}} from the eval record."""
     path = eval_path or sorted(RUNS.glob("eval_*.json"))[-1]
-    ev = json.loads(Path(path).read_text())
+    ev = json.loads(Path(path).read_text(encoding="utf-8"))
     out = {}
     for rep in ev["types"].values():
         cond = rep["headline_condition"]

@@ -27,6 +27,8 @@ export interface Row {
   sensor: "ok" | "lost";
   source: string | null;
   case: string | null;
+  /** fed by the live recorder, not the simulator */
+  live?: CcLive | null;
 }
 export interface AgentRun {
   id: number;
@@ -173,7 +175,77 @@ export interface CCState {
   };
   audit_ok: boolean;
   cloud_events: number;
+  planner?: PlannerTrace;
   last_tick_ms: number | null;
+}
+// The planner's trace (server/brain.planner_trace): per case, event -> reasoning -> tools -> approvals.
+export interface CcLive {
+  quick: boolean;
+  label: string | null;
+  state: "learning" | "monitoring";
+  progress: { clips: number; target: number };
+  readings: number;
+}
+export interface PlannerTool {
+  tool: string;
+  ok: boolean;
+  input: Record<string, unknown>;
+  summary: string;
+}
+export interface PlannerStep {
+  decision: number;
+  at: number;
+  event: string;
+  source: string | null;
+  said: string;
+  engine: string;
+  model: string | null;
+  status: string;
+  reasoning: string;
+  tools: PlannerTool[];
+  reply: string | null;
+  outcome: string | null;
+  grounding_ok: boolean;
+  knowledge?: string[];
+  observed?: string[];
+  /** an investigation_result step: what was asked, the owner's answer, the confidence before and after */
+  investigation?: {
+    kind: string | null;
+    asked: string | null;
+    answered: string | null;
+    confidence_before: number | null;
+    confidence_after: number | null;
+  } | null;
+  guardian?: { target: string; ok: boolean; reasons: string[] }[];
+  a2a?: { partner: string; question: string; said: string }[];
+  input_tokens: number;
+  output_tokens: number;
+  cost_inr: number;
+  latency_ms: number | null;
+}
+export interface PlannerCase {
+  case: string;
+  machine: string | null;
+  state: string | null;
+  driver: string | null;
+  approvals: {
+    id: string;
+    kind: string;
+    status: string;
+    decided_by: string | null;
+    channel: string | null;
+  }[];
+  actions: { kind: string; status: string; idem: string }[];
+  steps: PlannerStep[];
+  tokens: number;
+  cost_inr: number;
+}
+export interface PlannerTrace {
+  llm: boolean;
+  models: Record<string, string>;
+  pending_events: number;
+  cases: PlannerCase[];
+  note: string;
 }
 export interface Detail {
   machine: Row;

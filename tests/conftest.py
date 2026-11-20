@@ -15,7 +15,16 @@ import pytest
 from fastapi.testclient import TestClient
 
 import server.notify.env as _env
-from edge.config import MODELS
+from edge.config import MODELS, RAW
+
+# Tests never call a real model, even when a developer's Ollama is running: the planner and the
+# owner agent run their rules; LLM paths are tested with scripted mock clients (tests/test_planner_core.py).
+# `.\dev.ps1 eval-agent` is the live run.
+os.environ["DHADKAN_LLM"] = "0"
+# no partner-agent (A2A) calls on alarms unless a test turns them on (tests/test_a2a.py)
+os.environ["DHADKAN_A2A_PREFETCH"] = "0"
+# no voice notes unless a test turns them on with a fake engine (tests/test_voice.py): no models load in CI
+os.environ["DHADKAN_VOICE"] = "0"
 
 # Tests never read the real .env (it may hold live Twilio / Anthropic keys) and never send anything.
 _env._dotenv = dict  # type: ignore[assignment]
@@ -28,6 +37,13 @@ TEST_READINGS = 40
 needs_ims = pytest.mark.skipif(
     not (MODELS / "ims_replay.json").exists() or not (MODELS / "ims_demo_pack.npz").exists(),
     reason="needs edge/models/ims_replay.json and ims_demo_pack.npz (python -m edge.ims)",
+)
+
+# The MIMII/DCASE clips the simulated machines play live in data/raw (several GB, not in git). Without them
+# those machines send no readings, so tests that step them and expect readings skip instead of failing.
+needs_recordings = pytest.mark.skipif(
+    next(RAW.rglob("*.wav"), None) is None if RAW.exists() else True,
+    reason="needs the MIMII recordings in data/raw (.\\dev.ps1 demo-data)",
 )
 
 

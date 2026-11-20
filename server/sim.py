@@ -86,13 +86,24 @@ class Cluster:
             for m in self.cfg["machines"]:
                 sharing.setdefault(m["source"], []).append(m["id"])
             self._pools = {}
+            missing = []
             for m in self.cfg["machines"]:
                 if m["id"] in self.ims:  # Demo mode: this machine plays NASA IMS snapshots, not clips
                     continue
                 k, i = len(sharing[m["source"]]), sharing[m["source"]].index(m["id"])
-                src = by_source[m["source"]]
+                src = by_source.get(m["source"])
+                if not src or not src[0] or not src[1]:  # recordings not downloaded: no reading, no crash
+                    missing.append(m["id"])
+                    continue
                 self._pools[m["id"]] = {lab: src[lab][i::k] or src[lab] for lab in (0, 1)}
+            if missing:
+                print(f"note: no recordings for {', '.join(missing)} (data/raw missing: run .\\dev.ps1 demo-data "
+                      "or make demo-data); those machines send no readings")  # fmt: skip
         return self._pools
+
+    def has_clips(self, mid: str) -> bool:
+        """Demo-mode machines play IMS; the others need their recordings in data/raw."""
+        return mid in self.ims or mid in self.pools()
 
     def model(self, mtype: str) -> EdgeModel:
         if mtype not in self.models:
@@ -159,6 +170,8 @@ class Cluster:
         """Rebuild the exact 10 s the machine played at `tick` (also used for spectrograms)."""
         if mid in self.ims:  # Demo mode: a real run-to-failure, read from NASA IMS snapshots
             return self.ims[mid].audio(tick), self.ims[mid].clip(tick)
+        if mid not in self.pools():
+            raise FileNotFoundError(f"no recordings for {mid}: run .\\dev.ps1 demo-data (or make demo-data)")
         pool = self.pools()[mid]
         normal = pool[0][tick % len(pool[0])]
         if mode == "normal":
@@ -187,8 +200,11 @@ class Cluster:
         """Play and score one reading per machine. Returns {machine: (audio, score_audio result)}."""
         tick = self.tick_no() + 1
         ts = self.now(tick).isoformat(timespec="minutes")
-        # a stopped machine makes no sound to score, and a lost sensor sends nothing
-        live = [mid for mid in self.machines if self.operating(mid) == ("running", "ok")]
+        # a stopped machine makes no sound to score, a lost sensor sends nothing, and a machine whose
+        # recordings are not installed has nothing to replay
+        live = [
+            mid for mid in self.machines if self.operating(mid) == ("running", "ok") and self.has_clips(mid)
+        ]
         modes = {mid: self.next_mode(mid) for mid in live}
 
         def play(mid: str) -> tuple[str, str, np.ndarray, dict[str, Any]]:

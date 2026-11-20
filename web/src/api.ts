@@ -61,11 +61,24 @@ export interface Machine {
     ticks_since: number | null;
     simulated: boolean;
   };
+  /** fed by the live recorder (a phone or the laptop mic), not by the simulator */
+  live?: LiveInfo | null;
   maintenance?: {
     job_booked: boolean;
     job_status: string | null;
     last_repair: { at: string | null; outcome: string | null } | null;
   };
+}
+export interface LiveInfo {
+  device: string | null;
+  quick: boolean;
+  /** "short learning period, demo" when the normal was learned with quick learn */
+  label: string | null;
+  state: "learning" | "monitoring";
+  progress: { clips: number; target: number };
+  readings: number;
+  risk: number | null;
+  last_ts: number | null;
 }
 export type ForecastStatus = "estimate" | "no_trend" | "too_few" | "at_fault_level" | "not_separable";
 export interface Forecast {
@@ -279,6 +292,7 @@ export interface State {
 export interface Factory {
   id: string;
   name: string;
+  name_local?: string | null;
   area: string;
   area_local: string;
   xy_km: [number, number];
@@ -325,7 +339,8 @@ export interface Meta {
   frame_s: number;
   fault_machine: string;
   similar_machine: string;
-  has_key: boolean;
+  has_llm: boolean;
+  llm?: { provider: string; model: string };
   nominal_rpm?: Record<string, number>; // ASSUMED, animation only
   rpm_note?: string;
   note: string;

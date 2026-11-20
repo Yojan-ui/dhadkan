@@ -24,6 +24,7 @@ const SLOTS: [number, number][] = [
   [1.35, -0.95],
   [-1.35, 1.05],
   [1.35, 1.05],
+  [0, 0.05], // a fifth machine (registered from the live recorder)
 ];
 
 export function machinePositions(factories: Factory[], machines: Machine[]) {
@@ -33,7 +34,7 @@ export function machinePositions(factories: Factory[], machines: Machine[]) {
     machines
       .filter((m) => m.factory === f.id)
       .forEach((m, i) => {
-        const [x, z] = SLOTS[i % 4];
+        const [x, z] = SLOTS[i % SLOTS.length];
         pos[m.id] = new THREE.Vector3(c.x + x, 0.12, c.z + z);
       });
   });

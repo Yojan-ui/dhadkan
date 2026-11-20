@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from edge.config import MODELS
 from server import app as app_mod
 from server import explain, folk, forecast, report
-from tests.conftest import ims_world, needs_ims
+from tests.conftest import ims_world, needs_ims, needs_recordings
 
 pytestmark = pytest.mark.skipif(not (MODELS / "fan" / "model.tflite").exists(), reason="needs trained models")
 NOTE = "ब्लोअर में खट-खट की आवाज़ आ रही है"
@@ -62,6 +62,7 @@ def replayed(tmp_path_factory):
     return app, TestClient(app)
 
 
+@needs_recordings
 def test_time_machine_history_marks_warning_and_fault(replayed):
     _, client = replayed
     h = client.get("/api/history/A-F1").json()

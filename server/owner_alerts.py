@@ -5,14 +5,16 @@ in .env); the made-up numbers in data/sim/cluster.json are never messaged. Witho
 alert is logged as `no_contact`; without provider keys it is logged as `dry_run`.
 """
 
+import hashlib
+import re
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from . import coverage, diagnosis, forecast, understand
+from . import coverage, diagnosis, forecast, provider, understand
 from .config import DATA, NODE_DB
 from .notify import env, media, policy, whatsapp
-from .notify.service import Notifier
+from .notify.service import Notifier, parse_choice
 
 if TYPE_CHECKING:
     from .app import Live
@@ -53,6 +55,19 @@ PAPER_UNREAD = {
 }  # fmt: skip
 
 
+VOICE_LANGS = ("hi", "mr", "gu", "ta", "en")
+QUESTION = re.compile(
+    r"\?|\b(kya|kaisa|kaisi|kaise|kab|kitna|kitne|kyun|kyon|kaun|kahan|batao|bataiye|status|what|when|how|"
+    r"why)\b|क्या|कैसा|कैसी|कब|कितना|क्यों|बताओ|काय|कसा|किती|केव्हा|શું|કેમ|ક્યારે|કેટલું|என்ன|எப்போது",
+    re.I,
+)
+
+
+def is_question(text: str) -> bool:
+    """A voice note that asks something (it goes to the owner agent), not one describing a sound."""
+    return bool(QUESTION.search(text or ""))
+
+
 class OwnerAlerts:
     def __init__(
         self, live: "Live", node_db: Path | None = None, providers: tuple[Any, Any] | None = None
@@ -65,7 +80,7 @@ class OwnerAlerts:
         # judge only hears about the demo machine (never about other machines' false alarms).
         self.contact_override: dict[str, str] = {}
         self.lang_override: dict[str, str] = {}
-        self.expert: dict[str, dict[str, Any]] = {}  # machine -> Claude's second look (or the rules fallback)
+        self.expert: dict[str, dict[str, Any]] = {}  # machine -> Granite's second look (or the rules fallback)
         # the machine's own papers (warranty card, insurance policy, invoice...): server/coverage.py
         self.docs = coverage.DocStore(Path(node_db or NODE_DB).with_name("machine_docs"))
         from .onboard import Onboarding
@@ -111,7 +126,7 @@ class OwnerAlerts:
         expert = None
         if fault is None and rank.get("status") in ("alarm", "early_match"):  # only when needed
             expert = self.second_look(mid, lang or self.owner_lang(mid), [h["risk"] for h in hist])
-            if expert.get("source") == "claude" and not expert["mechanic_check_needed"]:
+            if expert.get("source") == provider.NAME and not expert["mechanic_check_needed"]:
                 fault = expert["fault"]
         row = {"id": mid, "type": m["type"], "status": rank.get("status", "ok"), "known_fault": owner_word,
                "forecast": est, "days_at_fault": at_fault * th / 24}  # fmt: skip
@@ -123,7 +138,7 @@ class OwnerAlerts:
             out["days_rising"] = rank.get("days_rising", 0)
             out["named_by"] = (
                 "classifier" if mid in self.classified else "owner" if owner_word
-                else "claude" if expert and expert.get("source") == "claude" and fault else None
+                else provider.NAME if expert and expert.get("source") == provider.NAME and fault else None
             )  # fmt: skip
             if expert is not None:  # evidence, confidence, hand check; or "expert check pending" (rules)
                 out["expert"] = {k: v for k, v in expert.items() if k != "cost"}
@@ -166,7 +181,7 @@ class OwnerAlerts:
         )
 
     def second_look(self, mid: str, lang: str, trend: list[float]) -> dict[str, Any]:
-        """Claude Fable 5.2 on the spectrograms + trend + profile, once per alert episode (server/understand.py)."""
+        """Granite on the spectrogram note + trend + profile, once per alert episode (server/understand.py)."""
         if mid in self.expert:
             return self.expert[mid]
         try:
@@ -251,6 +266,27 @@ class OwnerAlerts:
              "public_url": f"{base}/api/alert-media/{png.name}" if base else None},
         ]  # fmt: skip
 
+    # -- voice notes ----------------------------------------------------------
+    def voice_text(self, mid: str, lang: str, text: str) -> str:
+        """What the voice note reads: the same template text; a hi_latn owner hears its Hindi rendering."""
+        return (self.text(mid, "hi") or text) if lang == "hi_latn" else text
+
+    def voice_media(self, template: str, mid: str, lang: str, text: str) -> list[dict[str, Any]]:
+        """The alert's voice note (server/voice), from the SAME template text, as WhatsApp media. [] when
+        voice is off or fails: the text alert goes out regardless."""
+        from . import voice
+
+        spoken = self.voice_text(mid, lang, text) if mid in self.live.c.machines else text
+        v = voice.note(template, {"machine": mid, "text": spoken}, lang, spoken)
+        if not v or not v.get("path"):
+            if v and v.get("error"):
+                self.live.event("voice_failed", machine=mid, error=v["error"])
+            return []
+        base = env.get("PUBLIC_BASE_URL")
+        name = Path(v["path"]).name
+        return [{"path": v["path"], "mime": "audio/ogg", "caption": "", "voice": True, "seconds": v.get("seconds"),
+                 "engine": v.get("engine"), "public_url": f"{base}/api/voice/note/{name}" if base else None}]  # fmt: skip
+
     # -- sending --------------------------------------------------------------
     def send_for(
         self, mid: str, message_id: int | None = None, to: str | None = None, lang: str | None = None
@@ -263,9 +299,11 @@ class OwnerAlerts:
         sev = c["severity"]["level"]
         now = self.live.c.now()
         when, at = policy.decide(sev, now, self.live.c.factories[m["factory"]])
+        body = self.text(mid, lang) or ""
+        voice_media = self.voice_media(policy.TEMPLATES.get(sev) or "alert", mid, lang, body)
         return self.notifier.send(
             machine=mid, factory=m["factory"], severity=sev, to=to or self.contact(m["factory"], machine=mid),
-            lang=lang, body=self.text(mid, lang) or "", media=self.media(mid), message_id=message_id,
+            lang=lang, body=body, media=self.media(mid) + voice_media, message_id=message_id,
             template=policy.TEMPLATES.get(sev), buttons=policy.BUTTONS.get(lang),
             hold_until=at.timestamp() if when == "hold" and at else None, digest=when == "digest",
         )  # fmt: skip
@@ -294,8 +332,15 @@ class OwnerAlerts:
             body = "\n".join(
                 [policy.DIGEST_HEAD.get(lang, policy.DIGEST_HEAD["en"]), *(f"- {r['body']}" for r in rows)]
             )
+            if lang == "hi_latn":  # the voice reads the Hindi rendering of the same template lines
+                spoken = "\n".join(
+                    [policy.DIGEST_HEAD["hi"], *((self.text(r["machine"], "hi") or "") for r in rows)]
+                )
+            else:
+                spoken = body
+            vm = self.voice_media(policy.DIGEST_TEMPLATE, "-", "hi" if lang == "hi_latn" else lang, spoken)
             d = self.notifier.send(machine=rows[0]["machine"], factory=rows[0]["factory"], severity="watch", to=phone,
-                                   lang=lang, body=body, kind="digest", template=policy.DIGEST_TEMPLATE)  # fmt: skip
+                                   lang=lang, body=body, kind="digest", template=policy.DIGEST_TEMPLATE, media=vm)  # fmt: skip
             self.notifier.mark_digested([int(r["id"]) for r in rows], int(d["id"]))
             out.append(int(d["id"]))
         return out
@@ -330,11 +375,36 @@ class OwnerAlerts:
             self.notifier.send(machine=mid, factory=a["factory"], severity=a["severity"], to=a["to_phone"],
                                lang=a["lang"], body=self.claim_text(mid, a["lang"]), kind="claim", parent=a["id"])  # fmt: skip
         self.live.event("owner_reply", machine=mid, choice=choice, text=text)
+        self._to_planner("owner_reply", phone, mid, a["factory"],
+                         {"text": text, "choice": choice, "channel": "whatsapp", "alert": a["id"]})  # fmt: skip
         return {"alert": a["id"], "choice": choice}
 
     def on_message(self, phone: str, text: str) -> dict[str, Any] | None:
-        """Any text: a reply to an open alert first; otherwise the onboarding chat ("Namaste")."""
+        """Any text: a mechanic with a job (server/wa_loops.MechanicDesk) first; the owner's commands
+        ("status", "kitna kharcha", "kab aayega mistri", "band karo"); then a reply to an open alert; then
+        an answer to one of the planner's questions or measurement requests; otherwise onboarding."""
+        brain = getattr(self.live, "brain", None)
+        desk = getattr(brain, "desk", None)
+        if desk is not None and desk.is_mechanic(phone):
+            got = desk.handle(phone, text)
+            if got is not None:
+                return got
+        owner = self.factory_of_owner(phone)
+        if owner and brain is not None:
+            from .wa_loops import command_lang, owner_command
+
+            default = env.get(f"DHADKAN_LANG_{owner}") or self.live.c.factories[owner]["language"]
+            lang = command_lang(text, default)  # answer in the language and script the owner typed
+            cmd = owner_command(brain, owner, text, lang)
+            if cmd is not None:
+                self.notifier.send(machine="-", factory=owner, severity="info", to=phone, lang=lang, body=cmd["reply"],
+                                   kind="chat")  # fmt: skip
+                self.live.event("owner_command", factory=owner, command=cmd["command"])
+                return cmd
         got = self.on_reply(phone, text)
+        if got is not None:
+            return got
+        got = self._planner_message(phone, text)
         if got is not None:
             return got
         q = self.onboard.handle(phone, text)
@@ -428,22 +498,32 @@ class OwnerAlerts:
         return self.on_voice(phone, audio, mime)
 
     def on_voice(self, phone: str, audio: bytes, mime: str = "audio/ogg") -> dict[str, Any] | None:
-        """A WhatsApp voice note: local Whisper -> lexicon (Claude for unknown words) -> weak label on the
+        """A WhatsApp voice note: local Whisper -> lexicon (Granite for unknown words) -> weak label on the
         machine of this owner's latest alert. The owner's words are a weak label, not an inspection."""
+        got = self._voice_for_investigation(
+            phone, audio, mime
+        )  # a recording the planner asked for comes first
+        if got is not None:
+            return got
         a = self.notifier.latest_for(phone)
-        if a is None:
-            return None
         from . import folk, registry
 
         ALERT_DIR.mkdir(parents=True, exist_ok=True)
-        ext = ".ogg" if "ogg" in mime else ".m4a" if "mp4" in mime or "aac" in mime else ".audio"
-        path = ALERT_DIR / f"voice_{a['machine']}_{int(time.time())}{ext}"
+        ext = (
+            ".ogg"
+            if "ogg" in mime
+            else ".wav" if "wav" in mime else ".m4a" if "mp4" in mime or "aac" in mime else ".audio"
+        )
+        path = ALERT_DIR / f"voice_{(a or {}).get('machine', 'owner')}_{int(time.time())}{ext}"
         path.write_bytes(audio)
-        lang = (
-            a["lang"] if a["lang"] in ("hi", "mr", "en") else "hi"
-        )  # Whisper has no hi_latn; speech is Hindi
+        # Whisper has no hi_latn (the speech is Hindi); with no alert to go by, it detects the language
+        lang = None if a is None else (a["lang"] if a["lang"] in ("hi", "mr", "gu", "en") else "hi")
         text, heard = folk.transcribe(str(path), language=lang)
-        llm = folk.claude_label if env.get("ANTHROPIC_API_KEY") else None
+        from .wa_loops import command_of
+
+        if a is None or is_question(text) or command_of(text):
+            return self.voice_question(phone, text, heard)
+        llm = folk.llm_label if provider.available() else None
         lab = folk.label_text(text, folk.load_lexicon(), llm)
         with self.live.lock:
             registry.add_weak_label(self.live.c.reg, a["factory"], a["machine"], text, heard, lab)
@@ -452,7 +532,160 @@ class OwnerAlerts:
         self.live.event(
             "owner_voice", machine=a["machine"], text=text, sound=lab.get("sound"), fault=lab.get("fault")
         )
+        self._to_planner("owner_voice_note", phone, a["machine"], a["factory"],
+                         {"text": text, "audio_path": str(path), "sound": lab.get("sound"), "fault": lab.get("fault"),
+                          "channel": "whatsapp", "alert": a["id"]})  # fmt: skip
         return {"alert": a["id"], "machine": a["machine"], "text": text, "label": lab}
+
+    def voice_question(self, phone: str, text: str, heard: str) -> dict[str, Any] | None:
+        """An owner asking by voice: the transcript goes to the commands or the owner agent (planner); the
+        reply goes back as text and as a voice note. The voice is always the TEMPLATE reply (commands, or
+        owner_agent.run_rules): a Granite-written text reply is sent as text only."""
+        from . import owner_agent
+        from .wa_loops import owner_command
+
+        brain = getattr(self.live, "brain", None)
+        f = self.factory_of_owner(phone)
+        if f is None or not text.strip():
+            return None
+        configured = env.get(f"DHADKAN_LANG_{f}") or self.live.c.factories[f]["language"]
+        # the language they spoke; a Hindi speaker who reads Roman script keeps hi_latn for the text
+        lang = (
+            configured
+            if heard == "hi" and configured == "hi_latn"
+            else (heard if heard in VOICE_LANGS else configured)
+        )
+        cmd = owner_command(brain, f, text, lang) if brain is not None else None
+        if cmd is not None:
+            reply, template, source = cmd["reply"], f"command_{cmd['command']}", "template"
+            spoken = owner_command(brain, f, text, "hi", log=False)["reply"] if lang == "hi_latn" else reply  # type: ignore[index]
+        else:
+            out = owner_agent.chat(self.live, text, f, lang)
+            rules = owner_agent.run_rules(self.live, text, f, "hi" if lang == "hi_latn" else lang)
+            reply, template = out.get("reply") or rules.get("reply", ""), "chat_reply"
+            source = "granite" if str(out.get("engine", "")).startswith(provider.NAME) and "+" not in str(out.get("engine")) \
+                else "template"  # fmt: skip
+            spoken = rules.get("reply", "")
+        vm = self.voice_media(template, "-", "hi" if lang == "hi_latn" else lang, spoken)
+        sent = self.notifier.send(machine="-", factory=f, severity="info", to=phone, lang=lang, body=reply, kind="chat",
+                                  media=vm)  # fmt: skip
+        self.live.event("owner_voice_question", factory=f, heard=heard, lang=lang, reply_source=source,
+                        voice=bool(vm))  # fmt: skip
+        return {"question": text, "heard": heard, "lang": lang, "reply": reply, "reply_source": source,
+                "voice": bool(vm), "alert": sent["id"]}  # fmt: skip
+
+    def _voice_for_investigation(self, phone: str, audio: bytes, mime: str) -> dict[str, Any] | None:
+        """A recording sent in answer to the planner's request (request_measurement, kind audio): scored
+        like a reading of that machine (planner._audio_reply)."""
+        brain = getattr(self.live, "brain", None)
+        owner = self.factory_of_owner(phone)
+        inv = brain.open_investigation(owner) if brain is not None and owner else None
+        if inv is None:
+            return None
+        mid = inv["case"]["machine"]
+        ALERT_DIR.mkdir(parents=True, exist_ok=True)
+        ext = (
+            ".ogg"
+            if "ogg" in mime
+            else ".wav" if "wav" in mime else ".m4a" if "mp4" in mime or "aac" in mime else ".audio"
+        )
+        path = ALERT_DIR / f"voice_{mid}_{int(time.time())}{ext}"
+        path.write_bytes(audio)
+        self.live.event("owner_voice", machine=mid, text=None, measurement=inv["measurement"]["n"])
+        got = self._to_planner("owner_voice_note", phone, mid, owner,
+                               {"text": "", "audio_path": str(path), "channel": "whatsapp", "alert": f"meas{inv['measurement']['n']}"})  # fmt: skip
+        return {
+            "machine": mid,
+            "measurement": inv["measurement"]["n"],
+            "planner": got and got.get("decision"),
+        }
+
+    # -- the planner ------------------------------------------------------------
+    def _to_planner(self, type_: str, phone: str, machine: str | None, factory: str | None,
+                    payload: dict[str, Any]) -> dict[str, Any] | None:  # fmt: skip
+        """One event into the planner (server/planner). Keyed by the message, so a webhook retried by the
+        provider is handled once."""
+        brain = getattr(self.live, "brain", None)
+        if brain is None:
+            return None
+        digits = "".join(c for c in phone if c.isdigit())
+        key = hashlib.sha256(f"{digits}|{payload.get('text')}|{payload.get('alert')}|{int(self.notifier.clock()) // 60}"
+                             .encode()).hexdigest()[:16]  # fmt: skip
+        try:
+            return brain.ingest(type_, machine=machine, factory=factory, payload=payload, source="whatsapp",
+                                idem=f"{type_}:{key}")  # fmt: skip
+        except Exception as e:  # the reply was logged already; the planner must not break the webhook
+            self.live.event("planner_failed", type=type_, error=type(e).__name__)
+            return None
+
+    def factory_of_owner(self, phone: str) -> str | None:
+        """The owner's factory by their number (DHADKAN_PHONE_<f>), or a demo number in a dry run."""
+        f = self._factory_of(phone, "PHONE")
+        if f:
+            return f
+        from .wa_loops import demo_numbers_allowed, demo_phone, digits
+
+        if demo_numbers_allowed(self):
+            return next(
+                (x for x in self.live.c.factories if digits(demo_phone("owner", x)) == digits(phone)), None
+            )
+        return None
+
+    def on_image(
+        self, phone: str, data: bytes, mime: str = "image/jpeg", caption: str | None = None
+    ) -> dict[str, Any] | None:
+        """A photo: the mechanic's old part (MechanicDesk), or the owner's answer to a photo request,
+        stored and attached to the case. No image model looks at it."""
+        brain = getattr(self.live, "brain", None)
+        desk = getattr(brain, "desk", None)
+        if desk is not None and desk.is_mechanic(phone):
+            return desk.handle(phone, caption, image=(data, mime))
+        owner = self.factory_of_owner(phone)
+        if not owner or brain is None:
+            return None
+        from .wa_loops import store_photo
+
+        inv = brain.open_investigation(owner)
+        case = (inv or {}).get("case") or next((c for c in brain.store.cases(open_only=True)
+                                                if self.live.c.machines[c["machine"]]["factory"] == owner), None)  # fmt: skip
+        if case is None:
+            return None
+        path, sha = store_photo(data, mime, f"owner_{case['machine']}")
+        self.live.event("owner_photo", machine=case["machine"], sha256=sha[:12])
+        got = self._to_planner("owner_photo", phone, case["machine"], owner,
+                               {"text": caption or "", "path": path, "sha256": sha, "channel": "whatsapp", "alert": sha[:12]})  # fmt: skip
+        return {"photo": sha[:12], "case": case["id"], "planner": got and got.get("decision")}
+
+    def _factory_of(self, phone: str, role: str) -> str | None:
+        digits = "".join(c for c in phone if c.isdigit())
+        for f in self.live.c.factories:
+            num = env.get(f"DHADKAN_{role}_{f}")
+            if num and "".join(c for c in num if c.isdigit()) == digits:
+                return str(f)
+        return None
+
+    def _planner_message(self, phone: str, text: str) -> dict[str, Any] | None:
+        """Text that is not a reply to an alert: the factory's mechanic answering a job, or the owner
+        answering one of the planner's numbered questions."""
+        mech = self._factory_of(phone, "MECHANIC")
+        if mech:
+            word = parse_choice(text)
+            answer = {"book": "accepted", "later": "declined"}.get(word or "", "message")
+            got = self._to_planner("mechanic_reply", phone, None, mech, {"text": text, "answer": answer,
+                                                                        "channel": "whatsapp"})  # fmt: skip
+            return {
+                "mechanic": True,
+                "factory": mech,
+                "answer": answer,
+                "planner": got and got.get("decision"),
+            }
+        owner = self.factory_of_owner(phone)
+        brain = getattr(self.live, "brain", None)
+        if owner and brain is not None and (brain.store.questions(factory=owner, open_only=True)
+                                            or brain.open_investigation(owner) or brain.open_approval(owner)):  # fmt: skip
+            got = self._to_planner("owner_reply", phone, None, owner, {"text": text, "channel": "whatsapp"})
+            return {"planner": got and got.get("decision"), "factory": owner}
+        return None
 
     def tick(self) -> None:
         """Escalate unanswered Stop-now alerts after 2 h; resend anything waiting for the network."""

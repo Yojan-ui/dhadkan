@@ -5,7 +5,7 @@ PYTHON  ?= $(shell command -v python3.12 2>/dev/null || command -v python3 2>/de
 PORT    ?= 8600
 WEB_SRC := $(shell find web/src web/index.html web/public -type f 2>/dev/null) web/package.json web/vite.config.ts
 
-.PHONY: setup data demo-data train results demo demo-ims serve dev test lint fmt clean compare rul mill mill-pack
+.PHONY: setup data demo-data train results demo demo-ims serve dev test lint fmt clean compare rul mill mill-pack eval-agent llm-check kb-build kb-search demo-agents tunnel live-trial voice-models tts-eval
 
 setup:                       ## venv, Python and web dependencies
 	@$(PYTHON) -c 'import sys; sys.exit(0 if sys.version_info[:2] >= (3, 12) else "Python 3.12+ needed: make setup PYTHON=/path/to/python3.12")'
@@ -63,6 +63,36 @@ mill:                        ## the flour-mill story headless (owner auto-approv
 
 mill-pack:                   ## rebuild edge/models/flourmill_pack.npz from MIMII DUE gearbox recordings
 	$(PY) -m server.flourmill --pack
+
+eval-agent:                  ## the planner's scenarios on the mock policy; LIVE=1 runs them on local Granite (Ollama)
+	$(PY) -m server.planner.evaluate $(if $(LIVE),--live,)
+	$(PY) -m edge.results
+
+llm-check:                   ## is Granite answering through Ollama? provider, model, latency, one real tool call
+	$(PY) -m server.llm_check
+
+voice-models:                ## optional voice notes: CPU torch, sherpa-onnx, transformers and the speech models
+	$(PY) -m pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+	$(PY) -m pip install -q -r requirements-voice.txt
+	$(PY) -m scripts.fetch_voice_models
+
+tts-eval:                    ## compare the TTS engines on this machine -> docs/runs/tts_<UTC>.json
+	$(PY) -m scripts.tts_eval
+
+tunnel:                      ## HTTPS for the phone's mic: cloudflared (or ngrok) to the backend, URL + QR code
+	$(PY) -m scripts.tunnel --port $(PORT)
+
+live-trial:                  ## measure the stage trial: make live-trial M=A-F1 (docs/runs/live_<UTC>.json)
+	$(PY) -m scripts.live_trial $(M)
+
+demo-agents:                 ## two DEMO partner agents over A2A on :8701 (INJECT=1: the dealer tries a prompt injection)
+	$(PY) -m server.a2a.demo_agents $(if $(INJECT),--inject,)
+
+kb-build:                    ## embed the knowledge base (kb/*.md, faults.yaml) with granite-embedding
+	$(PY) -m server.kb build
+
+kb-search:                   ## search the knowledge base: make kb-search Q="pump gravel noise"
+	$(PY) -m server.kb search "$(Q)"
 
 test:
 	$(PY) -m pytest -q

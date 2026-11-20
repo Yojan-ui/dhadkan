@@ -235,7 +235,7 @@ def main() -> None:
            "note": "synthetic machine rows and a simulated clock; this measures the workflow, not detection",
            "summary": summary, "runs": runs, "seconds": round(time.time() - t0, 1)}  # fmt: skip
     out = RUNS / f"agent_{rec['run_id']}.json"
-    out.write_text(json.dumps(rec, indent=1, default=str))
+    out.write_text(json.dumps(rec, indent=1, default=str), encoding="utf-8")
     print(out)
     print(json.dumps(summary, indent=1))
 

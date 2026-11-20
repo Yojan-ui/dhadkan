@@ -64,7 +64,7 @@ def test_summary_and_quality_on_real_shaped_audio():
 def test_selection_and_held_out_units_never_overlap():
     rec_path = compare.latest()
     assert rec_path is not None, "run python -m edge.compare"
-    rec = json.loads(rec_path.read_text())
+    rec = json.loads(rec_path.read_text(encoding="utf-8"))
     sel, held = set(rec["protocol"]["selection_units"]), set(rec["protocol"]["held_out_units"])
     assert sel and held and not sel & held
     assert all(u.split("/")[1] in compare.SELECTION_IDS for u in sel)

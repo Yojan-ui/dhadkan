@@ -147,7 +147,7 @@ def dcase2020(train_per_id: int = DCASE_TRAIN_PER_ID) -> None:
         log(f"dcase2020 {mtype}: {done.count('ok')} downloaded, {done.count('skip')} already there")
         meta = {"record": "https://zenodo.org/records/3678171", "test": len(test), "train_used": len(train),
                 "train_available": {k: len(v) for k, v in by_id.items()}}  # fmt: skip
-        (out / mtype / "subset.json").write_text(json.dumps(meta, indent=1))
+        (out / mtype / "subset.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
 
 
 def ims() -> None:
@@ -196,7 +196,7 @@ def ims() -> None:
     readme = next(work.rglob("*.pdf"), None)
     if readme:
         readme.replace(dest / "IMS_readme.pdf")
-    (dest / "meta.json").write_text(json.dumps(meta, indent=1))
+    (dest / "meta.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
     subprocess.run(["rm", "-rf", str(work)], check=True)
     z.unlink()
     log("ims: done")
@@ -222,7 +222,7 @@ def cwru() -> None:
         out = dest / row["file"]
         if not out.exists():
             fetch(row["url"], out)
-    (dest / "index.json").write_text(json.dumps(index, indent=1))
+    (dest / "index.json").write_text(json.dumps(index, indent=1), encoding="utf-8")
     log(f"cwru: {len(index)} files ({sum(r['fault'] != 'normal' for r in index)} faults)")
 
 
@@ -243,7 +243,7 @@ def demo(per_label: int = DEMO_TEST_PER_LABEL) -> None:
     from .download import _zip
     from .download import fetch as fetch_member
 
-    cluster = json.loads((Path(__file__).parent / "sim" / "cluster.json").read_text())
+    cluster = json.loads((Path(__file__).parent / "sim" / "cluster.json").read_text(encoding="utf-8"))
     units = sorted({m["source"] for m in cluster["machines"] if m["type"] in DCASE_TYPES})
     for mtype in sorted({u.split("/")[0] for u in units}):
         url = DCASE_RECORD.format(name=f"dev_data_{mtype}.zip")

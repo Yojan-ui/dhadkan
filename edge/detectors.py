@@ -268,7 +268,7 @@ def chosen(default: Sequence[str] = ("rms",)) -> dict[str, Any]:
     runs = sorted(RUNS.glob("compare_*.json"))
     if not runs:
         return {"names": list(default), "fusion": "mean", "record": None}
-    rec = json.loads(runs[-1].read_text())
+    rec = json.loads(runs[-1].read_text(encoding="utf-8"))
     cfg = rec["candidates"][rec["chosen"]]
     return {
         "names": cfg["names"],

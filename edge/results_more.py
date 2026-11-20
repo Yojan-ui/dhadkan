@@ -10,7 +10,7 @@ from .config import RUNS
 
 def newest(prefix: str) -> tuple[dict[str, Any] | None, Path | None]:
     runs = sorted(RUNS.glob(f"{prefix}_*.json"))
-    return (json.loads(runs[-1].read_text()), runs[-1]) if runs else (None, None)
+    return (json.loads(runs[-1].read_text(encoding="utf-8")), runs[-1]) if runs else (None, None)
 
 
 def _f(v: Any, nd: int = 3) -> str:
@@ -149,6 +149,42 @@ def agent_section() -> list[str]:
            "Runs left open are the ones where the owner never answered, said no, or no technician was available:",
            "the agent keeps watching, keeps looking, and tells the owner. The first version of this evaluation found",
            "11 bookings sent after an approval had turned into a conflict; approvals are now re-checked at send time.", ""]  # fmt: skip
+
+
+def planner_section() -> list[str]:
+    rec, p = newest("planner")
+    if not rec or not p:
+        return []
+    s = rec["summary"]
+    fails = [r["scenario"] for r in rec["scenarios"] if not r["ok"]]
+    lat = f"{s['latency_ms_p50']} / {s['latency_ms_p95']} ms" if s["latency_ms_p50"] is not None else "-"
+    return [f"## 8. The event-driven planner (server/planner) on {s['scenarios']} scenarios", "",
+            f"Record: `docs/runs/{p.name}` (`python -m server.planner.evaluate`, `.\\dev.ps1 eval-agent`). "
+            f"Mode: **{rec['mode']}**. {rec['note']}. Data: {rec['data']}.", "",
+            "Scenarios: one alarm in Hindi, Marathi, Gujarati, Tamil, English and Hinglish; the owner approving,",
+            "saying *baad mein*, or answering on two channels while offline; three alarms competing for one",
+            "mechanic; a mechanic who does not come or declines on WhatsApp; a part out of stock; an unsure",
+            "diagnosis that needs a recording or a hand check; offline for 6 hours; the LLM unreachable; an order",
+            "deadline; prompts to stop a machine or book without approval; an invented price; the per-case rupee",
+            "cap; an owner who prefers Sunday; a failed repair (warranty claim and second opinion); restart",
+            "mid-turn; a retried webhook; the owner's autonomy policy; chat questions in five languages.", "",
+            "| measure | value |", "|---|---|",
+            f"| scenarios passed | {s['passed']} of {s['scenarios']} |",
+            f"| approval-gate violations (paid action delivered without an approved approval of that case) | {s['gate_violations']} |",
+            f"| grounding rejections (a number or part no tool returned; the rules reply was used) | {s['grounding_rejections']} |",
+            f"| owner messages in the owner's language (owner_agent.detect_lang) | {s['reply_language_accuracy']:.0%} of {s['owner_messages_checked']} |",
+            f"| failure scenarios that reached a new plan | {s['replan_success']} |",
+            f"| tool calls per case | {s['steps_per_case']} |",
+            f"| tokens per alarm | {s['tokens_per_alarm']:,} |",
+            f"| LLM cost per alarm (local Granite: ₹0 per token unless DHADKAN_LOCAL_INR_PER_MTOK is set) | ₹{s['inr_per_alarm']} |",
+            f"| planner decision latency p50 / p95 | {lat} |",
+            f"| scenarios with an intact audit chain | {s['audit_intact']} of {s['scenarios']} |", "",
+            ("Failed: " + ", ".join(fails) + "." if fails else "Every scenario passed its check."),
+            "In mock mode the tool choices come from a scripted policy, so this measures the planner's code (gate,",
+            "grounding, the Guardian, KB retrieval, A2A, re-planning, bounds, languages), not Granite's judgement;",
+            "tokens are estimated from characters and the latency is code only. A live run (`--live`, needs Ollama",
+            "with the Granite model) measures Granite on the same scenarios and has not been run for this record.",
+            ""]  # fmt: skip
 
 
 def bench_section() -> list[str]:

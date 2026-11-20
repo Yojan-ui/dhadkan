@@ -3,7 +3,7 @@
   "private": true,
   "description": "Dhadkan: npm run demo starts the backend and the web app with the NASA IMS bearing replay and the agent",
   "scripts": {
-    "demo": "make web/dist/index.html && .venv/bin/python -m server.demo --ims",
+    "demo": "node -e \"const w = process.platform === 'win32'; const r = require('child_process').spawnSync(w ? 'powershell' : 'make', w ? ['-ExecutionPolicy', 'Bypass', '-File', 'dev.ps1', 'demo-ims'] : ['demo-ims'], { stdio: 'inherit' }); process.exit(r.status ?? 1)\"",
     "setup": "make setup",
     "test": "make test",
     "lint": "make lint"

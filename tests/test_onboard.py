@@ -48,7 +48,7 @@ def test_namaste_to_learning_in_roman_hindi(ob, tmp_path):
     for _ in range(6):
         q = ob.clip(PHONE, b"OggS", ".ogg")
     assert "din 1/7" in q and not ob.active(PHONE)
-    prof = json.loads((tmp_path / "factories" / "919876500001.json").read_text())
+    prof = json.loads((tmp_path / "factories" / "919876500001.json").read_text(encoding="utf-8"))
     assert prof["language"] == "hi_latn" and prof["district_default_language"] == "hi_latn"
     assert (
         prof["shifts"] == 2

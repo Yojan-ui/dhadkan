@@ -2,6 +2,7 @@
 
 import copy
 import json
+import os
 
 import pytest
 
@@ -40,9 +41,10 @@ def test_signature_detects_tampering():
     forged["verification"]["outcome"] = "failed"
     assert not prove.verify_signature(forged, sig["signature"])
     assert not prove.verify_signature(doc, sig["signature"][:-4] + "AAAA")
-    assert (
-        prove.KEYS / "records_ed25519.pem"
-    ).stat().st_mode & 0o777 == 0o600  # private key not world-readable
+    if os.name != "nt":  # Windows has no POSIX mode bits; the key inherits the profile folder's ACL
+        assert (
+            prove.KEYS / "records_ed25519.pem"
+        ).stat().st_mode & 0o777 == 0o600  # private key not world-readable
 
 
 @pytest.fixture(scope="module")

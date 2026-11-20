@@ -50,7 +50,9 @@ def router(workdir: Path | None = None) -> APIRouter:
     @r.post("/reset")
     def reset() -> dict[str, Any]:
         with lock:
-            box.pop("d", None)
+            old = box.pop("d", None)
+            if old is not None:
+                old.close()
             return demo().state()
 
     @r.post("/step")

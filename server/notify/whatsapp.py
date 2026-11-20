@@ -251,10 +251,16 @@ def parse_meta(payload: dict[str, Any]) -> list[dict[str, str]]:
                 elif kind in ("audio", "voice") and m.get(kind, {}).get("id"):  # a voice note
                     out.append({"from": m.get("from", ""), "text": None, "id": m.get("id", ""),
                                 "audio": {"id": m[kind]["id"], "mime": m[kind].get("mime_type", "audio/ogg")}})  # fmt: skip
-                elif kind in ("image", "document") and m.get(kind, {}).get("id"):  # a photo / PDF of a paper
+                elif kind == "image" and m.get("image", {}).get("id"):  # a photo (caption as its text)
+                    x = m["image"]  # a part / case photo, or a photo of a warranty card (paper, if no case takes it)
+                    out.append({"from": m.get("from", ""), "text": x.get("caption"), "id": m.get("id", ""),
+                                "image": {"id": x["id"], "mime": x.get("mime_type", "image/jpeg")},
+                                "paper": {"id": x["id"], "mime": x.get("mime_type", "image/jpeg"),
+                                          "filename": None, "caption": x.get("caption")}})  # fmt: skip
+                elif kind == "document" and m.get(kind, {}).get("id"):  # a PDF of a paper
                     x = m[kind]
                     out.append({"from": m.get("from", ""), "text": None, "id": m.get("id", ""),
-                                "paper": {"id": x["id"], "mime": x.get("mime_type", "image/jpeg"),
+                                "paper": {"id": x["id"], "mime": x.get("mime_type", "application/pdf"),
                                           "filename": x.get("filename"), "caption": x.get("caption")}})  # fmt: skip
     return out
 
@@ -267,10 +273,14 @@ def parse_twilio(form: dict[str, str]) -> list[dict[str, Any]]:
     if form.get("NumMedia", "0") != "0" and form.get("MediaContentType0", "").startswith("audio/"):
         row["audio"] = {"url": form.get("MediaUrl0", ""), "mime": form["MediaContentType0"]}
         row["text"] = None
-    elif form.get("NumMedia", "0") != "0" and form.get("MediaContentType0", "").startswith(
-        ("image/", "application/pdf")
-    ):
-        # a photo or PDF of a warranty card / insurance policy (server/coverage.py)
+    elif form.get("NumMedia", "0") != "0" and form.get("MediaContentType0", "").startswith("image/"):
+        # a part / case photo (Body is the caption), or a photo of a warranty card if no case takes it
+        row["image"] = {"url": form.get("MediaUrl0", ""), "mime": form["MediaContentType0"]}
+        row["text"] = form.get("Body") or None
+        row["paper"] = {"url": form.get("MediaUrl0", ""), "mime": form["MediaContentType0"], "filename": None,
+                        "caption": form.get("Body") or None}  # fmt: skip
+    elif form.get("NumMedia", "0") != "0" and form.get("MediaContentType0", "").startswith("application/pdf"):
+        # a PDF of a warranty card / insurance policy (server/coverage.py)
         row["paper"] = {"url": form.get("MediaUrl0", ""), "mime": form["MediaContentType0"], "filename": None,
                         "caption": form.get("Body") or None}  # fmt: skip
         row["text"] = None

@@ -10,7 +10,7 @@ from .config import RUNS
 
 def main() -> None:
     path = sorted(RUNS.glob("eval_*.json"))[-1]
-    r = json.loads(path.read_text())
+    r = json.loads(path.read_text(encoding="utf-8"))
     print(f"From `runs/{path.name}` (code sha256 {r['code_sha256'][:12]}).\n")
     print("| type | condition | AUC | pAUC | normal + anomalous | false alarms | faults caught |")
     print("|---|---|---|---|---|---|---|")

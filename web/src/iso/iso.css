@@ -1,0 +1,458 @@
+/* Digital Twin main screen */
+.iso {
+  --navy0: #0b1220;
+  --navy1: #0e1a2b;
+  --cyan: #3fa9f5;
+  --teal: #2fd4a3;
+  --ink: #e6edf7;
+  --muted: #7f8fa9;
+  --alert: #ff4d2e;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 45%, var(--navy1) 0%, var(--navy0) 70%);
+  color: var(--ink);
+  font-family: "Inter", "Noto Sans Devanagari", system-ui, sans-serif;
+  font-size: 13px;
+}
+.iso.boot {
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  color: var(--muted);
+}
+.iso .stage {
+  position: absolute;
+  inset: 0;
+}
+.iso .mono,
+.iso .ax,
+.iso .bars .mono {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+.iso .dim {
+  color: var(--muted);
+}
+.iso .small {
+  font-size: 11px;
+}
+.iso .err {
+  color: var(--alert);
+}
+
+/* title, top-right above the risk list */
+.iso .title {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  text-align: right;
+  pointer-events: none;
+}
+.iso .title h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: #ffffff;
+}
+.iso .title p {
+  margin: 2px 0 0;
+  font-family: "Noto Sans Devanagari", "Inter", sans-serif;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* HUD panels */
+.iso .hud {
+  position: absolute;
+  background: rgba(11, 18, 32, 0.78);
+  border: 1px solid rgba(63, 169, 245, 0.75);
+  box-shadow:
+    0 0 12px rgba(63, 169, 245, 0.18),
+    inset 0 0 18px rgba(63, 169, 245, 0.05);
+  border-radius: 4px;
+  padding: 8px 10px 10px;
+}
+.iso .hud header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  font-size: 10.5px;
+  color: var(--cyan);
+}
+.iso .hud header small {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+.iso .hud-tl {
+  top: 14px;
+  left: 18px;
+  width: 330px;
+}
+.iso .hud-tc {
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 540px;
+}
+.iso .hud-tr {
+  top: 76px;
+  right: 18px;
+  width: 300px;
+}
+.iso .hud-l {
+  top: 150px;
+  left: 18px;
+  width: 230px;
+}
+.iso .hud-r {
+  top: 368px;
+  right: 18px;
+  width: 300px;
+}
+.iso .hud-bl {
+  bottom: 18px;
+  left: 18px;
+  width: 470px;
+}
+.iso .hud-bc {
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  text-align: center;
+}
+.iso .hud-br {
+  bottom: 18px;
+  right: 18px;
+  width: 300px;
+}
+
+.iso .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.iso .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid rgba(63, 169, 245, 0.35);
+  border-radius: 999px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11.5px;
+}
+.iso .chip i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 6px currentColor;
+}
+.iso .chart,
+.iso .spec,
+.iso .trend,
+.iso .gauge {
+  width: 100%;
+  display: block;
+}
+.iso .ax {
+  fill: var(--muted);
+  font-size: 9px;
+}
+.iso .bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 5px;
+}
+.iso .bars li {
+  display: grid;
+  grid-template-columns: 112px 1fr 42px;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.iso .bars .nm {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.iso .bars .nm small {
+  color: var(--muted);
+}
+.iso .bars .bar {
+  height: 7px;
+  background: rgba(63, 169, 245, 0.12);
+}
+.iso .bars .bar i {
+  display: block;
+  height: 100%;
+}
+.iso .bars .mono {
+  text-align: right;
+  font-size: 11px;
+}
+.iso .readout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 6px;
+}
+.iso .readout .rs {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 30px;
+  color: var(--teal);
+}
+.iso .seven {
+  fill: var(--teal);
+  filter: drop-shadow(0 0 4px rgba(47, 212, 163, 0.7));
+}
+.iso .strip {
+  width: 100%;
+  height: 110px;
+  display: block;
+}
+.iso .gv {
+  fill: #ffffff;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 22px;
+}
+.iso .togs {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.iso .tog {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 0;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+.iso .tog i {
+  width: 28px;
+  height: 14px;
+  border-radius: 7px;
+  background: rgba(127, 143, 169, 0.35);
+  position: relative;
+}
+.iso .tog i::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: left 0.2s;
+}
+.iso .tog.on i {
+  background: rgba(47, 212, 163, 0.35);
+}
+.iso .tog.on i::after {
+  left: 16px;
+  background: var(--teal);
+}
+.iso .check {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 10px;
+}
+.iso .check li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+}
+.iso .check li i {
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--muted);
+  border-radius: 2px;
+}
+.iso .check li.done {
+  color: var(--ink);
+}
+.iso .check li.done i {
+  background: var(--teal);
+  border-color: var(--teal);
+}
+
+/* side panel */
+.iso .side {
+  position: absolute;
+  top: 76px;
+  right: 18px;
+  bottom: 214px;
+  width: 340px;
+  overflow-y: auto;
+  background: rgba(11, 18, 32, 0.92);
+  border: 1px solid rgba(63, 169, 245, 0.75);
+  border-radius: 4px;
+  padding: 12px;
+}
+.iso .side header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.iso .side h2 {
+  margin: 0;
+  font-size: 17px;
+}
+.iso .side h3 {
+  margin: 12px 0 4px;
+  font-size: 10.5px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+.iso .side .x {
+  margin-left: auto;
+  background: none;
+  border: 1px solid rgba(63, 169, 245, 0.5);
+  color: var(--ink);
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+.iso .side .row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.iso .side button {
+  font: inherit;
+}
+.iso .side .row button {
+  flex: 1;
+  background: rgba(63, 169, 245, 0.08);
+  color: var(--ink);
+  border: 1px solid rgba(63, 169, 245, 0.5);
+  padding: 5px;
+  cursor: pointer;
+}
+
+/* agent dock */
+.iso .dock {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 196px;
+  width: 560px;
+  background: rgba(11, 18, 32, 0.92);
+  border: 1px solid rgba(47, 212, 163, 0.75);
+  border-radius: 4px;
+}
+.iso .dock header {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  cursor: pointer;
+  color: var(--teal);
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  font-size: 10.5px;
+}
+.iso .dock header small {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+.iso .dock .turns {
+  max-height: 210px;
+  overflow-y: auto;
+  padding: 0 10px;
+}
+.iso .dock .turn p {
+  margin: 4px 0;
+  white-space: pre-line;
+  font-family: "Inter", "Noto Sans Devanagari", "Noto Sans Gujarati", sans-serif;
+}
+.iso .dock .turn.owner p {
+  color: var(--cyan);
+}
+.iso .dock .timeline {
+  margin: 2px 0 8px;
+  padding-left: 16px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.iso .dock .timeline b {
+  color: var(--teal);
+  font-weight: 600;
+}
+.iso .dock .timeline code {
+  font-family: "JetBrains Mono", monospace;
+  color: var(--ink);
+}
+.iso .dock .ex {
+  background: none;
+  border: 1px solid rgba(63, 169, 245, 0.4);
+  color: var(--ink);
+  font: inherit;
+  margin: 2px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+.iso .dock .ask {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px 10px;
+}
+.iso .dock input {
+  flex: 1;
+  background: rgba(14, 26, 43, 0.9);
+  border: 1px solid rgba(63, 169, 245, 0.5);
+  color: var(--ink);
+  font: inherit;
+  padding: 6px 8px;
+}
+.iso .dock .ask button {
+  background: rgba(47, 212, 163, 0.15);
+  border: 1px solid var(--teal);
+  color: var(--ink);
+  font: inherit;
+  padding: 0 12px;
+  cursor: pointer;
+}
+.iso .dock .ask button.rec {
+  border-color: var(--alert);
+  color: var(--alert);
+}
+.iso .dock:not(.open) {
+  bottom: 196px;
+}
+.iso .demo-tag {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* a picked machine's panel takes the right column */
+.iso.picked .hud-tr,
+.iso.picked .hud-r {
+  display: none;
+}

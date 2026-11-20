@@ -1,0 +1,14 @@
+# LF in the repository and in every working tree, Windows included (prettier and black expect LF;
+# core.autocrlf=true would otherwise check text files out with CRLF).
+* text=auto eol=lf
+
+*.wav binary
+*.png binary
+*.gif binary
+*.jpg binary
+*.pdf binary
+*.npz binary
+*.npy binary
+*.tflite binary
+*.keras binary
+*.db binary

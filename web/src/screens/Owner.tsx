@@ -6,6 +6,8 @@ import { get, post, useLive, useMeta, type DiagnosisCard, type Machine } from ".
 type Lang = "hi" | "hi_latn" | "mr" | "gu" | "en";
 const L: Record<Lang, Record<string, string>> = {
   hi: {
+    suno: "सुनो",
+    novoice: "आवाज़ अभी नहीं बन सकी",
     title: "मेरी मशीनें",
     ok: "ठीक",
     learning: "सीख रही है",
@@ -16,6 +18,8 @@ const L: Record<Lang, Record<string, string>> = {
     noreq: "अभी कोई अनुरोध नहीं",
   },
   hi_latn: {
+    suno: "Suno",
+    novoice: "Awaaz abhi nahi ban saki",
     title: "Meri machines",
     ok: "Theek",
     learning: "Seekh rahi hai",
@@ -26,6 +30,8 @@ const L: Record<Lang, Record<string, string>> = {
     noreq: "Abhi koi request nahi",
   },
   mr: {
+    suno: "ऐका",
+    novoice: "आवाज आत्ता तयार झाला नाही",
     title: "माझ्या मशीन",
     ok: "ठीक",
     learning: "शिकत आहे",
@@ -36,6 +42,8 @@ const L: Record<Lang, Record<string, string>> = {
     noreq: "आत्ता विनंती नाही",
   },
   gu: {
+    suno: "સાંભળો",
+    novoice: "અવાજ હમણાં બની શક્યો નહીં",
     title: "મારા મશીન",
     ok: "ઠીક",
     learning: "શીખે છે",
@@ -46,6 +54,8 @@ const L: Record<Lang, Record<string, string>> = {
     noreq: "હમણાં કોઈ વિનંતી નથી",
   },
   en: {
+    suno: "Listen",
+    novoice: "No voice right now",
     title: "My machines",
     ok: "Fine",
     learning: "Learning",
@@ -128,6 +138,23 @@ function OwnerCard({ m, lang, tick }: { m: Machine; lang: Lang; tick: number }) 
     });
     setOut(r.text ?? (r.why ? t.noreq : t.sent));
   };
+  const [playing, setPlaying] = useState(false);
+  // "suno": the alert read aloud, from the same template text (server/voice), in the owner's language
+  const listen = async () => {
+    setPlaying(true);
+    try {
+      const a = new Audio(`/api/voice/machine/${encodeURIComponent(m.id)}.ogg?lang=${lang}`);
+      a.onended = () => setPlaying(false);
+      a.onerror = () => {
+        setPlaying(false);
+        setOut(t.novoice);
+      };
+      await a.play();
+    } catch {
+      setPlaying(false);
+      setOut(t.novoice);
+    }
+  };
   const what = card?.what?.[lang as "en"] ?? card?.unknown?.[lang as "en"];
   // the stage WhatsApp alerted at, if higher than this reading's: the owner sees the same label in both places
   const higher = alerted && card && ORDER.indexOf(alerted.level) > ORDER.indexOf(card.severity.level);
@@ -137,6 +164,9 @@ function OwnerCard({ m, lang, tick }: { m: Machine; lang: Lang; tick: number }) 
       <div className="lite-row">
         <h2>{lang === "hi" || lang === "mr" ? m.name_local : m.name}</h2>
         {sev && <span className="lite-sev">{sev}</span>}
+        <button className="lite-suno" onClick={() => void listen()} disabled={playing} aria-label={t.suno}>
+          🔊 {t.suno}
+        </button>
       </div>
       {what && <p className="lite-line">{what}</p>}
       {m.rupees_at_risk > 0 && (

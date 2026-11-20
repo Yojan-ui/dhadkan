@@ -2,8 +2,9 @@ from types import SimpleNamespace as NS
 
 import pytest
 
-from server import agent, registry
+from server import agent, provider, registry
 from server.sim import Cluster
+from tests.conftest import needs_recordings
 
 CFG = {
     "start": "2026-11-09T06:00:00",
@@ -113,12 +114,12 @@ def test_reply_books_visit_only(cluster):
     assert tuple(row) == (1, "हो")
 
 
-class FakeClaude:
+class FakeLLM:
     """Asks for the ranking, then drafts one alert, then finishes."""
 
     def __init__(self):
         self.calls = []
-        self.beta = NS(messages=NS(create=self.create))
+        self.messages = NS(create=self.create)
 
     def create(self, **kw):
         self.calls.append({**kw, "messages": list(kw["messages"])})
@@ -143,18 +144,18 @@ class FakeClaude:
         return NS(stop_reason="end_turn", content=[NS(type="text", text="Tuesday: A-P1")])
 
 
-def test_claude_loop_with_fake_client(cluster):
-    fake = FakeClaude()
-    run_id, note = agent.run_claude(cluster, client=fake)
+def test_llm_loop_with_fake_client(cluster):
+    fake = FakeLLM()
+    run_id, note = agent.run_llm(cluster, client=fake)
     assert note == "Tuesday: A-P1"
-    assert fake.calls[0]["model"] == "claude-fable-5-2" and "thinking" not in fake.calls[0]
+    assert fake.calls[0]["model"] == provider.chat_model() and "thinking" not in fake.calls[0]
     assert fake.calls[0]["output_config"] == {"effort": "low"} and "tool_choice" not in fake.calls[0]
     assert {t["name"] for t in fake.calls[0]["tools"]} == {t["name"] for t in agent.TOOLS}
     # tool results went back to the model in one user turn each
     last = fake.calls[-1]["messages"][-1]
     assert last["role"] == "user" and last["content"][0]["tool_use_id"] == "t2"
     logged = cluster.db.execute("SELECT actor, tool FROM tool_calls WHERE run_id=?", (run_id,)).fetchall()
-    assert [tuple(r) for r in logged] == [("claude", "get_risk_ranking"), ("claude", "draft_owner_alert")]
+    assert [tuple(r) for r in logged] == [("granite", "get_risk_ranking"), ("granite", "draft_owner_alert")]
 
 
 def test_no_repeat_question_while_open(cluster):
@@ -171,6 +172,7 @@ def test_single_stray_match_is_not_early(cluster):
     assert r["B-P2"]["status"] == "ok"
 
 
+@needs_recordings
 def test_new_machine_learns_before_it_can_alarm(tmp_path):
     """A machine raises no alarm and gets no rupees at risk while it is still learning its normal."""
     import copy

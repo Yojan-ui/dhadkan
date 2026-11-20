@@ -7,6 +7,10 @@
     approvals  what the owner was asked, and what they decided, on which channel
     repairs    jobs done and whether the machine came back towards its ORIGINAL baseline
     audit      append-only, hash-chained log of everything the agent and people did
+    events     what happened (alarm, owner reply, mechanic no-show, ...), once per idempotency key
+    memory     notes per machine and per owner ("prefers Sunday visits"), with the event they came from
+    questions  numbered questions the planner asked the owner, and which option each number means
+    decisions  every planner turn: event, model, reasoning, tool calls, outcome, tokens, ₹ cost
 
 The audit chain makes later edits visible: each row's hash covers the previous row's hash.
 """
@@ -39,7 +43,23 @@ CREATE TABLE IF NOT EXISTS repairs (
 CREATE TABLE IF NOT EXISTS audit (
   seq INTEGER PRIMARY KEY, ts REAL, case_id TEXT, actor TEXT, event TEXT, detail TEXT, prev TEXT, hash TEXT);
 CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT);
+CREATE TABLE IF NOT EXISTS events (
+  idem TEXT PRIMARY KEY, seq INTEGER, type TEXT, factory TEXT, machine TEXT, case_id TEXT, payload TEXT,
+  source TEXT, ts REAL, status TEXT, attempts INTEGER DEFAULT 0, decision INTEGER, error TEXT, handled REAL);
+CREATE INDEX IF NOT EXISTS events_status ON events(status, seq);
+CREATE TABLE IF NOT EXISTS memory (
+  id INTEGER PRIMARY KEY, scope TEXT, note TEXT, source TEXT, by_ TEXT, ts REAL);
+CREATE TABLE IF NOT EXISTS questions (
+  id TEXT PRIMARY KEY, case_id TEXT, factory TEXT, question TEXT, options TEXT, status TEXT, asked REAL,
+  answered REAL, choice INTEGER, answer TEXT);
+CREATE TABLE IF NOT EXISTS decisions (
+  id INTEGER PRIMARY KEY, event TEXT, event_type TEXT, case_id TEXT, machine TEXT, engine TEXT, model TEXT,
+  status TEXT, reasoning TEXT, tool_calls TEXT, reply TEXT, outcome TEXT, input_tokens INTEGER DEFAULT 0,
+  output_tokens INTEGER DEFAULT 0, cost_inr REAL DEFAULT 0, latency_ms INTEGER, started REAL, ended REAL,
+  grounding TEXT);
+CREATE INDEX IF NOT EXISTS decisions_case ON decisions(case_id, id);
 """
+J = ("payload", "options", "tool_calls", "grounding")  # JSON columns of the planner tables
 
 
 class Conflict(RuntimeError):
@@ -258,6 +278,17 @@ class Store:
                         (case_id,))  # fmt: skip
         self.db.commit()
 
+    def reopen_approval(self, approval_id: str, summary: str, amount: tuple[int, int]) -> None:
+        """Ask the owner again about the same approval (e.g. the visit now costs more); the old decision is
+        kept in the note and the audit."""
+        self.db.execute("UPDATE approvals SET status='requested', summary=?, amount_low=?, amount_high=?, decided=NULL,"
+                        " decided_by=NULL, channel=NULL, ref=NULL, note='reopened: cost changed' WHERE id=?",
+                        (summary, int(amount[0]), int(amount[1]), approval_id))  # fmt: skip
+        self.db.commit()
+        self.log(
+            "agent", "approval_reopened", approval_id.split(":")[0], approval=approval_id, summary=summary
+        )
+
     def reset_conflict(self, approval_id: str) -> None:
         self.db.execute("UPDATE approvals SET status='requested', decided=NULL, decided_by=NULL, channel=NULL,"
                         " ref=NULL WHERE id=? AND status='conflict'", (approval_id,))  # fmt: skip
@@ -279,6 +310,128 @@ class Store:
         if technician:
             q, args = q + " AND technician=?", [*args, technician]
         return [dict(r) for r in self.db.execute(q + " ORDER BY done", args)]
+
+    # -- events (idempotent: the same key is stored once) -----------------------------------------
+    @staticmethod
+    def _row(r: sqlite3.Row) -> dict[str, Any]:
+        d = dict(r)
+        for k in J:
+            if k in d and d[k] is not None:
+                d[k] = json.loads(d[k])
+        return d
+
+    def put_event(self, idem: str, type_: str, factory: str | None, machine: str | None, case_id: str | None,
+                  payload: dict[str, Any], source: str) -> bool:  # fmt: skip
+        """True if new; False if an event with this key was already stored (it is never handled twice)."""
+        seq = self.db.execute("SELECT COALESCE(MAX(seq), 0) + 1 FROM events").fetchone()[0]
+        cur = self.db.execute(
+            "INSERT OR IGNORE INTO events (idem, seq, type, factory, machine, case_id, payload, source, ts, status)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?)",
+            (idem, seq, type_, factory, machine, case_id, json.dumps(payload, ensure_ascii=False, default=str),
+             source, self.clock(), "pending"),
+        )  # fmt: skip
+        self.db.commit()
+        return cur.rowcount == 1
+
+    def event(self, idem: str) -> dict[str, Any] | None:
+        r = self.db.execute("SELECT * FROM events WHERE idem=?", (idem,)).fetchone()
+        return self._row(r) if r else None
+
+    def events(
+        self, status: str | None = None, case_id: str | None = None, limit: int = 200
+    ) -> list[dict[str, Any]]:
+        q, args = "SELECT * FROM events WHERE 1=1", []
+        if status:
+            q, args = q + " AND status=?", [*args, status]
+        if case_id:
+            q, args = q + " AND case_id=?", [*args, case_id]
+        return [self._row(r) for r in self.db.execute(q + " ORDER BY seq LIMIT ?", [*args, limit])]
+
+    def set_event(self, idem: str, **fields: Any) -> None:
+        sets = ", ".join(f"{k}=?" for k in fields)
+        self.db.execute(f"UPDATE events SET {sets} WHERE idem=?", (*fields.values(), idem))
+        self.db.commit()
+
+    # -- memory (per machine, per owner) ----------------------------------------------------------
+    def remember(self, scope: str, note: str, source: str, by: str) -> int:
+        dup = self.db.execute("SELECT id FROM memory WHERE scope=? AND note=?", (scope, note)).fetchone()
+        if dup:
+            return int(dup["id"])
+        cur = self.db.execute("INSERT INTO memory (scope, note, source, by_, ts) VALUES (?,?,?,?,?)",
+                              (scope, note, source, by, self.clock()))  # fmt: skip
+        self.db.commit()
+        return int(cur.lastrowid or 0)
+
+    def memory(self, scope: str) -> list[dict[str, Any]]:
+        return [dict(r) for r in self.db.execute("SELECT * FROM memory WHERE scope=? ORDER BY id", (scope,))]
+
+    # -- questions to the owner -------------------------------------------------------------------
+    def ask(self, qid: str, case_id: str | None, factory: str | None, question: str,
+            options: list[dict[str, Any]]) -> bool:  # fmt: skip
+        cur = self.db.execute(
+            "INSERT OR IGNORE INTO questions (id, case_id, factory, question, options, status, asked)"
+            " VALUES (?,?,?,?,?,?,?)",
+            (qid, case_id, factory, question, json.dumps(options, ensure_ascii=False), "open", self.clock()),
+        )
+        self.db.commit()
+        return cur.rowcount == 1
+
+    def question(self, qid: str) -> dict[str, Any] | None:
+        r = self.db.execute("SELECT * FROM questions WHERE id=?", (qid,)).fetchone()
+        return self._row(r) if r else None
+
+    def questions(self, factory: str | None = None, case_id: str | None = None,
+                  open_only: bool = False) -> list[dict[str, Any]]:  # fmt: skip
+        q, args = "SELECT * FROM questions WHERE 1=1", []
+        if factory:
+            q, args = q + " AND factory=?", [*args, factory]
+        if case_id:
+            q, args = q + " AND case_id=?", [*args, case_id]
+        if open_only:
+            q += " AND status='open'"
+        return [self._row(r) for r in self.db.execute(q + " ORDER BY asked", args)]
+
+    def answer(self, qid: str, choice: int | None, answer: str, status: str = "answered") -> None:
+        self.db.execute("UPDATE questions SET status=?, answered=?, choice=?, answer=? WHERE id=?",
+                        (status, self.clock(), choice, answer, qid))  # fmt: skip
+        self.db.commit()
+
+    # -- planner decisions ------------------------------------------------------------------------
+    def start_decision(self, event: str, event_type: str, case_id: str | None, machine: str | None,
+                       engine: str, model: str | None) -> int:  # fmt: skip
+        cur = self.db.execute(
+            "INSERT INTO decisions (event, event_type, case_id, machine, engine, model, status, tool_calls, started)"
+            " VALUES (?,?,?,?,?,?,?,?,?)",
+            (event, event_type, case_id, machine, engine, model, "running", "[]", self.clock()),
+        )
+        self.db.commit()
+        return int(cur.lastrowid or 0)
+
+    def set_decision(self, did: int, **fields: Any) -> None:
+        for k in J:
+            if k in fields:
+                fields[k] = json.dumps(fields[k], ensure_ascii=False, default=str)
+        sets = ", ".join(f"{k}=?" for k in fields)
+        self.db.execute(f"UPDATE decisions SET {sets} WHERE id=?", (*fields.values(), did))
+        self.db.commit()
+
+    def decision(self, did: int) -> dict[str, Any] | None:
+        r = self.db.execute("SELECT * FROM decisions WHERE id=?", (did,)).fetchone()
+        return self._row(r) if r else None
+
+    def decisions(self, case_id: str | None = None, status: str | None = None,
+                  limit: int = 200) -> list[dict[str, Any]]:  # fmt: skip
+        q, args = "SELECT * FROM decisions WHERE 1=1", []
+        if case_id:
+            q, args = q + " AND case_id=?", [*args, case_id]
+        if status:
+            q, args = q + " AND status=?", [*args, status]
+        rows = self.db.execute(q + " ORDER BY id DESC LIMIT ?", [*args, limit]).fetchall()
+        return [self._row(r) for r in rows][::-1]
+
+    def llm_cost_inr(self, case_id: str) -> float:
+        r = self.db.execute("SELECT COALESCE(SUM(cost_inr), 0) FROM decisions WHERE case_id=?", (case_id,))
+        return float(r.fetchone()[0])
 
     def meta(self, k: str, v: str | None = None) -> str | None:
         if v is not None:

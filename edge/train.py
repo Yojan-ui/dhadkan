@@ -182,7 +182,7 @@ def train_type(mtype: str, epochs: int) -> dict[str, Any]:
     tfl = model.to_tflite(ae)
     (d / "model.tflite").write_bytes(tfl)
     meta = {"mtype": mtype, "mel_mean": mu[:, 0].tolist(), "mel_std": sd[:, 0].tolist(), "units": meta_units}
-    (d / "meta.json").write_text(json.dumps(meta))
+    (d / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
     report["tflite"] = tflite_check(d, clips, audio, rows)
     report["training"] = {
         "epochs_run": len(hist.history["loss"]),
@@ -322,8 +322,8 @@ def main() -> None:
     }
     subsets = sorted((RAW / "dcase2020").glob("*/subset.json"))
     if subsets:  # how much of the official DCASE train split was used
-        record["train_per_id"] = json.loads(subsets[0].read_text())["train_used"] // max(
-            1, len(json.loads(subsets[0].read_text())["train_available"])
+        record["train_per_id"] = json.loads(subsets[0].read_text(encoding="utf-8"))["train_used"] // max(
+            1, len(json.loads(subsets[0].read_text(encoding="utf-8"))["train_available"])
         )
     for mtype in args.types:
         record["types"][mtype] = train_type(mtype, args.epochs)
@@ -331,8 +331,8 @@ def main() -> None:
 
     RUNS.mkdir(exist_ok=True)
     out = RUNS / f"eval_{record['run_id']}.json"
-    out.write_text(json.dumps(record, indent=1))
-    (MODELS / "frontend.json").write_text(json.dumps(record["frontend"], indent=1))
+    out.write_text(json.dumps(record, indent=1), encoding="utf-8")
+    (MODELS / "frontend.json").write_text(json.dumps(record["frontend"], indent=1), encoding="utf-8")
 
     print(f"\nwrote {out}")
     for mtype, rep in record["types"].items():

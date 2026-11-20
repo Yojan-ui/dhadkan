@@ -15,6 +15,7 @@ faster-whisper==1.2.1
 remotezip==0.12.6
 reportlab==5.1.0
 PyYAML==6.0.3
+segno==1.6.6   # QR code of the recorder's URL in the terminal (scripts/tunnel.py)
 cryptography==50.0.2   # Ed25519 signatures on repair records and passports
 twilio==9.13.0   # WhatsApp via the Twilio sandbox (server/whatsapp.py)
 python-dotenv==1.2.4

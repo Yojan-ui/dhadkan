@@ -72,7 +72,11 @@ export function MachineDetail({
           <b className="mono">{m.last_ts?.replace("T", " ") ?? "—"}</b>
           <span>readings</span>
           <b className="muted">
-            {m.source === "simulated" ? "recorded clips replayed (simulated)" : (m.source ?? "—")}
+            {m.live
+              ? `LIVE recorder · ${m.live.state === "learning" ? `learning ${m.live.progress.clips}/${m.live.progress.target} clips` : `${m.live.readings} clips`}${m.live.label ? ` · ${m.live.label}` : ""}`
+              : m.source === "simulated"
+                ? "recorded clips replayed (simulated)"
+                : (m.source ?? "—")}
           </b>
         </div>
       </Panel>
