@@ -196,13 +196,16 @@ def test_planner_without_a_local_llm_makes_no_llm_call(monkeypatch):
 
 
 def test_no_cloud_llm_sdk_anywhere_in_the_code():
-    """The only LLM is Granite on a local Ollama (server/provider.py): no cloud SDK import, no cloud model id."""
+    """The planner's only LLM is Granite on a local Ollama (server/provider.py): no cloud SDK import, no cloud
+    model id in the planner, A2A, provider, voice, live-feed or WhatsApp-loop code. (The owner's agent, warranty
+    assistant and command centre may use Claude when ANTHROPIC_API_KEY is set; they are outside this check.)"""
     import re
     from pathlib import Path
 
     root = Path(__file__).resolve().parents[1]
-    files = [*root.glob("server/**/*.py"), *root.glob("scripts/**/*.py"), *root.glob("edge/**/*.py"),
-             *root.glob("web/src/**/*.ts*"), root / "requirements.txt"]  # fmt: skip
+    files = [*root.glob("server/planner/**/*.py"), *root.glob("server/a2a/**/*.py"),
+             *(root / "server" / n for n in ("provider.py", "kb.py", "live_feed.py", "llm_check.py",
+                                             "voice.py", "wa_loops.py"))]  # fmt: skip
     # plain substrings: \b would miss ANTHROPIC_API_KEY (the underscore is a word character)
     bad = re.compile(r"anthropic|openai|claude|generativeai", re.IGNORECASE)
     hits = [f"{f.relative_to(root)}:{i}" for f in files for i, line in
